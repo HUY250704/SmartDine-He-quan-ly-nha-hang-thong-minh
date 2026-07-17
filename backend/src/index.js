@@ -11,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173'],
+    origin: ['http://localhost:3000'],
     methods: ['GET', 'POST']
   }
 });
@@ -32,7 +32,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/smartdine';
 
 mongoose.connect(mongoUri, {
