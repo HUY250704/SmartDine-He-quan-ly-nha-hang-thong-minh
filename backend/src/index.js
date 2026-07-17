@@ -1,22 +1,25 @@
+﻿import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
 
-dotenv.config();
+// Register all models
+import './models/index.js';
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:3000'],
+    origin: 'http://localhost:3000',
     methods: ['GET', 'POST']
   }
 });
 
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
 
 app.get('/api/ping', (req, res) => {
@@ -33,15 +36,12 @@ io.on('connection', (socket) => {
 });
 
 const port = process.env.PORT || 3000;
-const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/smartdine';
+const mongoUri = process.env.MONGODB_URI;
 
-mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
+mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 }).then(() => {
   console.log('MongoDB connected');
   server.listen(port, () => {
-    console.log(`Backend running on http://localhost:${port}`);
+    console.log(`Backend running on http://localhost:${port} with DB`);
   });
 }).catch((error) => {
   console.error('MongoDB connection error:', error);
