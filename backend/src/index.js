@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+﻿import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
@@ -16,6 +16,7 @@ import tableRoutes from './routes/tables.js';
 import categoryRoutes from './routes/categories.js';
 import menuRoutes from './routes/menu.js';
 import sessionRoutes from './routes/sessions.js';
+import billRoutes from './routes/bills.js';
 import orderRoutes from './routes/orders.js';
 import supportRoutes from './routes/support.js';
 import dashboardRoutes from './routes/dashboard.js';
@@ -39,6 +40,7 @@ app.use('/categories', categoryRoutes);
 app.use('/menu', menuRoutes);
 app.use('/sessions', sessionRoutes);
 app.use('/orders', orderRoutes);
+app.use('/bills', billRoutes);
 app.use('/support', supportRoutes);
 app.use('/dashboard', dashboardRoutes);
 
