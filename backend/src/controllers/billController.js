@@ -3,6 +3,7 @@ import Session from '../models/Session.js';
 import Order from '../models/Order.js';
 import OrderItem from '../models/OrderItem.js';
 import Table from '../models/Table.js';
+import { emitTableUpdated } from '../socket/index.js';
 
 export const getBills = async (req, res) => {
   try {
@@ -68,10 +69,12 @@ export const generateBill = async (req, res) => {
     session.endTime = new Date();
     await session.save();
 
-    await Table.findByIdAndUpdate(session.tableId, {
+    const table = await Table.findByIdAndUpdate(session.tableId, {
       status: 'AVAILABLE',
       currentSessionId: null
-    });
+    }, { new: true });
+
+    if (table) emitTableUpdated(table);
 
     res.status(201).json(bill);
   } catch (error) {

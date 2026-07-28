@@ -21,6 +21,9 @@ import orderRoutes from './routes/orders.js';
 import supportRoutes from './routes/support.js';
 import dashboardRoutes from './routes/dashboard.js';
 
+// Socket
+import { initSocket } from './socket/index.js';
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -29,6 +32,9 @@ const io = new Server(server, {
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   }
 });
+
+// Initialize socket handlers
+initSocket(io);
 
 app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
@@ -46,15 +52,6 @@ app.use('/dashboard', dashboardRoutes);
 
 app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong from backend' });
-});
-
-io.on('connection', (socket) => {
-  console.log('Socket connected:', socket.id);
-  socket.emit('server-message', { message: 'Connected to SmartDine socket server' });
-
-  socket.on('disconnect', () => {
-    console.log('Socket disconnected:', socket.id);
-  });
 });
 
 const port = process.env.PORT || 3000;

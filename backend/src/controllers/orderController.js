@@ -1,7 +1,8 @@
-import Order from '../models/Order.js';
+﻿import Order from '../models/Order.js';
 import OrderItem from '../models/OrderItem.js';
 import Session from '../models/Session.js';
 import MenuItem from '../models/MenuItem.js';
+import { emitNewOrder, emitOrderUpdated } from '../socket/index.js';
 
 export const createOrder = async (req, res) => {
   try {
@@ -32,7 +33,10 @@ export const createOrder = async (req, res) => {
     session.totalAmount = (session.totalAmount || 0) + orderTotal;
     await session.save();
 
-    res.status(201).json({ order, items: orderItems, total: orderTotal });
+    const responseData = { order, items: orderItems, total: orderTotal };
+    emitNewOrder(sessionId, session.tableId.toString(), responseData);
+
+    res.status(201).json(responseData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -62,6 +66,11 @@ export const updateOrderStatus = async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
     await OrderItem.updateMany({ orderId: order._id }, { status });
+
+    const enrichedItems = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'name price');
+    const orderData = { ...order.toObject(), items: enrichedItems };
+
+    emitOrderUpdated(order.sessionId.toString(), orderData);
 
     res.json(order);
   } catch (error) {

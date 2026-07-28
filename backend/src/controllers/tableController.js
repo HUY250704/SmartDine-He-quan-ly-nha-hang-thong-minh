@@ -1,4 +1,5 @@
-import Table from '../models/Table.js';
+﻿import Table from '../models/Table.js';
+import { emitTableUpdated } from '../socket/index.js';
 
 export const getTables = async (req, res) => {
   try {
@@ -33,6 +34,9 @@ export const updateTable = async (req, res) => {
 
     const table = await Table.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!table) return res.status(404).json({ error: 'Table not found' });
+
+    emitTableUpdated(table);
+
     res.json(table);
   } catch (error) {
     res.status(500).json({ error: error.message });

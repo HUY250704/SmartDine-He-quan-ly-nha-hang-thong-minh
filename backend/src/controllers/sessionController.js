@@ -1,5 +1,6 @@
-import Session from '../models/Session.js';
+﻿import Session from '../models/Session.js';
 import Table from '../models/Table.js';
+import { emitTableUpdated } from '../socket/index.js';
 
 export const openSession = async (req, res) => {
   try {
@@ -15,6 +16,8 @@ export const openSession = async (req, res) => {
     table.status = 'OCCUPIED';
     table.currentSessionId = session._id;
     await table.save();
+
+    emitTableUpdated(table);
 
     res.status(201).json(session);
   } catch (error) {
@@ -32,7 +35,13 @@ export const closeSession = async (req, res) => {
     );
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
-    await Table.findByIdAndUpdate(session.tableId, { status: 'AVAILABLE', currentSessionId: null });
+    const table = await Table.findByIdAndUpdate(
+      session.tableId,
+      { status: 'AVAILABLE', currentSessionId: null },
+      { new: true }
+    );
+
+    if (table) emitTableUpdated(table);
 
     res.json(session);
   } catch (error) {
