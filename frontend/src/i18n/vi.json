@@ -1,4 +1,4 @@
-{
+﻿{
   "common": {
     "save": "Lưu",
     "cancel": "Hủy",
@@ -192,6 +192,16 @@
   },
   "user": {
     "welcome": "Chào mừng",
+    "yourTable": "Bàn của bạn",
+    "changeTable": "Đổi bàn",
+    "viewMenu": "Xem Thực đơn",
+    "viewMenuDesc": "Khám phá hương vị tuyển chọn",
+    "callStaff": "Gọi Phục vụ",
+    "callStaffDesc": "Đội ngũ luôn sẵn sàng",
+    "callStaffSent": "Đã gửi yêu cầu...",
+    "viewOrders": "Đơn hàng của tôi",
+    "viewOrdersDesc": "Theo dõi trạng thái món",
+    "bonAppetit": "Chúc ngon miệng",
     "scanQR": "Quét mã QR trên bàn để bắt đầu",
     "startOrdering": "Bắt đầu gọi món",
     "menu": "Thực đơn",
@@ -223,3 +233,4 @@
     "en": "English"
   }
 }
+

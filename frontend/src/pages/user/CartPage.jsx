@@ -1,35 +1,61 @@
 ﻿import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
+import { useCart } from "@/context/CartContext.jsx";
 import { UserBottomNav } from "@/components/layout/UserBottomNav";
-
-const initialCart = [
-  { id: 1, name: "Wagyu Beef Tartare", price: 580000, qty: 2, note: "", image: "🥩" },
-  { id: 5, name: "Ribeye Steak 300g", price: 950000, qty: 1, note: "Medium rare", image: "🥩" },
-  { id: 7, name: "Chocolate Lava Cake", price: 280000, qty: 1, note: "", image: "🍫" },
-  { id: 9, name: "Signature Old Fashioned", price: 195000, qty: 2, note: "", image: "🥃" },
-];
+import api from "@/lib/api.js";
 
 export default function CartPage() {
   const { t } = useLang();
   const { tableId } = useParams();
   const navigate = useNavigate();
-  const [cart, setCart] = useState(initialCart);
+  const { cart, updateQty, updateNote, clearCart } = useCart();
+  const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [orderError, setOrderError] = useState("");
 
-  const updateQty = (id, delta) => {
-    setCart(prev => prev.map(i => i.id === id ? {...i, qty: Math.max(0, i.qty + delta)} : i).filter(i => i.qty > 0));
+  const formatPrice = (p) => {
+    const vnd = typeof p === "number" ? p * 25000 : (p || 0);
+    return vnd.toLocaleString("vi-VN") + "\u0111";
   };
 
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = cart.reduce((s, i) => s + (i.price || 0) * 25000 * i.qty, 0);
   const tax = Math.round(subtotal * 0.08);
   const serviceCharge = Math.round(subtotal * 0.05);
   const total = subtotal + tax + serviceCharge;
-  const formatPrice = p => p.toLocaleString("vi-VN") + "đ";
 
-  const handlePlaceOrder = () => {
-    setShowSuccess(true);
-    setTimeout(() => { setShowSuccess(false); navigate(`/customer/${tableId}/tracking`); }, 2000);
+  const handlePlaceOrder = async () => {
+    if (cart.length === 0) return;
+
+    const sessionId = localStorage.getItem("smartdine_sessionId");
+    if (!sessionId) {
+      setOrderError("Session not found. Please scan QR again.");
+      return;
+    }
+
+    setSubmitting(true);
+    setOrderError("");
+
+    try {
+      const items = cart.map((i) => ({
+        menuItemId: i._id,
+        quantity: i.qty,
+        note: i.note || "",
+      }));
+
+      await api.post("/orders", { sessionId, items });
+
+      clearCart();
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        navigate(`/customer/${tableId}/tracking`);
+      }, 2500);
+    } catch (err) {
+      setOrderError(err.response?.data?.error || "Failed to place order");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (showSuccess) {
@@ -51,7 +77,8 @@ export default function CartPage() {
       <header className="sticky top-0 z-40 bg-surface-container/80 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
           <button onClick={() => navigate(`/customer/${tableId}/menu`)} className="flex items-center gap-2 text-on-surface-variant hover:text-white transition-colors">
-            <span className="material-symbols-outlined">arrow_back</span><span className="text-sm font-medium">{t("user.backToMenu")}</span>
+            <span className="material-symbols-outlined">arrow_back</span>
+            <span className="text-sm font-medium">{t("user.backToMenu")}</span>
           </button>
           <h1 className="text-lg font-bold text-white">{t("user.cart")}</h1>
           <span className="w-16" />
@@ -59,6 +86,12 @@ export default function CartPage() {
       </header>
 
       <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
+        {orderError && (
+          <div className="px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: "rgba(255,180,171,0.1)", border: "1px solid rgba(255,180,171,0.3)", color: "#ffb4ab" }}>
+            {orderError}
+          </div>
+        )}
+
         {cart.length === 0 ? (
           <div className="text-center py-20">
             <span className="material-symbols-outlined text-6xl text-on-surface-variant/10 mb-4">shopping_cart</span>
@@ -68,19 +101,31 @@ export default function CartPage() {
           </div>
         ) : (
           <>
-            {cart.map(item => (
-              <div key={item.id} className="rounded-2xl p-4" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            {cart.map((item) => (
+              <div key={item._id} className="rounded-2xl p-4" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-2xl flex-shrink-0">{item.image}</div>
+                  <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-on-surface-variant/30 text-2xl">restaurant</span>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-semibold truncate">{item.name}</p>
-                    {item.note && <p className="text-on-surface-variant/60 text-xs italic">{item.note}</p>}
+                    <input
+                      type="text"
+                      placeholder={t("user.note") + "..."}
+                      value={item.note || ""}
+                      onChange={(e) => updateNote(item._id, e.target.value)}
+                      className="mt-1 w-full bg-white/5 rounded-lg px-2 py-1 text-xs text-on-surface-variant placeholder-on-surface-variant/30 outline-none border border-white/5 focus:border-primary/30"
+                    />
                     <p className="text-primary font-mono text-sm mt-1">{formatPrice(item.price)}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => updateQty(item.id, -1)} className="w-8 h-8 rounded-lg bg-white/10 text-on-surface-variant hover:bg-white/20 flex items-center justify-center font-bold">-</button>
-                    <span className="text-white w-6 text-center font-mono">{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, 1)} className="w-8 h-8 rounded-lg bg-white/10 text-on-surface-variant hover:bg-white/20 flex items-center justify-center font-bold">+</button>
+                    <button onClick={() => updateQty(item._id, -1)} className="w-8 h-8 rounded-lg bg-white/10 text-on-surface-variant hover:bg-white/20 flex items-center justify-center font-bold text-sm">-</button>
+                    <span className="text-white w-6 text-center font-mono text-sm">{item.qty}</span>
+                    <button onClick={() => updateQty(item._id, 1)} className="w-8 h-8 rounded-lg bg-white/10 text-on-surface-variant hover:bg-white/20 flex items-center justify-center font-bold text-sm">+</button>
                   </div>
                 </div>
               </div>
@@ -93,8 +138,19 @@ export default function CartPage() {
               <div className="flex justify-between pt-3 border-t border-white/10"><span className="text-white font-bold text-lg">{t("user.total")}</span><span className="font-mono font-bold text-xl text-primary">{formatPrice(total)}</span></div>
             </div>
 
-            <button onClick={handlePlaceOrder} className="w-full py-4 rounded-xl font-bold text-sm active:scale-95 transition-all bg-primary text-on-primary shadow-lg shadow-primary/20">
-              {t("user.submitOrder")}
+            <button
+              onClick={handlePlaceOrder}
+              disabled={submitting}
+              className="w-full py-4 rounded-xl font-bold text-sm active:scale-95 transition-all bg-primary text-on-primary shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {submitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" />
+                  {t("common.loading")}
+                </>
+              ) : (
+                t("user.submitOrder")
+              )}
             </button>
           </>
         )}
