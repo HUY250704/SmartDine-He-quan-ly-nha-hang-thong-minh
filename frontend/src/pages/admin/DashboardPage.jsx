@@ -1,35 +1,39 @@
 ﻿import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
-import { BarChart, LineChart, DonutChart } from "@/components/ui/Charts.jsx";
+import { BarChart } from "@/components/ui/Charts.jsx";
+import { useLang } from "@/context/LanguageContext.jsx";
+import { GlassCard } from "@/components/ui/glass-card.jsx";
 
-const statusColors = {
-  Paid: { bg: "bg-tertiary/10", text: "text-tertiary", border: "border-tertiary/20" },
-  PENDING: { bg: "bg-primary/10", text: "text-primary", border: "border-primary/20" },
-  CONFIRMED: { bg: "bg-blue-400/10", text: "text-blue-400", border: "border-blue-400/20" },
-  PREPARING: { bg: "bg-blue-400/10", text: "text-blue-400", border: "border-blue-400/20" },
-  READY: { bg: "bg-orange-300/10", text: "text-orange-300", border: "border-orange-300/20" },
-  SERVED: { bg: "bg-violet-400/10", text: "text-violet-400", border: "border-violet-400/20" },
-  CANCELLED: { bg: "bg-error/10", text: "text-error", border: "border-error/20" },
+const statusPill = {
+  PENDING: "bg-primary/20 text-primary border-primary/30",
+  CONFIRMED: "bg-blue-400/20 text-blue-400 border-blue-400/30",
+  PREPARING: "bg-secondary/20 text-secondary border-secondary/30",
+  READY: "bg-orange-300/20 text-orange-300 border-orange-300/30",
+  SERVED: "bg-tertiary/20 text-tertiary border-tertiary/30",
+  CANCELLED: "bg-error/20 text-error border-error/30",
+  Paid: "bg-tertiary/20 text-tertiary border-tertiary/30",
 };
 
-export default function DashboardPage() {
+export default function DashboardPage() {  const { t } = useLang();
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [topItems, setTopItems] = useState([]);
   const [chartData, setChartData] = useState([]);
+  const [chartLoading, setChartLoading] = useState(false);
+  const [chartPeriod, setChartPeriod] = useState("month");
   const [tableStats, setTableStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Fetch base data
   useEffect(() => {
     Promise.all([
       api.get("/dashboard/stats"),
       api.get("/tables"),
       api.get("/dashboard/recent-orders"),
       api.get("/dashboard/top-items?limit=5"),
-      api.get("/dashboard/revenue-chart"),
     ])
-      .then(([statsRes, tablesRes, ordersRes, topRes, chartRes]) => {
+      .then(([statsRes, tablesRes, ordersRes, topRes]) => {
         const s = statsRes.data;
         setStats({
           totalRevenue: s.totalRevenue || 0,
@@ -43,32 +47,53 @@ export default function DashboardPage() {
 
         const tables = tablesRes.data;
         setTableStats({
-          occupied: tables.filter((t) => t.status === "OCCUPIED").length,
-          available: tables.filter((t) => t.status === "AVAILABLE").length,
-          reserved: tables.filter((t) => t.status === "RESERVED").length,
+          occupied: tables.filter((tbl) => tbl.status === "OCCUPIED").length,
+          available: tables.filter((tbl) => tbl.status === "AVAILABLE").length,
+          reserved: tables.filter((tbl) => tbl.status === "RESERVED").length,
           total: tables.length,
         });
 
-        setRecentOrders(ordersRes.data.slice(0, 5));
+        setRecentOrders(ordersRes.data.slice(0, 8));
         setTopItems(topRes.data);
-
-        const cd = chartRes.data;
-        if (cd && cd.length > 0) {
-          setChartData(cd);
-        } else {
-          setChartData([
-            { label: "Mon", value: 0 }, { label: "Tue", value: 0 },
-            { label: "Wed", value: 0 }, { label: "Thu", value: 0 },
-            { label: "Fri", value: 0 }, { label: "Sat", value: 0 },
-            { label: "Sun", value: 0 },
-          ]);
-        }
       })
       .catch((err) => {
         setError(err.response?.data?.error || "Failed to load dashboard data");
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // Fetch chart data separately, re-fetch when period changes
+  useEffect(() => {
+    setChartLoading(true);
+    api.get(`/dashboard/revenue-chart?period=${chartPeriod}`)
+      .then((res) => {
+        const cd = res.data;
+        if (cd && cd.length > 0) {
+          setChartData(cd);
+        } else {
+          setChartData(getFallbackData(chartPeriod));
+        }
+      })
+      .catch(() => {
+        setChartData(getFallbackData(chartPeriod));
+      })
+      .finally(() => setChartLoading(false));
+  }, [chartPeriod]);
+
+  function getFallbackData(period) {
+    if (period === "week") {
+      return [
+        { label: "Mon", value: 0 }, { label: "Tue", value: 0 },
+        { label: "Wed", value: 0 }, { label: "Thu", value: 0 },
+        { label: "Fri", value: 0 }, { label: "Sat", value: 0 },
+        { label: "Sun", value: 0 },
+      ];
+    }
+    return [
+      { label: "Week 1", value: 0 }, { label: "Week 2", value: 0 },
+      { label: "Week 3", value: 0 }, { label: "Week 4", value: 0 },
+    ];
+  }
 
   if (loading) {
     return (
@@ -87,100 +112,130 @@ export default function DashboardPage() {
         <div className="text-center">
           <span className="material-symbols-outlined text-4xl text-error mb-4">error</span>
           <p className="text-error text-sm">{error}</p>
-          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-colors">Retry</button>
+          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-colors">{t("common.retry")}</button>
         </div>
       </div>
     );
   }
 
-  const statCards = [
-    { label: "Today Revenue", value: "$" + (stats.todayRevenue || 0).toFixed(0), change: stats.todaySessions + " sessions", icon: "payments", accent: "#ffc174" },
-    { label: "Pending Orders", value: stats.totalOrders, change: "Active", icon: "receipt_long", accent: "#56e5a9" },
-    { label: "Active Tables", value: stats.activeTables + " / " + stats.totalTables, change: Math.round((stats.activeTables / Math.max(stats.totalTables, 1)) * 100) + "%", icon: "table_restaurant", accent: "#ffb690" },
-    { label: "Avg. Bill", value: "$" + (stats.avgBill || 0).toFixed(0), change: "Total: $" + (stats.totalRevenue || 0).toFixed(0), icon: "star", accent: "#a78bfa" },
-  ];
-
-  const tableDonutData = tableStats
-    ? [{ label: "Occupied", value: tableStats.occupied }, { label: "Available", value: tableStats.available }, { label: "Reserved", value: tableStats.reserved }].filter((d) => d.value > 0)
-    : [];
+  const occupancyPct = stats.totalTables ? Math.round((stats.activeTables / stats.totalTables) * 100) : 0;
+  const maxChartVal = Math.max(...chartData.map((d) => d.value), 1);
 
   return (
-    <div>
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-[32px] font-bold tracking-[-0.01em] text-white">Dashboard</h1>
-          <p className="text-on-surface-variant/60 text-sm mt-1">Real-time restaurant overview</p>
-        </div>
-      </div>
-
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {statCards.map((card, i) => (
-          <div key={i} className="rounded-2xl p-5 transition-all hover:-translate-y-1" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 4px 30px rgba(0,0,0,0.1)" }}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="material-symbols-outlined text-2xl" style={{ color: card.accent }}>{card.icon}</span>
+    <div className="space-y-8">
+      {/* Stats Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Total Revenue */}
+        <GlassCard className="rounded-xl p-6 flex flex-col justify-between group overflow-hidden relative">
+          <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#56e5a9" }}><span className="material-symbols-outlined text-8xl">payments</span></div>
+          <div className="relative z-10">
+            <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.totalRevenue")}</p>
+            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#56e5a9" }}>${(stats?.totalRevenue || 0).toLocaleString()}</h3>
+            <div className="flex items-center mt-2 text-on-surface-variant text-xs">
+              <span className="material-symbols-outlined text-sm mr-1">today</span>
+              <span>${(stats?.todayRevenue || 0).toLocaleString()} {t("dashboard.todayRevenue")}</span>
             </div>
-            <p className="text-on-surface-variant/40 text-[11px] uppercase tracking-wider mb-1">{card.label}</p>
-            <p className="text-white text-2xl font-bold font-mono">{card.value}</p>
-            <p className="text-on-surface-variant/50 text-xs mt-1">{card.change}</p>
           </div>
-        ))}
+        </GlassCard>
+
+        {/* Pending Orders */}
+        <GlassCard className="rounded-xl p-6 flex flex-col justify-between group overflow-hidden relative">
+          <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#ffc174" }}><span className="material-symbols-outlined text-8xl">list_alt</span></div>
+          <div className="relative z-10">
+            <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.pendingOrders")}</p>
+            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#ffc174" }}>{stats?.totalOrders || 0}</h3>
+            <div className="flex items-center mt-2 text-on-surface-variant text-xs">
+              <span className="material-symbols-outlined text-sm mr-1">schedule</span>
+              <span>{t("dashboard.awaitingConfirmation")}</span>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* Active Tables */}
+        <GlassCard className="rounded-xl p-6 flex flex-col justify-between group overflow-hidden relative">
+          <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#ffb690" }}><span className="material-symbols-outlined text-8xl">table_restaurant</span></div>
+          <div className="relative z-10">
+            <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.activeTables")}</p>
+            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#ffb690" }}>{stats?.activeTables || 0}<span className="text-[14px] font-normal opacity-60">/{stats?.totalTables || 0}</span></h3>
+            <div className="flex items-center mt-2 text-on-surface-variant text-xs">
+              <span className="material-symbols-outlined text-sm mr-1">group</span>
+              <span>{occupancyPct}% {t("dashboard.occupancy")}</span>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* Avg Bill */}
+        <GlassCard className="rounded-xl p-6 flex flex-col justify-between group overflow-hidden relative">
+          <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#a78bfa" }}><span className="material-symbols-outlined text-8xl">analytics</span></div>
+          <div className="relative z-10">
+            <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.avgBill")}</p>
+            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#a78bfa" }}>${(stats?.avgBill || 0).toLocaleString()}</h3>
+            <div className="flex items-center mt-2 text-on-surface-variant text-xs">
+              <span className="material-symbols-outlined text-sm mr-1">receipt_long</span>
+              <span>{stats?.todaySessions || 0} {t("dashboard.sessionsToday")}</span>
+            </div>
+          </div>
+        </GlassCard>
       </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2 rounded-2xl p-6" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 4px 30px rgba(0,0,0,0.1)" }}>
-          <h3 className="text-white font-bold text-lg mb-1">Revenue Overview</h3>
-          <p className="text-on-surface-variant/40 text-xs mb-4">Last 7 days</p>
-          <BarChart data={chartData} height={200} color="#ffc174" />
-        </div>
-
-        <div className="rounded-2xl p-6" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 4px 30px rgba(0,0,0,0.1)" }}>
-          <h3 className="text-white font-bold text-lg mb-1">Table Status</h3>
-          <p className="text-on-surface-variant/40 text-xs mb-4">{tableStats?.total || 0} total tables</p>
-          <div className="flex justify-center">
-            <DonutChart data={tableDonutData} width={180} height={180} />
+      {/* Revenue Chart */}
+      <GlassCard className="rounded-xl overflow-hidden">
+        <div className="p-6 border-b border-white/10 flex flex-col md:flex-row justify-between md:items-center gap-4">
+          <div>
+            <h3 className="text-2xl font-semibold text-white">{t("dashboard.revenueTrend")}</h3>
+            <p className="text-on-surface-variant/50 text-xs mt-1">{t("dashboard.revenueTrendDesc")}</p>
           </div>
-          <div className="flex justify-center gap-4 mt-4">
-            {tableDonutData.map((d, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-xs">
-                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ["#ffc174", "#56e5a9", "#a78bfa"][i % 3] }} />
-                <span className="text-on-surface-variant/60">{d.label}</span>
-                <span className="text-white font-mono">{d.value}</span>
-              </div>
-            ))}
+          <div className="flex gap-2">
+            <button onClick={() => setChartPeriod("week")} className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${chartPeriod === "week" ? "bg-primary/20 text-primary border border-primary/30" : "text-on-surface-variant hover:bg-white/5"}`}>{t("dashboard.week")}</button>
+            <button onClick={() => setChartPeriod("month")} className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${chartPeriod === "month" ? "bg-primary/20 text-primary border border-primary/30" : "text-on-surface-variant hover:bg-white/5"}`}>{t("dashboard.month")}</button>
           </div>
         </div>
-      </div>
+        <div className="p-6">
+          {chartLoading ? (
+            <div className="flex items-center justify-center h-48"><div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>
+          ) : (
+            <BarChart data={chartData} height={220} color="#56e5a9" />
+          )}
+        </div>
+      </GlassCard>
 
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl overflow-hidden" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 4px 30px rgba(0,0,0,0.1)" }}>
-          <div className="px-6 py-4 border-b border-white/5">
-            <h3 className="text-white font-bold text-lg">Recent Orders</h3>
+      {/* Recent Orders & Top Selling */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Orders List */}
+        <GlassCard className="lg:col-span-2 rounded-xl overflow-hidden flex flex-col">
+          <div className="p-6 border-b border-white/10 flex justify-between items-center">
+            <h3 className="text-2xl font-semibold text-white">Recent Orders</h3>
+            <button className="text-primary hover:underline text-xs font-bold">{t("common.viewAll")}</button>
           </div>
           {recentOrders.length === 0 ? (
-            <div className="p-8 text-center text-on-surface-variant/40 text-sm">No recent orders</div>
+            <div className="p-12 text-center text-on-surface-variant/40 text-sm">No recent orders</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-on-surface-variant/40 text-[11px] uppercase tracking-wider border-b border-white/5">
-                    <th className="text-left py-3 px-6 font-semibold">Order ID</th>
-                    <th className="text-left py-3 px-6 font-semibold">Status</th>
-                    <th className="text-left py-3 px-6 font-semibold">Items</th>
-                    <th className="text-left py-3 px-6 font-semibold">Time</th>
+            <div className="overflow-y-auto custom-scrollbar flex-grow max-h-[500px]">
+              <table className="w-full text-left">
+                <thead className="bg-white/5 sticky top-0">
+                  <tr>
+                    <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider">Order ID</th>
+                    <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider">Customer</th>
+                    <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider">Items</th>
+                    <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider">Status</th>
+                    <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider text-right">Amount</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/5">
                   {recentOrders.map((order) => {
-                    const sc = statusColors[order.status] || statusColors["PENDING"];
+                    const pill = statusPill[order.status] || statusPill["PENDING"];
+                    const itemsText = order.items?.map((it) => it.name || it.menuItemId?.name || "Item").join(", ") || "-";
                     return (
-                      <tr key={order._id} className="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3.5 px-6 font-mono text-xs text-primary">#{order._id.toString().slice(-8)}</td>
-                        <td className="py-3.5 px-6"><span className={"text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border " + sc.bg + " " + sc.text + " " + sc.border}>{order.status}</span></td>
-                        <td className="py-3.5 px-6 text-on-surface-variant">{order.items?.length || 0}</td>
-                        <td className="py-3.5 px-6 font-mono text-on-surface-variant/40 text-xs">{order.createdAt ? new Date(order.createdAt).toLocaleTimeString() : "-"}</td>
+                      <tr key={order._id} className="hover:bg-white/5 transition-colors">
+                        <td className="p-4 font-mono text-sm text-primary">#{order._id.toString().slice(-8)}</td>
+                        <td className="p-4 text-on-surface text-sm">{order.tableNumber ? `Table ${order.tableNumber}` : t("dashboard.walkIn")}</td>
+                        <td className="p-4 text-on-surface-variant text-sm truncate max-w-[160px]">{itemsText}</td>
+                        <td className="p-4">
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${pill}`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right font-bold text-sm text-white">${(order.totalAmount || 0).toFixed(2)}</td>
                       </tr>
                     );
                   })}
@@ -188,32 +243,39 @@ export default function DashboardPage() {
               </table>
             </div>
           )}
-        </div>
+        </GlassCard>
 
-        <div className="rounded-2xl p-6" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 4px 30px rgba(0,0,0,0.1)" }}>
-          <h3 className="text-white font-bold text-lg mb-4">Top Selling Items</h3>
+        {/* Top Selling Items */}
+        <GlassCard className="rounded-xl p-6 flex flex-col max-h-[500px]">
+          <h3 className="text-2xl font-semibold text-white mb-6">Top Selling Items</h3>
           {topItems.length === 0 ? (
-            <div className="p-8 text-center text-on-surface-variant/40 text-sm">No order data yet</div>
+            <div className="flex-1 flex items-center justify-center text-on-surface-variant/40 text-sm">No order data yet</div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6 overflow-y-auto custom-scrollbar flex-grow pr-2">
               {topItems.map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  {item.menuItem?.image && (
-                    <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0"><img src={item.menuItem.image} alt="" className="w-full h-full object-cover" /></div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-semibold truncate">{item.menuItem?.name || "Unknown"}</p>
-                    <p className="text-on-surface-variant/50 text-[11px]">{item.totalQuantity} sold</p>
+                <div key={i} className="flex items-center gap-4 group cursor-pointer">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg transition-transform group-hover:scale-110 flex-shrink-0">
+                    {item.menuItem?.image ? (
+                      <img src={item.menuItem.image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-on-surface-variant/30 text-2xl">restaurant</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="text-primary text-sm font-bold">${item.menuItem?.price || 0}</p>
-                    <p className="text-on-surface-variant/40 text-[10px] font-mono">x{item.orderCount}</p>
+                  <div className="flex-grow min-w-0">
+                    <p className="font-bold text-on-surface truncate">{item.menuItem?.name || t("menu.uncategorized")}</p>
+                    <p className="text-xs text-on-surface-variant">{item.totalQuantity || 0} {t("dashboard.ordersThisWeek")}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-primary font-bold">${(item.menuItem?.price || 0).toFixed(2)}</p>
+                    <p className="text-[10px] text-tertiary">{item.orderCount ? `x${item.orderCount}` : "+0%"}</p>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </GlassCard>
       </div>
     </div>
   );

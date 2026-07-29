@@ -1,14 +1,16 @@
 ﻿import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useLang } from "@/context/LanguageContext.jsx";
 
 export function UserBottomNav({ tableId = 7 }) {
   const location = useLocation();
+  const { t } = useLang();
 
   const navItems = [
-    { to: `/customer/${tableId}/menu`, icon: "restaurant", label: "Menu" },
-    { to: `/customer/${tableId}/cart`, icon: "shopping_cart", label: "Cart" },
-    { to: `/customer/${tableId}/tracking`, icon: "receipt_long", label: "Orders" },
-    { to: `/customer/${tableId}/support`, icon: "person", label: "Support" },
+    { to: `/customer/${tableId}/menu`, icon: "restaurant", label: "user.menu" },
+    { to: `/customer/${tableId}/cart`, icon: "shopping_cart", label: "user.cart" },
+    { to: `/customer/${tableId}/tracking`, icon: "receipt_long", label: "user.orders" },
+    { to: `/customer/${tableId}/support`, icon: "person", label: "user.support" },
   ];
 
   return (
@@ -31,7 +33,7 @@ export function UserBottomNav({ tableId = 7 }) {
             >
               {item.icon}
             </span>
-            <span className="text-label-sm">{item.label}</span>
+            <span className="text-label-sm">{t(item.label)}</span>
           </NavLink>
         );
       })}

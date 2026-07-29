@@ -28,8 +28,8 @@ export const createTable = async (req, res) => {
 export const updateTable = async (req, res) => {
   try {
     const { status } = req.body;
-    if (status && !['AVAILABLE', 'OCCUPIED', 'RESERVED'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status. Must be AVAILABLE, OCCUPIED, or RESERVED' });
+    if (status && !['AVAILABLE', 'OCCUPIED', 'RESERVED', 'CLEANING'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be AVAILABLE, OCCUPIED, RESERVED, or CLEANING' });
     }
 
     const table = await Table.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });

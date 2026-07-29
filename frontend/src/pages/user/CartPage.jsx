@@ -1,5 +1,6 @@
 ﻿import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useLang } from "@/context/LanguageContext.jsx";
 import { UserBottomNav } from "@/components/layout/UserBottomNav";
 
 const initialCart = [
@@ -10,6 +11,7 @@ const initialCart = [
 ];
 
 export default function CartPage() {
+  const { t } = useLang();
   const { tableId } = useParams();
   const navigate = useNavigate();
   const [cart, setCart] = useState(initialCart);
@@ -27,87 +29,76 @@ export default function CartPage() {
 
   const handlePlaceOrder = () => {
     setShowSuccess(true);
-    setTimeout(() => {
-      setShowSuccess(false);
-      navigate(`/customer/${tableId}/tracking`);
-    }, 2000);
+    setTimeout(() => { setShowSuccess(false); navigate(`/customer/${tableId}/tracking`); }, 2000);
   };
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "radial-gradient(circle at center, #191f2f 0%, #0c1322 100%)" }}>
+        <div className="text-center p-8 rounded-3xl" style={{ backdropFilter: "blur(20px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+          <span className="material-symbols-outlined text-7xl text-tertiary mb-4 animate-bounce" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          <h2 className="text-2xl font-bold text-white mb-2">{t("user.orderPlaced")}</h2>
+          <p className="text-on-surface-variant text-sm">{t("user.orderPlacedDesc")}</p>
+          <p className="font-mono text-primary font-bold text-xl mt-4">{formatPrice(total)}</p>
+          <p className="text-on-surface-variant/40 text-xs mt-4">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-on-surface pb-24 relative">
       <header className="sticky top-0 z-40 bg-surface-container/80 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
           <button onClick={() => navigate(`/customer/${tableId}/menu`)} className="flex items-center gap-2 text-on-surface-variant hover:text-white transition-colors">
-            <span className="material-symbols-outlined">arrow_back</span><span className="text-sm font-medium">Menu</span>
+            <span className="material-symbols-outlined">arrow_back</span><span className="text-sm font-medium">{t("user.backToMenu")}</span>
           </button>
-          <h1 className="text-lg font-bold text-white">Your Cart</h1>
+          <h1 className="text-lg font-bold text-white">{t("user.cart")}</h1>
           <span className="w-16" />
         </div>
       </header>
 
       <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
         {cart.length === 0 ? (
-          <div className="rounded-2xl p-8 text-center" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <span className="material-symbols-outlined text-6xl text-on-surface-variant/30 mb-4">shopping_cart_off</span>
-            <p className="text-on-surface-variant text-lg mb-2">Your cart is empty</p>
-            <p className="text-on-surface-variant/50 text-sm mb-4">Add some delicious items from our menu</p>
-            <button onClick={() => navigate(`/customer/${tableId}/menu`)}
-              className="px-6 py-3 rounded-xl font-bold text-sm active:scale-95 transition-all"
-              style={{ background: "rgba(255,193,116,0.15)", border: "1px solid rgba(255,193,116,0.3)", color: "#ffc174" }}>Browse Menu</button>
+          <div className="text-center py-20">
+            <span className="material-symbols-outlined text-6xl text-on-surface-variant/10 mb-4">shopping_cart</span>
+            <p className="text-white font-bold text-lg">{t("user.emptyCart")}</p>
+            <p className="text-on-surface-variant text-sm mt-1">{t("user.emptyCartDesc")}</p>
+            <button onClick={() => navigate(`/customer/${tableId}/menu`)} className="mt-6 px-6 py-3 rounded-xl text-sm font-bold bg-primary text-on-primary active:scale-95 transition-all">{t("user.backToMenu")}</button>
           </div>
         ) : (
           <>
-            {/* Cart Items */}
-            <div className="rounded-2xl divide-y divide-white/5" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              {cart.map(item => (
-                <div key={item.id} className="flex items-center gap-4 p-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-surface-container-high to-surface-container flex items-center justify-center text-2xl flex-shrink-0">{item.image}</div>
+            {cart.map(item => (
+              <div key={item.id} className="rounded-2xl p-4" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-2xl flex-shrink-0">{item.image}</div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-white truncate">{item.name}</h3>
-                    {item.note && <p className="text-on-surface-variant/40 text-xs italic mt-0.5">"{item.note}"</p>}
-                    <p className="font-mono text-primary text-sm font-bold">{formatPrice(item.price)}</p>
+                    <p className="text-white font-semibold truncate">{item.name}</p>
+                    {item.note && <p className="text-on-surface-variant/60 text-xs italic">{item.note}</p>}
+                    <p className="text-primary font-mono text-sm mt-1">{formatPrice(item.price)}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => updateQty(item.id, -1)} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"><span className="material-symbols-outlined text-sm">remove</span></button>
-                    <span className="font-mono text-white w-6 text-center text-sm font-bold">{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, 1)} className="w-8 h-8 rounded-lg bg-primary/20 hover:bg-primary/30 flex items-center justify-center text-primary transition-colors"><span className="material-symbols-outlined text-sm">add</span></button>
+                    <button onClick={() => updateQty(item.id, -1)} className="w-8 h-8 rounded-lg bg-white/10 text-on-surface-variant hover:bg-white/20 flex items-center justify-center font-bold">-</button>
+                    <span className="text-white w-6 text-center font-mono">{item.qty}</span>
+                    <button onClick={() => updateQty(item.id, 1)} className="w-8 h-8 rounded-lg bg-white/10 text-on-surface-variant hover:bg-white/20 flex items-center justify-center font-bold">+</button>
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
+
+            <div className="rounded-2xl p-5 mt-6" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="flex justify-between text-sm mb-2"><span className="text-on-surface-variant">Subtotal</span><span className="text-on-surface">{formatPrice(subtotal)}</span></div>
+              <div className="flex justify-between text-sm mb-2"><span className="text-on-surface-variant">Tax (8%)</span><span className="text-on-surface">{formatPrice(tax)}</span></div>
+              <div className="flex justify-between text-sm mb-4"><span className="text-on-surface-variant">Service Charge (5%)</span><span className="text-on-surface">{formatPrice(serviceCharge)}</span></div>
+              <div className="flex justify-between pt-3 border-t border-white/10"><span className="text-white font-bold text-lg">{t("user.total")}</span><span className="font-mono font-bold text-xl text-primary">{formatPrice(total)}</span></div>
             </div>
 
-            {/* Summary */}
-            <div className="rounded-2xl p-5 space-y-3" style={{ backdropFilter: "blur(16px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider mb-3">Order Summary</h3>
-              <div className="flex justify-between text-on-surface-variant"><span>Subtotal</span><span className="font-mono">{formatPrice(subtotal)}</span></div>
-              <div className="flex justify-between text-on-surface-variant"><span>Tax (8%)</span><span className="font-mono">{formatPrice(tax)}</span></div>
-              <div className="flex justify-between text-on-surface-variant"><span>Service Charge (5%)</span><span className="font-mono">{formatPrice(serviceCharge)}</span></div>
-              <div className="border-t border-white/10 pt-3 flex justify-between"><span className="font-bold text-white text-lg">Total</span><span className="font-mono font-bold text-primary text-lg">{formatPrice(total)}</span></div>
-            </div>
-
-            <button onClick={handlePlaceOrder}
-              className="w-full py-4 rounded-xl font-bold text-xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl hover:shadow-primary/20"
-              style={{ background: "linear-gradient(to right, #f59e0b, #ffc174, #f59e0b)", color: "#472a00" }}>
-              <span className="material-symbols-outlined">restaurant</span>Place Order
+            <button onClick={handlePlaceOrder} className="w-full py-4 rounded-xl font-bold text-sm active:scale-95 transition-all bg-primary text-on-primary shadow-lg shadow-primary/20">
+              {t("user.submitOrder")}
             </button>
-
-            <button onClick={() => navigate(`/customer/${tableId}/menu`)}
-              className="w-full py-4 rounded-xl border border-dashed border-white/15 text-on-surface-variant hover:text-white hover:border-white/30 transition-all text-sm font-medium">+ Add More Items</button>
           </>
         )}
       </div>
-
-      {/* Success Modal */}
-      {showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="rounded-3xl p-8 text-center animate-[slideUp_0.3s_cubic-bezier(0.34,1.56,0.64,1)]"
-            style={{ backdropFilter: "blur(32px)", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(86,229,169,0.3)", boxShadow: "0 20px 40px rgba(0,0,0,0.4)" }}>
-            <span className="material-symbols-outlined text-6xl mb-4" style={{ color: "#56e5a9" }}>check_circle</span>
-            <h2 className="text-white font-bold text-xl mb-2">Order Placed!</h2>
-            <p className="text-on-surface-variant/60 text-sm">Your order has been sent to the kitchen. Redirecting to tracking...</p>
-          </div>
-        </div>
-      )}
 
       <UserBottomNav tableId={tableId} />
     </div>

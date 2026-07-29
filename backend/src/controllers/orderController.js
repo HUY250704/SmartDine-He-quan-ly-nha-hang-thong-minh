@@ -6,10 +6,15 @@ import { emitNewOrder, emitOrderUpdated } from '../socket/index.js';
 
 export const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find().sort('-createdAt').populate('sessionId', 'tableId');
+    const orders = await Order.find().sort('-createdAt').populate({
+      path: 'sessionId',
+      select: 'tableId',
+      populate: { path: 'tableId', select: 'number' }
+    });
     const enriched = await Promise.all(orders.map(async (order) => {
       const items = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'name price');
-      return { ...order.toObject(), items };
+      const tableNumber = order.sessionId?.tableId?.number || null;
+      return { ...order.toObject(), items, tableNumber };
     }));
     res.json(enriched);
   } catch (error) {

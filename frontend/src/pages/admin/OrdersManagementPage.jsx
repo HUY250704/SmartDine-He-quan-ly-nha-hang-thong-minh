@@ -1,40 +1,76 @@
-﻿import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import api from "@/lib/api.js";
+import { GlassCard } from "@/components/ui/glass-card.jsx";
+import { useLang } from "@/context/LanguageContext.jsx";
 
-const STATUS_TABS = ["All", "PENDING", "CONFIRMED", "PREPARING", "READY", "SERVED", "CANCELLED"];
+const STATUS_TABS = [
+  { key: "PENDING", label: "orders.pending" },
+  { key: "CONFIRMED", label: "orders.confirmed" },
+  { key: "PREPARING", label: "orders.preparing" },
+  { key: "READY", label: "orders.ready" },
+  { key: "SERVED", label: "orders.served" },
+  { key: "CANCELLED", label: "orders.cancelled" },
+];
 
 const statusConfig = {
-  PENDING:    { label: "Pending",    color: "#ffc174", bg: "rgba(255,193,116,0.1)", border: "rgba(255,193,116,0.2)", icon: "hourglass_empty" },
-  CONFIRMED:  { label: "Confirmed",  color: "#56e5a9", bg: "rgba(86,229,169,0.1)",  border: "rgba(86,229,169,0.2)",  icon: "check_circle" },
-  PREPARING:  { label: "Preparing",  color: "#60a5fa", bg: "rgba(96,165,250,0.1)",  border: "rgba(96,165,250,0.2)",  icon: "cooking" },
-  READY:      { label: "Ready",      color: "#ffb690", bg: "rgba(255,182,144,0.1)",  border: "rgba(255,182,144,0.2)", icon: "room_service" },
-  SERVED:     { label: "Served",     color: "#a78bfa", bg: "rgba(167,139,250,0.1)",  border: "rgba(167,139,250,0.2)", icon: "done_all" },
-  CANCELLED:  { label: "Cancelled",  color: "#ffb4ab", bg: "rgba(255,180,171,0.1)",  border: "rgba(255,180,171,0.2)", icon: "cancel" },
+  PENDING:   { label: "orders.pending",   color: "#ffc174", bg: "rgba(255,193,116,0.1)", border: "rgba(255,193,116,0.2)", icon: "hourglass_empty", timeUrgent: true },
+  CONFIRMED: { label: "orders.confirmed", color: "#56e5a9", bg: "rgba(86,229,169,0.1)",  border: "rgba(86,229,169,0.2)",  icon: "check_circle" },
+  PREPARING: { label: "orders.preparing", color: "#56e5a9", bg: "rgba(86,229,169,0.1)",  border: "rgba(86,229,169,0.2)",  icon: "cooking" },
+  READY:     { label: "orders.ready",     color: "#ffb690", bg: "rgba(255,182,144,0.1)",  border: "rgba(255,182,144,0.2)",  icon: "room_service" },
+  SERVED:    { label: "orders.served",    color: "#a78bfa", bg: "rgba(167,139,250,0.1)",  border: "rgba(167,139,250,0.2)",  icon: "done_all" },
+  CANCELLED: { label: "orders.cancelled", color: "#ffb4ab", bg: "rgba(255,180,171,0.1)",  border: "rgba(255,180,171,0.2)",  icon: "cancel" },
 };
 
 const nextActions = {
-  PENDING:   [{ label: "Confirm", newStatus: "CONFIRMED", color: "#56e5a9" }, { label: "Cancel", newStatus: "CANCELLED", color: "#ffb4ab" }],
-  CONFIRMED: [{ label: "Start Preparing", newStatus: "PREPARING", color: "#60a5fa" }, { label: "Cancel", newStatus: "CANCELLED", color: "#ffb4ab" }],
-  PREPARING: [{ label: "Mark Ready", newStatus: "READY", color: "#ffb690" }],
-  READY:     [{ label: "Mark Served", newStatus: "SERVED", color: "#a78bfa" }],
+  PENDING:   [
+    { label: "orders.cancelOrder", newStatus: "CANCELLED", style: "glass" },
+    { label: "orders.confirmOrder", newStatus: "CONFIRMED", style: "primary" },
+  ],
+  CONFIRMED: [
+    { label: "orders.cancelOrder", newStatus: "CANCELLED", style: "glass" },
+    { label: "orders.startPreparing", newStatus: "PREPARING", style: "tertiary" },
+  ],
+  PREPARING: [{ label: "orders.markReady", newStatus: "READY", style: "tertiary" }],
+  READY:     [{ label: "orders.markServed", newStatus: "SERVED", style: "secondary" }],
   SERVED:    [],
   CANCELLED: [],
 };
 
+function getElapsedMinutes(dateStr) {
+  if (!dateStr) return null;
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+}
+
 export default function OrdersManagementPage() {
+  const { t } = useLang();
   const [orders, setOrders] = useState([]);
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState("PENDING");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTable, setSearchTable] = useState("");
+  const [newOrderAlert, setNewOrderAlert] = useState(null);
+  const prevCountRef = useRef(0);
+  const pollRef = useRef(null);
 
   const fetchOrders = () => {
     api.get("/orders")
-      .then((res) => setOrders(res.data))
+      .then((res) => {
+        const data = res.data;
+        if (prevCountRef.current > 0 && data.length > prevCountRef.current) {
+          setNewOrderAlert({ count: data.length - prevCountRef.current });
+        }
+        prevCountRef.current = data.length;
+        setOrders(data);
+      })
       .catch((err) => setError(err.response?.data?.error || "Failed to load orders"))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchOrders(); }, []);
+  useEffect(() => {
+    fetchOrders();
+    pollRef.current = setInterval(fetchOrders, 15000);
+    return () => clearInterval(pollRef.current);
+  }, []);
 
   const updateStatus = async (orderId, newStatus) => {
     try {
@@ -45,19 +81,23 @@ export default function OrdersManagementPage() {
     }
   };
 
-  const filtered = orders.filter((o) => {
-    return activeTab === "All" || o.status === activeTab;
-  });
+  const tabsWithCounts = STATUS_TABS.map((t) => ({
+    ...t,
+    count: orders.filter((o) => o.status === t.key).length,
+  }));
 
-  const counts = {};
-  STATUS_TABS.filter((t) => t !== "All").forEach((t) => (counts[t] = orders.filter((o) => o.status === t).length));
+  const filtered = orders.filter((o) => {
+    if (o.status !== activeTab) return false;
+    if (searchTable && o.tableNumber && !String(o.tableNumber).toLowerCase().includes(searchTable.toLowerCase())) return false;
+    return true;
+  });
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-on-surface-variant/60 text-sm">Loading orders...</p>
+          <p className="text-on-surface-variant/60 text-sm">{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -70,130 +110,191 @@ export default function OrdersManagementPage() {
           <span className="material-symbols-outlined text-4xl text-error mb-4">error</span>
           <p className="text-error text-sm">{error}</p>
           <button onClick={fetchOrders} className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-primary/20 text-primary border border-primary/30">
-            Retry
+            {t("common.retry")}
           </button>
         </div>
       </div>
     );
   }
 
+  const activeSc = statusConfig[activeTab] || statusConfig.PENDING;
+
   return (
     <div>
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <div>
-          <h1 className="text-[32px] font-bold tracking-[-0.01em] text-white">Orders Management</h1>
-          <p className="text-on-surface-variant/60 text-sm mt-1">Real-time kitchen display system</p>
+      {/* New Order Persistent Alert */}
+      {newOrderAlert && (
+        <div className="mb-6">
+          <GlassCard className="border-tertiary/30 bg-tertiary/5 p-4 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-tertiary/20 flex items-center justify-center text-tertiary flex-shrink-0">
+                <span className="material-symbols-outlined">priority_high</span>
+              </div>
+              <div>
+                <p className="font-bold text-white">{t("orders.newOrderAlert")}</p>
+                <p className="text-on-surface-variant text-xs">{newOrderAlert.count} {t("orders.newOrdersArrived")}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => { setActiveTab("PENDING"); setNewOrderAlert(null); }}
+              className="px-4 py-2 bg-tertiary text-on-tertiary rounded-lg font-bold text-xs transition-transform active:scale-95"
+            >
+              {t("orders.viewOrder")}
+            </button>
+          </GlassCard>
         </div>
+      )}
+
+      {/* Filter Bar & Tabs */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        <div className="flex gap-6 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+          {tabsWithCounts.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`whitespace-nowrap text-sm transition-colors ${
+                activeTab === tab.key
+                  ? "text-primary font-bold"
+                  : "text-on-surface-variant hover:text-on-surface"
+              }`}
+            >
+              {t(tab.label)} ({tab.count})
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center gap-3">
-          <div className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-primary text-sm font-semibold">{counts["PENDING"] || 0} Pending</span>
+          <div className="glass-card rounded-lg flex items-center px-3 py-2">
+            <span className="material-symbols-outlined text-on-surface-variant mr-2 text-sm">search</span>
+            <input
+              className="bg-transparent border-none focus:ring-0 text-on-surface text-xs w-24 outline-none placeholder:text-on-surface-variant/50"
+              placeholder={t("orders.searchTable")}
+              value={searchTable}
+              onChange={(e) => setSearchTable(e.target.value)}
+            />
           </div>
-          <button onClick={fetchOrders} className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-            <span className="material-symbols-outlined text-on-surface-variant/80">refresh</span>
+          <button onClick={fetchOrders} className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+            <span className="material-symbols-outlined text-on-surface-variant text-sm">{t("common.refresh").toLowerCase() === "refresh" ? "refresh" : "refresh"}</span>
           </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-        {STATUS_TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${activeTab === tab ? "text-primary" : "text-on-surface-variant/50 hover:text-on-surface-variant hover:bg-white/5"}`}
-            style={activeTab === tab ? { background: "rgba(255,193,116,0.1)", border: "1px solid rgba(255,193,116,0.3)" } : { border: "1px solid transparent" }}
-          >
-            {tab} {tab !== "All" && <span className="ml-1.5 text-xs opacity-60">{counts[tab] || 0}</span>}
-          </button>
-        ))}
-      </div>
-
-      {/* Order Cards */}
+      {/* Order Grid */}
       {filtered.length === 0 ? (
-        <div className="text-center py-20">
-          <span className="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-4 block">receipt_long</span>
-          <p className="text-on-surface-variant/40 text-sm">No orders match your filter.</p>
+        <div className="flex flex-col items-center justify-center mt-20 px-6 text-center">
+          <div className="w-48 h-48 mb-6 flex items-center justify-center">
+            <span className="material-symbols-outlined text-8xl text-on-surface-variant/10">receipt_long</span>
+          </div>
+          <h3 className="text-2xl font-semibold text-white">{t("orders.noOrders")}</h3>
+          <p className="text-on-surface-variant mt-1 max-w-xs">{t("orders.noOrdersDesc")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filtered.map((order) => {
-            const sc = statusConfig[order.status] || statusConfig["PENDING"];
+            const orderSc = statusConfig[order.status] || statusConfig["PENDING"];
             const actions = nextActions[order.status] || [];
+            const elapsed = getElapsedMinutes(order.createdAt);
 
-            // Calculate total from items
             const total = order.items
-              ? order.items.reduce((s, it) => s + (it.menuItemId?.price || 0) * it.quantity, 0)
+              ? order.items.reduce((s, it) => s + ((it.menuItemId?.price || it.menuItem?.price || 0) * it.quantity), 0)
               : 0;
 
+            const orderIdShort = order._id ? "#ORD-" + order._id.toString().slice(-4).toUpperCase() : "-";
+
             return (
-              <div
+              <GlassCard
                 key={order._id}
-                className="rounded-2xl flex flex-col transition-all duration-300 hover:-translate-y-1"
-                style={{
-                  backdropFilter: "blur(16px)",
-                  background: "rgba(255,255,255,0.05)",
-                  border: `1px solid ${sc.border}`,
-                  boxShadow: "inset 1px 1px 0px rgba(255,255,255,0.05)",
-                }}
+                className="rounded-2xl flex flex-col group transition-all"
+                style={{ borderColor: orderSc.border }}
               >
-                {/* Header */}
                 <div className="p-5 border-b border-white/10 flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-white font-bold text-lg font-mono text-xs">#{order._id.toString().slice(-6)}</span>
+                      <span className="font-bold text-2xl" style={{ color: orderSc.color }}>
+                        {order.tableNumber ? `T-${String(order.tableNumber).padStart(2, "0")}` : "T-??"}
+                      </span>
+                      <span className="text-on-surface-variant text-xs">{orderIdShort}</span>
                     </div>
-                    <div className="flex items-center text-on-surface-variant/40 text-xs mt-1">
+                    <div className={`flex items-center text-xs mt-1 ${orderSc.timeUrgent ? "text-error" : "text-on-surface-variant"}`}>
                       <span className="material-symbols-outlined text-[14px] mr-1">schedule</span>
-                      <span className="font-mono">{order.createdAt ? new Date(order.createdAt).toLocaleTimeString() : "-"}</span>
+                      <span className="font-mono text-xs">{elapsed != null ? `${elapsed}m ${t("orders.elapsed")}` : t("orders.justNow")}</span>
                     </div>
                   </div>
                   <span
-                    className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border"
-                    style={{ background: sc.bg, color: sc.color, borderColor: sc.border }}
+                    className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+                    style={{ background: orderSc.bg, color: orderSc.color, borderColor: orderSc.border }}
                   >
-                    {sc.label}
+                    {t(orderSc.label)}
                   </span>
                 </div>
 
-                {/* Items */}
                 <div className="p-5 flex-1 space-y-3">
-                  {order.items?.map((item, j) => (
-                    <div key={j} className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <p className="text-on-surface text-sm font-semibold">{item.quantity}x {item.menuItemId?.name || "Unknown"}</p>
-                        {item.note && <p className="text-on-surface-variant/40 text-xs italic mt-0.5">"{item.note}"</p>}
+                  {order.items?.map((item, j) => {
+                    const isServed = item.status === "SERVED";
+                    return (
+                      <div key={j} className={`flex justify-between items-start ${isServed ? "opacity-50" : ""}`}>
+                        <div className="flex-1">
+                          <p className={`text-on-surface font-bold text-sm ${isServed ? "line-through" : ""}`}>
+                            {item.quantity}x {item.menuItemId?.name || item.name || t("menu.uncategorized")}
+                          </p>
+                          {item.note && (
+                            <p className="text-on-surface-variant text-xs italic mt-0.5">"{item.note}"</p>
+                          )}
+                        </div>
+                        <span className="text-on-surface font-mono text-xs ml-2">
+                          ${((item.menuItemId?.price || item.price || 0) * item.quantity).toFixed(0)}
+                        </span>
                       </div>
-                      <span className="text-on-surface-variant font-mono text-xs ml-2">${((item.menuItemId?.price || 0) * item.quantity).toFixed(0)}</span>
-                    </div>
-                  )) || <p className="text-on-surface-variant/40 text-xs italic">No items</p>}
+                    );
+                  }) || <p className="text-on-surface-variant/40 text-xs italic">No items</p>}
                 </div>
 
-                {/* Footer */}
                 <div className="p-5 mt-auto" style={{ background: "rgba(255,255,255,0.02)" }}>
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-on-surface-variant/50 text-xs font-bold uppercase tracking-wider">Total</span>
-                    <span className="text-white font-mono font-bold text-lg">${total.toFixed(0)}</span>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-on-surface-variant text-xs font-bold uppercase tracking-wider">{t("orders.totalAmount")}</span>
+                    <span className="font-bold text-2xl" style={{ color: orderSc.color }}>${total.toFixed(0)}</span>
                   </div>
                   {actions.length > 0 && (
-                    <div className="flex gap-2">
-                      {actions.map((action, k) => (
-                        <button
-                          key={k}
-                          onClick={() => updateStatus(order._id, action.newStatus)}
-                          className="flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider active:scale-95 transition-all"
-                          style={{
-                            background: action.color,
-                            color: action.color === "#ffb4ab" ? "#690005" : action.color === "#56e5a9" ? "#003824" : action.color === "#60a5fa" ? "#0c1322" : action.color === "#ffb690" ? "#552100" : "#472a00",
-                          }}
-                        >
-                          {action.label}
-                        </button>
-                      ))}
-                    </div>
+                    actions.length === 1 ? (
+                      <button
+                        onClick={() => updateStatus(order._id, actions[0].newStatus)}
+                        className="w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all hover:brightness-110 active:scale-95"
+                        style={{
+                          background: orderSc.color,
+                          color: orderSc.color === "#ffb4ab" ? "#690005" : orderSc.color === "#56e5a9" ? "#003824" : orderSc.color === "#ffb690" ? "#552100" : "#472a00",
+                          boxShadow: `0 0 15px ${orderSc.color}4d`,
+                        }}
+                      >
+                        {t(actions[0].label)}
+                      </button>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        {actions.map((action, k) => (
+                          <button
+                            key={k}
+                            onClick={() => updateStatus(order._id, action.newStatus)}
+                            className={`py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all active:scale-95 ${
+                              action.style === "glass"
+                                ? "border border-white/10 hover:bg-white/5 text-on-surface"
+                                : ""
+                            }`}
+                            style={
+                              action.style !== "glass"
+                                ? {
+                                    background: orderSc.color,
+                                    color: orderSc.color === "#ffb4ab" ? "#690005" : orderSc.color === "#56e5a9" ? "#003824" : orderSc.color === "#ffb690" ? "#552100" : "#472a00",
+                                    boxShadow: `0 0 15px ${orderSc.color}4d`,
+                                  }
+                                : undefined
+                            }
+                          >
+                            {t(action.label)}
+                          </button>
+                        ))}
+                      </div>
+                    )
                   )}
                 </div>
-              </div>
+              </GlassCard>
             );
           })}
         </div>
@@ -201,3 +302,4 @@ export default function OrdersManagementPage() {
     </div>
   );
 }
+

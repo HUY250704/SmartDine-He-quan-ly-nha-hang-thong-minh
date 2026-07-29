@@ -1,10 +1,13 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useLang } from "@/context/LanguageContext.jsx";
 import { UserBottomNav } from "@/components/layout/UserBottomNav";
 
 const quickMessages = ["Need water", "Need napkins", "Menu question", "Ready to pay"];
 
 export default function SupportPaymentPage() {
+  const { t } = useLang();
+  
   const { tableId } = useParams();
   const navigate = useNavigate();
   const [showPayment, setShowPayment] = useState(false);
@@ -129,3 +132,5 @@ export default function SupportPaymentPage() {
     </div>
   );
 }
+
+

@@ -1,34 +1,88 @@
-﻿import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import api from "@/lib/api.js";
+import { GlassCard } from "@/components/ui/glass-card.jsx";
+import { useLang } from "@/context/LanguageContext.jsx";
 
 const statusConfig = {
-  AVAILABLE: { label: "Available", color: "#56e5a9", bg: "rgba(86,229,169,0.1)", border: "rgba(86,229,169,0.2)", icon: "check_circle" },
-  OCCUPIED:  { label: "Occupied",  color: "#ffc174", bg: "rgba(255,193,116,0.1)", border: "rgba(255,193,116,0.2)", icon: "groups" },
-  RESERVED:  { label: "Reserved",  color: "#a78bfa", bg: "rgba(167,139,250,0.1)",  border: "rgba(167,139,250,0.2)",  icon: "bookmark" },
-  CLEANING:  { label: "Cleaning",  color: "#94a3b8", bg: "rgba(148,163,184,0.1)",  border: "rgba(148,163,184,0.2)",  icon: "mop" },
+  AVAILABLE: { label: "tables.available", color: "#56e5a9", bg: "rgba(86,229,169,0.1)", border: "rgba(86,229,169,0.2)", icon: "check_circle" },
+  OCCUPIED:  { label: "tables.occupied",  color: "#ffb690", bg: "rgba(255,182,144,0.1)", border: "rgba(255,182,144,0.2)", icon: "groups" },
+  RESERVED:  { label: "tables.reserved",  color: "#ffc174", bg: "rgba(255,193,116,0.1)", border: "rgba(255,193,116,0.2)", icon: "bookmark" },
+  CLEANING:  { label: "tables.cleaning",  color: "#a08e7a", bg: "rgba(160,142,122,0.1)",  border: "rgba(160,142,122,0.2)",  icon: "mop" },
+};
+
+const zoneLabels = ["Main Hall", "VIP Lounge", "Window Seat", "Patio", "Corner", "Center"];
+const guestCounts = [2, 4, 6, 8, 10, 12];
+
+const floorOptions = ["tables.allFloors", "tables.mainHall", "tables.vipTerrace"];
+const floorZoneMap = {
+  "tables.mainHall": "Main Hall",
+  "tables.vipTerrace": "VIP Terrace",
 };
 
 export default function TablesManagementPage() {
+  const { t } = useLang();
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedTable, setSelectedTable] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newTableNumber, setNewTableNumber] = useState("");
+  const [newForm, setNewForm] = useState({ number: "", capacity: 4, zone: "Main Hall" });
+  const [activeFloor, setActiveFloor] = useState("tables.allFloors");
+  const [timers, setTimers] = useState({});
+  const timerRef = useRef(null);
 
   const fetchTables = () => {
     api.get("/tables")
-      .then((res) => setTables(res.data))
+      .then((res) => {
+        setTables(res.data);
+        const now = Date.now();
+        const newTimers = {};
+        res.data.forEach((t) => {
+          if (t.status === "OCCUPIED" && t.occupiedAt) {
+            newTimers[t._id] = Math.floor((now - new Date(t.occupiedAt).getTime()) / 1000);
+          }
+        });
+        setTimers(newTimers);
+      })
       .catch((err) => setError(err.response?.data?.error || "Failed to load tables"))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchTables(); }, []);
+  useEffect(() => {
+    fetchTables();
+    timerRef.current = setInterval(() => {
+      setTimers((prev) => {
+        const next = {};
+        for (const [k, v] of Object.entries(prev)) {
+          next[k] = v + 1;
+        }
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, []);
+
+  const formatTimer = (seconds) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
+  };
 
   const handleStatusChange = async (tableId, newStatus) => {
     try {
-      await api.put(`/tables/${tableId}`, { status: newStatus });
-      setTables((prev) => prev.map((t) => (t._id === tableId ? { ...t, status: newStatus } : t)));
+      const now = Date.now();
+      await api.put(`/tables/${tableId}`, { status: newStatus, occupiedAt: newStatus === "OCCUPIED" ? new Date(now).toISOString() : undefined });
+      setTables((prev) => prev.map((tb) => (tb._id === tableId ? { ...tb, status: newStatus, occupiedAt: newStatus === "OCCUPIED" ? new Date(now).toISOString() : tb.occupiedAt } : tb)));
+      if (newStatus === "OCCUPIED") {
+        setTimers((prev) => ({ ...prev, [tableId]: 0 }));
+      } else {
+        setTimers((prev) => {
+          const next = { ...prev };
+          delete next[tableId];
+          return next;
+        });
+      }
       setSelectedTable(null);
     } catch (err) {
       alert(err.response?.data?.error || "Failed to update table");
@@ -36,23 +90,23 @@ export default function TablesManagementPage() {
   };
 
   const handleAddTable = async () => {
-    const num = parseInt(newTableNumber);
+    const num = parseInt(newForm.number);
     if (!num || num < 1) { alert("Enter a valid table number"); return; }
     try {
-      const res = await api.post("/tables", { number: num });
+      const res = await api.post("/tables", { number: num, capacity: newForm.capacity, zone: newForm.zone });
       setTables((prev) => [...prev, res.data].sort((a, b) => a.number - b.number));
       setShowAddForm(false);
-      setNewTableNumber("");
+      setNewForm({ number: "", capacity: 4, zone: "Main Hall" });
     } catch (err) {
       alert(err.response?.data?.error || "Failed to add table");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this table?")) return;
+    if (!confirm(t("tables.deleteConfirm"))) return;
     try {
       await api.delete(`/tables/${id}`);
-      setTables((prev) => prev.filter((t) => t._id !== id));
+      setTables((prev) => prev.filter((tb) => tb._id !== id));
       setSelectedTable(null);
     } catch (err) {
       alert(err.response?.data?.error || "Failed to delete");
@@ -60,14 +114,28 @@ export default function TablesManagementPage() {
   };
 
   const counts = {};
-  Object.keys(statusConfig).forEach((s) => (counts[s] = tables.filter((t) => t.status === s).length));
+  Object.keys(statusConfig).forEach((s) => (counts[s] = tables.filter((tb) => tb.status === s).length));
+
+  const filteredTables = tables.filter((table) => {
+    if (activeFloor === "tables.allFloors") return true;
+    const targetZone = floorZoneMap[activeFloor];
+    if (!targetZone) return true;
+    return (table.zone || "Main Hall") === targetZone;
+  });
+
+  const statCards = [
+    { label: t("tables.total"), val: tables.length, color: "#a08e7a", icon: "table_restaurant" },
+    { label: t("tables.available"), val: counts.AVAILABLE || 0, color: "#56e5a9", icon: "check_circle" },
+    { label: t("tables.occupied"), val: counts.OCCUPIED || 0, color: "#ffb690", icon: "groups" },
+    { label: t("tables.reserved"), val: counts.RESERVED || 0, color: "#ffc174", icon: "bookmark" },
+  ];
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-on-surface-variant/60 text-sm">Loading tables...</p>
+          <p className="text-on-surface-variant/60 text-sm">{t("common.loading")}</p>
         </div>
       </div>
     );
@@ -79,7 +147,7 @@ export default function TablesManagementPage() {
         <div className="text-center">
           <span className="material-symbols-outlined text-4xl text-error">error</span>
           <p className="text-error text-sm mt-2">{error}</p>
-          <button onClick={fetchTables} className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-primary/20 text-primary border border-primary/30">Retry</button>
+          <button onClick={fetchTables} className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-primary/20 text-primary border border-primary/30">{t("common.retry")}</button>
         </div>
       </div>
     );
@@ -87,141 +155,84 @@ export default function TablesManagementPage() {
 
   return (
     <div>
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-[32px] font-bold tracking-[-0.01em] text-white">Table Management</h1>
-          <p className="text-on-surface-variant/60 text-sm mt-1">Real-time floor plan overview</p>
-        </div>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="px-4 py-2.5 rounded-xl text-sm font-bold active:scale-95 transition-all"
-          style={{ background: "#ffc174", color: "#472a00" }}
-        >
-          <span className="material-symbols-outlined text-lg align-middle mr-1">add</span>Add Table
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div><h1 className="text-[32px] font-bold tracking-[-0.01em] text-white">{t("tables.title")}</h1><p className="text-on-surface-variant text-sm mt-1">{t("tables.subtitle")}</p></div>
+        <button onClick={() => setShowAddForm(true)} className="px-5 py-3 rounded-xl bg-primary/20 text-primary border border-primary/30 font-semibold text-sm hover:bg-primary/30 transition-colors flex items-center gap-2">
+          <span className="material-symbols-outlined text-lg">add</span>{t("tables.addTable")}
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        {[
-          { label: "Total", val: tables.length, color: "#dce2f7" },
-          { label: "Available", val: counts.AVAILABLE, color: "#56e5a9" },
-          { label: "Occupied", val: counts.OCCUPIED, color: "#ffc174" },
-          { label: "Reserved", val: counts.RESERVED, color: "#a78bfa" },
-        ].map((s) => (
-          <div key={s.label} className="rounded-xl p-4 flex items-center gap-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <p className="font-mono text-2xl font-bold" style={{ color: s.color }}>{s.val}</p>
-            <p className="text-on-surface-variant/40 text-[11px] uppercase tracking-wider">{s.label}</p>
-          </div>
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        {statCards.map((s, i) => (
+          <GlassCard key={i} className="rounded-xl p-4 flex flex-col items-center gap-1">
+            <span className="material-symbols-outlined text-2xl" style={{ color: s.color }}>{s.icon}</span>
+            <h3 className="text-2xl font-bold" style={{ color: s.color }}>{s.val}</h3>
+            <p className="text-on-surface-variant/50 text-xs">{s.label}</p>
+          </GlassCard>
         ))}
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        {Object.entries(statusConfig).map(([key, sc]) => (
-          <div key={key} className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold"
-            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: sc.color }} />
-            <span className="text-on-surface-variant">{sc.label}</span>
-            <span className="font-mono text-white">{counts[key]}</span>
-          </div>
+      {/* Floor filter */}
+      <div className="flex items-center gap-2 mb-6">
+        {floorOptions.map((f) => (
+          <button
+            key={f}
+            onClick={() => setActiveFloor(f)}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeFloor === f ? "text-primary bg-primary/10 border border-primary/30" : "text-on-surface-variant/50 hover:bg-white/5"}`}
+          >
+            {t(f)}
+          </button>
         ))}
       </div>
 
-      {/* Table Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {tables.map((t) => {
-          const sc = statusConfig[t.status] || statusConfig.AVAILABLE;
+      {/* Tables Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+        {filteredTables.map((table) => {
+          const sc = statusConfig[table.status] || statusConfig.AVAILABLE;
+          const randomZone = table.zone || zoneLabels[table.number % zoneLabels.length];
+          const elapsed = timers[table._id];
           return (
-            <div
-              key={t._id}
-              onClick={() => setSelectedTable(t)}
-              className="rounded-2xl p-5 transition-all cursor-pointer hover:-translate-y-1"
-              style={{
-                backdropFilter: "blur(16px)",
-                background: sc.bg,
-                border: `1px solid ${sc.border}`,
-                boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-              }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-mono text-2xl font-bold" style={{ color: sc.color }}>Table #{t.number}</span>
-                <span className="material-symbols-outlined text-2xl" style={{ color: sc.color }}>{sc.icon}</span>
+            <GlassCard key={table._id} className="rounded-xl p-5 cursor-pointer transition-all hover:shadow-xl" onClick={() => setSelectedTable(table)}>
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <p className="font-bold text-white text-lg">Table #{table.number}</p>
+                  <p className="text-on-surface-variant/40 text-xs">{randomZone} • {table.capacity || 4} {t("tables.guests")}</p>
+                </div>
+                <span className={`material-symbols-outlined text-xl`} style={{ color: sc.color }}>{sc.icon}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border"
-                  style={{ background: sc.bg, color: sc.color, borderColor: sc.border }}>
-                  {sc.label}
+              <div className="flex items-center justify-between">
+                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border`} style={{ background: sc.bg, color: sc.color, borderColor: sc.border }}>
+                  {t(sc.label)}
                 </span>
-              </div>
-              <div className="mt-4 flex gap-2">
-                {t.status === "OCCUPIED" && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleStatusChange(t._id, "AVAILABLE"); }}
-                    className="flex-1 py-2 rounded-lg text-xs font-bold"
-                    style={{ background: "#56e5a9", color: "#003824" }}
-                  >
-                    Close & Bill
-                  </button>
-                )}
-                {t.status === "AVAILABLE" && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleStatusChange(t._id, "OCCUPIED"); }}
-                    className="flex-1 py-2 rounded-lg text-xs font-bold"
-                    style={{ background: "#ffc174", color: "#472a00" }}
-                  >
-                    Open Session
-                  </button>
-                )}
-                {t.status === "RESERVED" && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleStatusChange(t._id, "OCCUPIED"); }}
-                    className="flex-1 py-2 rounded-lg text-xs font-bold"
-                    style={{ background: "#ffc174", color: "#472a00" }}
-                  >
-                    Check In
-                  </button>
-                )}
-                {t.status === "CLEANING" && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleStatusChange(t._id, "AVAILABLE"); }}
-                    className="flex-1 py-2 rounded-lg text-xs font-bold"
-                    style={{ background: "#56e5a9", color: "#003824" }}
-                  >
-                    Mark Clean
-                  </button>
+                {elapsed != null && (
+                  <span className="font-mono text-xs" style={{ color: sc.color }}>{formatTimer(elapsed)}</span>
                 )}
               </div>
-            </div>
+            </GlassCard>
           );
         })}
       </div>
 
-      {/* Detail Modal */}
+      {/* Selected Table Panel */}
       {selectedTable && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedTable(null)}>
-          <div
-            className="rounded-3xl p-6 w-full max-w-sm"
-            style={{ backdropFilter: "blur(32px)", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", boxShadow: "0 20px 40px rgba(0,0,0,0.4)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <GlassCard className="rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             {(() => {
-              const sc = statusConfig[selectedTable.status] || statusConfig.AVAILABLE;
+              const table = selectedTable;
               return (
                 <>
                   <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-2xl font-bold" style={{ color: sc.color }}>Table #{selectedTable.number}</span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border" style={{ background: sc.bg, color: sc.color, borderColor: sc.border }}>
-                        {sc.label}
-                      </span>
+                    <div>
+                      <h2 className="text-white font-bold text-xl">Table #{table.number}</h2>
+                      <p className="text-on-surface-variant/40 text-xs">{table.zone || "Main Hall"} • {table.capacity || 4} {t("tables.guests")}</p>
                     </div>
                     <button onClick={() => setSelectedTable(null)} className="text-on-surface-variant hover:text-white">
-                      <span className="material-symbols-outlined">close</span>
+                      <span className="material-symbols-outlined">{t("common.close")}</span>
                     </button>
                   </div>
                   <div className="mb-4">
-                    <label className="block text-on-surface-variant/60 text-[11px] font-semibold uppercase tracking-wider mb-2">Change Status</label>
+                    <label className="block text-on-surface-variant/60 text-[11px] font-semibold uppercase tracking-wider mb-2">{t("tables.changeStatus")}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {Object.entries(statusConfig).map(([k, v]) => (
                         <button
@@ -230,58 +241,67 @@ export default function TablesManagementPage() {
                           className={`p-2 rounded-lg text-xs font-semibold transition-all ${selectedTable.status === k ? "scale-105 ring-2 ring-white/20" : ""}`}
                           style={{ background: v.bg, border: `1px solid ${v.border}`, color: v.color }}
                         >
-                          {v.label}
+                          {t(v.label)}
                         </button>
                       ))}
                     </div>
                   </div>
                   <button
                     onClick={() => handleDelete(selectedTable._id)}
-                    className="w-full py-3 rounded-xl text-sm font-semibold text-error hover:bg-error/10 transition-colors"
-                    style={{ border: "1px solid rgba(255,180,171,0.3)" }}
+                    className="w-full py-3 rounded-xl text-sm font-semibold text-error hover:bg-error/10 transition-colors border border-error/30"
                   >
-                    Delete Table
+                    {t("tables.deleteTable")}
                   </button>
                 </>
               );
             })()}
-          </div>
+          </GlassCard>
         </div>
       )}
 
       {/* Add Table Modal */}
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowAddForm(false)}>
-          <div
-            className="rounded-3xl p-6 w-full max-w-sm"
-            style={{ backdropFilter: "blur(32px)", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", boxShadow: "0 20px 40px rgba(0,0,0,0.4)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <GlassCard className="rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-white font-bold text-xl">Add New Table</h2>
+              <h2 className="text-white font-bold text-xl">{t("tables.registerNewTable")}</h2>
               <button onClick={() => setShowAddForm(false)} className="text-on-surface-variant hover:text-white">
-                <span className="material-symbols-outlined">close</span>
+                <span className="material-symbols-outlined">{t("common.close")}</span>
               </button>
             </div>
-            <div className="mb-6">
-              <label className="block text-on-surface-variant/60 text-[11px] font-semibold uppercase tracking-wider mb-2">Table Number</label>
-              <input
-                type="number"
-                placeholder="e.g. 14"
-                value={newTableNumber}
-                onChange={(e) => setNewTableNumber(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl text-sm text-on-surface placeholder-on-surface-variant/20 outline-none"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
-                onKeyDown={(e) => { if (e.key === "Enter") handleAddTable(); }}
-              />
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-on-surface-variant/60 text-[10px] font-bold uppercase tracking-wider mb-2">{t("tables.tableNumber")}</label>
+                <input type="number" placeholder="e.g. 25" value={newForm.number} onChange={(e) => setNewForm({ ...newForm, number: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl text-sm text-on-surface placeholder-on-surface-variant/20 outline-none bg-white/5 border border-white/10 focus:border-primary/50 transition-colors"
+                  onKeyDown={(e) => { if (e.key === "Enter") handleAddTable(); }} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-on-surface-variant/60 text-[10px] font-bold uppercase tracking-wider mb-2">{t("tables.capacity")}</label>
+                  <select value={newForm.capacity} onChange={(e) => setNewForm({ ...newForm, capacity: parseInt(e.target.value) })}
+                    className="w-full px-4 py-3 rounded-xl text-sm text-on-surface outline-none bg-white/5 border border-white/10 focus:border-primary/50 transition-colors">
+                    {guestCounts.map((n) => (<option key={n} value={n} className="bg-[#1a2333]">{n} {t("tables.guests")}</option>))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-on-surface-variant/60 text-[10px] font-bold uppercase tracking-wider mb-2">{t("tables.zone")}</label>
+                  <select value={newForm.zone} onChange={(e) => setNewForm({ ...newForm, zone: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl text-sm text-on-surface outline-none bg-white/5 border border-white/10 focus:border-primary/50 transition-colors">
+                    {zoneLabels.map((z) => (<option key={z} value={z} className="bg-[#1a2333]">{z}</option>))}
+                  </select>
+                </div>
+              </div>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setShowAddForm(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-white/5 transition-colors"
-                style={{ border: "1px solid rgba(255,255,255,0.1)" }}>Cancel</button>
-              <button onClick={handleAddTable} className="flex-1 py-3 rounded-xl text-sm font-bold active:scale-95 transition-all"
-                style={{ background: "#ffc174", color: "#472a00" }}>Add Table</button>
+              <button onClick={() => setShowAddForm(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold text-on-surface-variant border border-white/10 hover:bg-white/5 transition-colors">
+                {t("common.cancel")}
+              </button>
+              <button onClick={handleAddTable} className="flex-1 py-3 rounded-xl text-sm font-bold bg-primary text-on-primary active:scale-95 transition-all shadow-lg shadow-primary/20">
+                {t("tables.register")}
+              </button>
             </div>
-          </div>
+          </GlassCard>
         </div>
       )}
     </div>

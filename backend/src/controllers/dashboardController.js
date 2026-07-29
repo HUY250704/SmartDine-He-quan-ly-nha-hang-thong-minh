@@ -165,11 +165,16 @@ export const recentOrders = async (req, res) => {
     const orders = await Order.find()
       .sort("-createdAt")
       .limit(20)
-      .populate("sessionId", "tableId");
+      .populate({
+        path: "sessionId",
+        select: "tableId",
+        populate: { path: "tableId", select: "number" }
+      });
 
     const enriched = await Promise.all(orders.map(async (order) => {
       const items = await OrderItem.find({ orderId: order._id }).populate("menuItemId", "name price");
-      return { ...order.toObject(), items };
+      const tableNumber = order.sessionId?.tableId?.number || null;
+      return { ...order.toObject(), items, tableNumber };
     }));
 
     res.json(enriched);

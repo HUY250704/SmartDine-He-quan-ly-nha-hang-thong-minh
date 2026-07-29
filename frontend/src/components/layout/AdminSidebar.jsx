@@ -1,20 +1,22 @@
 ﻿import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext.jsx";
+import { useLang } from "@/context/LanguageContext.jsx";
 
 const navItems = [
-  { to: "/admin/dashboard", icon: "dashboard", label: "Dashboard" },
-  { to: "/admin/orders", icon: "list_alt", label: "Orders" },
-  { to: "/admin/menu", icon: "restaurant_menu", label: "Menu" },
-  { to: "/admin/tables", icon: "table_restaurant", label: "Tables" },
-  { to: "/admin/bills", icon: "receipt_long", label: "Bills" },
-  { to: "/admin/support", icon: "support_agent", label: "Support" },
+  { to: "/admin/dashboard", icon: "dashboard", label: "sidebar.dashboard" },
+  { to: "/admin/orders", icon: "list_alt", label: "sidebar.orders" },
+  { to: "/admin/menu", icon: "restaurant_menu", label: "sidebar.menu" },
+  { to: "/admin/tables", icon: "table_restaurant", label: "sidebar.tables" },
+  { to: "/admin/bills", icon: "receipt_long", label: "sidebar.bills" },
+  { to: "/admin/support", icon: "support_agent", label: "sidebar.support" },
 ];
 
 export function AdminSidebar({ collapsed, setCollapsed }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t, lang, toggleLang } = useLang();
 
   const handleLogout = () => {
     logout();
@@ -34,8 +36,8 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
           </div>
           {!collapsed && (
             <div className="overflow-hidden">
-              <h2 className="font-bold text-white text-sm tracking-tight">SmartDine</h2>
-              <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em]">Admin Panel</p>
+              <h2 className="font-bold text-white text-sm tracking-tight">{t("sidebar.smartDine")}</h2>
+              <p className="text-[10px] text-on-surface-variant/60 uppercase tracking-[0.2em]">{t("sidebar.adminPanel")}</p>
             </div>
           )}
         </div>
@@ -61,7 +63,7 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
                 {item.icon}
               </span>
               {!collapsed && (
-                <span className="text-sm font-medium">{item.label}</span>
+                <span className="text-sm font-medium">{t(item.label)}</span>
               )}
               {isActive && !collapsed && (
                 <span className="absolute right-3 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -72,6 +74,20 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
       </nav>
 
       <div className="p-4 border-t border-white/10 space-y-3">
+        {/* Language Toggle */}
+        <button
+          onClick={toggleLang}
+          className="w-full flex items-center justify-center gap-2 p-2 rounded-lg bg-primary/15 border border-primary/25 text-primary font-semibold hover:bg-primary/25 hover:border-primary/40 hover:shadow-[0_0_12px_rgba(255,193,116,0.15)] active:scale-95 transition-all"
+          title={t("language.switchTo")}
+        >
+          <span className="material-symbols-outlined text-sm">translate</span>
+          {!collapsed && (
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              {lang === "vi" ? "EN" : "VI"}
+            </span>
+          )}
+        </button>
+
         <div className="flex items-center gap-3 px-2">
           <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center">
             <span className="material-symbols-outlined text-secondary text-sm">person</span>
@@ -79,19 +95,18 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
           {!collapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-white text-xs font-medium truncate">{user?.username || "Admin User"}</p>
-              <p className="text-on-surface-variant/40 text-[10px]">{user?.role || "Administrator"}</p>
+              <p className="text-on-surface-variant/40 text-[10px]">{t("sidebar.administrator")}</p>
             </div>
           )}
         </div>
 
-        {/* Logout button */}
         <button
           onClick={handleLogout}
           className="w-full flex items-center justify-center gap-2 p-2 rounded-lg text-error/60 hover:text-error hover:bg-error/10 transition-all"
-          title="Sign out"
+          title={t("sidebar.signOut")}
         >
           <span className="material-symbols-outlined text-sm">logout</span>
-          {!collapsed && <span className="text-xs font-medium">Sign Out</span>}
+          {!collapsed && <span className="text-xs font-medium">{t("sidebar.signOut")}</span>}
         </button>
 
         <button
