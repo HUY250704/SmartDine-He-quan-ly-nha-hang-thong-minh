@@ -1,4 +1,4 @@
-{
+﻿{
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -147,7 +147,7 @@
     "averageBill": "Average Bill",
     "allTimeGross": "All time gross revenue",
     "totalTransactions": "Total transactions",
-    "todaysVolume": "Today's volume",
+    "todaysVolume": "Today\u2019s volume",
     "perTableAvg": "Per table avg",
     "searchBillID": "Search Bill ID...",
     "allPaymentMethods": "All Payment Methods",
@@ -192,8 +192,18 @@
   },
   "user": {
     "welcome": "Welcome",
+    "yourTable": "Your Table",
+    "changeTable": "Change",
     "scanQR": "Scan the QR code on your table to begin",
     "startOrdering": "Start Ordering",
+    "viewMenu": "View Menu",
+    "viewMenuDesc": "Explore our curated flavors",
+    "callStaff": "Call Staff",
+    "callStaffDesc": "Our team is at your service",
+    "callStaffSent": "Request Sent...",
+    "viewOrders": "View My Orders",
+    "viewOrdersDesc": "Track your dining status",
+    "bonAppetit": "Bon Appétit",
     "menu": "Menu",
     "cart": "Cart",
     "orders": "Orders",
@@ -218,8 +228,8 @@
     "backToMenu": "Back to Menu"
   },
   "language": {
-    "switchTo": "Tiếng Việt",
-    "vi": "Tiếng Việt",
+    "switchTo": "Ti\u1ebfng Vi\u1ec7t",
+    "vi": "Ti\u1ebfng Vi\u1ec7t",
     "en": "English"
   }
 }

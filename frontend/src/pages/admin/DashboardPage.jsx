@@ -190,11 +190,10 @@ export default function DashboardPage() {  const { t } = useLang();
             <button onClick={() => setChartPeriod("month")} className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${chartPeriod === "month" ? "bg-primary/20 text-primary border border-primary/30" : "text-on-surface-variant hover:bg-white/5"}`}>{t("dashboard.month")}</button>
           </div>
         </div>
-        <div className="p-6">
-          {chartLoading ? (
+        <div className="px-4 pb-4 pt-2">{chartLoading ? (
             <div className="flex items-center justify-center h-48"><div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>
           ) : (
-            <BarChart data={chartData} height={220} color="#56e5a9" />
+            <BarChart data={chartData} height={320} color="#56e5a9" />
           )}
         </div>
       </GlassCard>
@@ -280,3 +279,4 @@ export default function DashboardPage() {  const { t } = useLang();
     </div>
   );
 }
+

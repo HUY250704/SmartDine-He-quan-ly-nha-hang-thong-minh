@@ -1,8 +1,8 @@
-﻿import Session from '../models/Session.js';
-import Order from '../models/Order.js';
-import OrderItem from '../models/OrderItem.js';
-import Table from '../models/Table.js';
-import Bill from '../models/Bill.js';
+﻿import Session from "../models/Session.js";
+import Order from "../models/Order.js";
+import OrderItem from "../models/OrderItem.js";
+import Table from "../models/Table.js";
+import Bill from "../models/Bill.js";
 
 export const overview = async (req, res) => {
   try {
@@ -92,25 +92,56 @@ export const revenue = async (req, res) => {
 
 export const revenueChart = async (req, res) => {
   try {
-    // Build last 7 days chart data
+    const { period = "month" } = req.query;
     const data = [];
-    for (let i = 6; i >= 0; i--) {
-      const day = new Date();
-      day.setDate(day.getDate() - i);
-      const start = new Date(day); start.setHours(0, 0, 0, 0);
-      const end = new Date(day); end.setHours(23, 59, 59, 999);
 
-      const result = await Bill.aggregate([
-        { "$match": { paidAt: { "$gte": start, "$lte": end } } },
-        { "$group": { _id: null, total: { "$sum": "$total" }, count: { "$sum": 1 } } }
-      ]);
+    if (period === "month") {
+      // Last 4 weeks, aggregated weekly
+      // Week 1 = oldest (28-21 days ago), Week 4 = newest (last 7 days)
+      const now = new Date();
+      for (let wk = 0; wk < 4; wk++) {
+        const endDate = new Date(now);
+        endDate.setDate(now.getDate() - wk * 7);
+        endDate.setHours(23, 59, 59, 999);
 
-      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      data.push({
-        label: dayNames[day.getDay()],
-        value: Math.round(result[0]?.total || 0)
-      });
+        const startDate = new Date(endDate);
+        startDate.setDate(endDate.getDate() - 6);
+        startDate.setHours(0, 0, 0, 0);
+
+        const result = await Bill.aggregate([
+          { "$match": { paidAt: { "$gte": startDate, "$lte": endDate } } },
+          { "$group": { _id: null, total: { "$sum": "$total" } } }
+        ]);
+
+        data.unshift({
+          label: `Week ${4 - wk}`,
+          value: Math.round(result[0]?.total || 0)
+        });
+      }
+    } else {
+      // Last 7 days, aggregated daily (week view)
+      const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      for (let d = 6; d >= 0; d--) {
+        const day = new Date();
+        day.setDate(day.getDate() - d);
+
+        const start = new Date(day);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(day);
+        end.setHours(23, 59, 59, 999);
+
+        const result = await Bill.aggregate([
+          { "$match": { paidAt: { "$gte": start, "$lte": end } } },
+          { "$group": { _id: null, total: { "$sum": "$total" } } }
+        ]);
+
+        data.push({
+          label: dayNames[(day.getDay() + 6) % 7],
+          value: Math.round(result[0]?.total || 0)
+        });
+      }
     }
+
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
