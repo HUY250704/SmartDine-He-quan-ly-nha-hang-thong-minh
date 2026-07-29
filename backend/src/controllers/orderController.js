@@ -4,6 +4,19 @@ import Session from '../models/Session.js';
 import MenuItem from '../models/MenuItem.js';
 import { emitNewOrder, emitOrderUpdated } from '../socket/index.js';
 
+export const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find().sort('-createdAt').populate('sessionId', 'tableId');
+    const enriched = await Promise.all(orders.map(async (order) => {
+      const items = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'name price');
+      return { ...order.toObject(), items };
+    }));
+    res.json(enriched);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const createOrder = async (req, res) => {
   try {
     const { sessionId, items } = req.body;

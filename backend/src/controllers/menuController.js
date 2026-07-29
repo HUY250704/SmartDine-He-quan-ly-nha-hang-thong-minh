@@ -1,4 +1,5 @@
-import MenuItem from '../models/MenuItem.js';
+Ôªøimport MenuItem from '../models/MenuItem.js';
+import { uploadImage, deleteImage } from '../config/upload.js';
 
 export const getMenu = async (req, res) => {
   try {
@@ -20,8 +21,22 @@ export const createMenuItem = async (req, res) => {
       return res.status(400).json({ error: 'name, price, and categoryId are required' });
     }
 
-    const menuItem = await MenuItem.create({ name, price, description, image, isAvailable, aiDescription, upsellSuggestion, categoryId });
-    res.status(201).json(menuItem);
+    let imageUrl = image || '';
+    let imagePublicId = '';
+
+    // If file was uploaded via multer
+    if (req.file) {
+      const result = await uploadImage(req.file.buffer, 'smartdine/menu');
+      imageUrl = result.url;
+      imagePublicId = result.publicId;
+    }
+
+    const menuItem = await MenuItem.create({
+      name, price, description, image: imageUrl, imagePublicId,
+      isAvailable, aiDescription, upsellSuggestion, categoryId
+    });
+    const populated = await menuItem.populate('categoryId', 'name order');
+    res.status(201).json(populated);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -29,9 +44,23 @@ export const createMenuItem = async (req, res) => {
 
 export const updateMenuItem = async (req, res) => {
   try {
-    const menuItem = await MenuItem.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const menuItem = await MenuItem.findById(req.params.id);
     if (!menuItem) return res.status(404).json({ error: 'Menu item not found' });
-    res.json(menuItem);
+
+    let updateData = { ...req.body };
+
+    // If new file uploaded, delete old image from Cloudinary and upload new one
+    if (req.file) {
+      if (menuItem.imagePublicId) {
+        await deleteImage(menuItem.imagePublicId).catch(() => {});
+      }
+      const result = await uploadImage(req.file.buffer, 'smartdine/menu');
+      updateData.image = result.url;
+      updateData.imagePublicId = result.publicId;
+    }
+
+    const updated = await MenuItem.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true }).populate('categoryId', 'name order');
+    res.json(updated);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -39,9 +68,29 @@ export const updateMenuItem = async (req, res) => {
 
 export const deleteMenuItem = async (req, res) => {
   try {
-    const menuItem = await MenuItem.findByIdAndDelete(req.params.id);
+    const menuItem = await MenuItem.findById(req.params.id);
     if (!menuItem) return res.status(404).json({ error: 'Menu item not found' });
+
+    // Delete image from Cloudinary
+    if (menuItem.imagePublicId) {
+      await deleteImage(menuItem.imagePublicId).catch(() => {});
+    }
+
+    await MenuItem.findByIdAndDelete(req.params.id);
     res.json({ message: 'Menu item deleted' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const uploadMenuImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    const result = await uploadImage(req.file.buffer, 'smartdine/menu');
+    res.json({ url: result.url, publicId: result.publicId });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -53,10 +102,10 @@ export const generateAiDescription = async (req, res) => {
     if (!name) return res.status(400).json({ error: 'Menu item name is required' });
 
     const prompt = category
-      ? 'Vi?t m?t mÙ t? h?p d?n b?ng ti?ng Vi?t cho mÛn "' + name + '" thu?c danh m?c "' + category + '". Gi?i h?n 2-3 c‚u.'
-      : 'Vi?t m?t mÙ t? h?p d?n b?ng ti?ng Vi?t cho mÛn "' + name + '". Gi?i h?n 2-3 c‚u.';
+      ? 'Vi?t m?t m√¥ t? h?p d?n b?ng ti?ng Vi?t cho m√≥n "' + name + '" thu?c danh m?c "' + category + '". Gi?i h?n 2-3 c√¢u.'
+      : 'Vi?t m?t m√¥ t? h?p d?n b?ng ti?ng Vi?t cho m√≥n "' + name + '". Gi?i h?n 2-3 c√¢u.';
 
-    const aiDesc = 'MÙ t? AI cho mÛn: ' + name;
+    const aiDesc = 'M√¥ t? AI cho m√≥n: ' + name;
     res.json({ aiDescription: aiDesc, prompt });
   } catch (error) {
     res.status(500).json({ error: error.message });

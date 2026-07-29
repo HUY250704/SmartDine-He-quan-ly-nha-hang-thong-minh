@@ -1,33 +1,55 @@
-﻿import { Routes, Route, Link } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import AboutPage from "./pages/AboutPage";
-import { Button } from "@/components/ui/button";
+﻿import { Routes, Route, Navigate } from "react-router-dom";
+import { AdminLayout } from "@/components/layout/AdminLayout";
+import ProtectedRoute from "@/components/layout/ProtectedRoute.jsx";
+
+// Admin Pages
+import AdminLoginPage from "@/pages/admin/AdminLoginPage";
+import DashboardPage from "@/pages/admin/DashboardPage";
+import MenuManagementPage from "@/pages/admin/MenuManagementPage";
+import OrdersManagementPage from "@/pages/admin/OrdersManagementPage";
+import TablesManagementPage from "@/pages/admin/TablesManagementPage";
+import BillsManagementPage from "@/pages/admin/BillsManagementPage";
+import SupportPage from "@/pages/admin/SupportPage";
+
+// Customer Pages
+import WelcomePage from "@/pages/user/WelcomePage";
+import MenuPage from "@/pages/user/MenuPage";
+import CartPage from "@/pages/user/CartPage";
+import OrderTrackingPage from "@/pages/user/OrderTrackingPage";
+import SupportPaymentPage from "@/pages/user/SupportPaymentPage";
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b bg-card shadow-sm">
-        <div className="container flex items-center justify-between py-4">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">SmartDine</h1>
-            <p className="text-sm text-muted-foreground">Restaurant management starter</p>
-          </div>
-          <nav className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link to="/">Home</Link>
-            </Button>
-            <Button variant="ghost" asChild>
-              <Link to="/about">About</Link>
-            </Button>
-          </nav>
-        </div>
-      </header>
-      <main className="container py-8">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<AboutPage />} />
-        </Routes>
-      </main>
+    <div className="min-h-screen bg-background text-on-surface">
+      <Routes>
+        {/* Admin Login */}
+        <Route path="/login" element={<AdminLoginPage />} />
+        <Route path="/admin/login" element={<Navigate to="/login" replace />} />
+
+        {/* Admin Routes (protected) */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="orders" element={<OrdersManagementPage />} />
+            <Route path="menu" element={<MenuManagementPage />} />
+            <Route path="tables" element={<TablesManagementPage />} />
+            <Route path="bills" element={<BillsManagementPage />} />
+            <Route path="support" element={<SupportPage />} />
+          </Route>
+        </Route>
+
+        {/* Customer Routes */}
+        <Route path="/customer/:tableId" element={<WelcomePage />} />
+        <Route path="/customer/:tableId/menu" element={<MenuPage />} />
+        <Route path="/customer/:tableId/cart" element={<CartPage />} />
+        <Route path="/customer/:tableId/tracking" element={<OrderTrackingPage />} />
+        <Route path="/customer/:tableId/support" element={<SupportPaymentPage />} />
+
+        {/* Default: customer welcome */}
+        <Route path="/" element={<Navigate to="/customer/7" replace />} />
+        <Route path="*" element={<Navigate to="/customer/7" replace />} />
+      </Routes>
     </div>
   );
 }

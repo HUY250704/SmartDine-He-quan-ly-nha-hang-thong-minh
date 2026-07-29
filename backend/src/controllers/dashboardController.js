@@ -90,6 +90,33 @@ export const revenue = async (req, res) => {
   }
 };
 
+export const revenueChart = async (req, res) => {
+  try {
+    // Build last 7 days chart data
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const day = new Date();
+      day.setDate(day.getDate() - i);
+      const start = new Date(day); start.setHours(0, 0, 0, 0);
+      const end = new Date(day); end.setHours(23, 59, 59, 999);
+
+      const result = await Bill.aggregate([
+        { "$match": { paidAt: { "$gte": start, "$lte": end } } },
+        { "$group": { _id: null, total: { "$sum": "$total" }, count: { "$sum": 1 } } }
+      ]);
+
+      const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      data.push({
+        label: dayNames[day.getDay()],
+        value: Math.round(result[0]?.total || 0)
+      });
+    }
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const getTopItems = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
@@ -113,7 +140,7 @@ export const getTopItems = async (req, res) => {
           as: "menuItem"
         }
       },
-      { "$unwind": "$menuItem" },
+      { "$unwind": { path: "$menuItem", preserveNullAndEmptyArrays: true } },
       {
         "$project": {
           _id: 1,

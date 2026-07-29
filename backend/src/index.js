@@ -26,9 +26,10 @@ import { initSocket } from './socket/index.js';
 
 const app = express();
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: [/^http:\/\/localhost:\d+$/],
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   }
 });
@@ -36,7 +37,7 @@ const io = new Server(server, {
 // Initialize socket handlers
 initSocket(io);
 
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({ origin: [/^http:\/\/localhost:\d+$/] }));
 app.use(express.json());
 
 // API routes
@@ -54,16 +55,24 @@ app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong from backend' });
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 const mongoUri = process.env.MONGODB_URI;
 
-mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 }).then(() => {
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error('Port ' + port + ' already in use. Shutting down gracefully.');
+    process.exit(0);
+  }
+  throw err;
+});
+
+mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 }).then(() => {
   console.log('MongoDB connected');
   server.listen(port, () => {
     console.log('Backend running on http://localhost:' + port + ' with DB');
   });
 }).catch((error) => {
-  console.error('MongoDB connection error:', error);
+  console.error('MongoDB connection error:', error.message);
   server.listen(port, () => {
     console.log('Backend running on http://localhost:' + port + ' without DB');
   });
