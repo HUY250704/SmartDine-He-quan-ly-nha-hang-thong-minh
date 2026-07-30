@@ -1,25 +1,15 @@
 ﻿import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { UserBottomNav } from "@/components/layout/UserBottomNav";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
 import api from "@/lib/api.js";
 
-const SHIMMER_KEYFRAMES = `
-@keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
-@keyframes floating {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-@keyframes pulse-ring {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.05); }
-}
-`;
+const glassCard = {
+  background: "rgba(255,255,255,0.03)",
+  backdropFilter: "blur(12px)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: "16px",
+};
 
 export default function WelcomePage() {
   const { tableId } = useParams();
@@ -51,13 +41,12 @@ export default function WelcomePage() {
     initSession();
   }, [tableId]);
 
-  // Parallax on floating branding
   useEffect(() => {
     const onMouse = (e) => {
       const el = floatRef.current;
       if (!el) return;
-      const x = (window.innerWidth / 2 - e.pageX) / 50;
-      const y = (window.innerHeight / 2 - e.pageY) / 50;
+      const x = (window.innerWidth / 2 - e.pageX) / 80;
+      const y = (window.innerHeight / 2 - e.pageY) / 80;
       el.style.transform = `translate(${x}px, ${y}px)`;
     };
     document.addEventListener("mousemove", onMouse);
@@ -66,7 +55,7 @@ export default function WelcomePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "radial-gradient(circle at center, #191f2f 0%, #0c1322 100%)" }}>
+      <div className="flex items-center justify-center py-32">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           <p className="text-on-surface-variant/60 text-sm">{t("common.loading")}</p>
@@ -77,7 +66,7 @@ export default function WelcomePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "radial-gradient(circle at center, #191f2f 0%, #0c1322 100%)" }}>
+      <div className="flex items-center justify-center py-32">
         <div className="text-center">
           <span className="material-symbols-outlined text-4xl text-error mb-4">error</span>
           <p className="text-error text-sm">{error}</p>
@@ -89,102 +78,90 @@ export default function WelcomePage() {
     );
   }
 
+  const QuickAction = ({ icon, title, desc, color, to }) => (
+    <button
+      onClick={() => navigate(to)}
+      className="group relative p-6 rounded-2xl transition-all duration-300 hover:-translate-y-1"
+      style={glassCard}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = `rgba(${color},0.08)`;
+        e.currentTarget.style.borderColor = `rgba(${color},0.3)`;
+        e.currentTarget.style.boxShadow = `0 0 30px rgba(${color},0.1)`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+        e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+        e.currentTarget.style.boxShadow = "none";
+      }}
+    >
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `rgba(${color},0.15)` }}>
+          <span className="material-symbols-outlined text-2xl" style={{ color: `rgb(${color})`, fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+        </div>
+        <div className="text-left">
+          <h3 className="text-white font-semibold text-base mb-1">{title}</h3>
+          <p className="text-on-surface-variant/50 text-xs leading-relaxed">{desc}</p>
+        </div>
+      </div>
+      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="material-symbols-outlined text-sm" style={{ color: `rgb(${color})` }}>arrow_forward</span>
+      </div>
+    </button>
+  );
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden" style={{ background: "radial-gradient(circle at center, #191f2f 0%, #0c1322 100%)" }}>
-      <style>{SHIMMER_KEYFRAMES}</style>
-
-      {/* Ambient orbs */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[100px]" style={{ animation: "floating 6s ease-in-out infinite" }} />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-tertiary/5 rounded-full blur-[80px]" style={{ animation: "floating 6s ease-in-out 2s infinite" }} />
-        <div className="absolute top-1/2 right-0 w-64 h-64 bg-secondary/10 rounded-full blur-[80px]" style={{ animation: "floating 6s ease-in-out 4s infinite" }} />
+    <div className="max-w-5xl mx-auto">
+      {/* Hero */}
+      <div className="relative mb-10 overflow-hidden rounded-3xl p-8 md:p-12" style={{ background: "linear-gradient(135deg, rgba(255,193,116,0.1) 0%, rgba(236,106,6,0.05) 50%, rgba(12,19,34,0) 100%)", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/5 blur-[80px]" />
+          <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-tertiary/5 blur-[60px]" />
+        </div>
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div ref={floatRef} className="w-16 h-16 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 transition-transform duration-75">
+            <span className="material-symbols-outlined text-4xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>restaurant</span>
+          </div>
+          <div className="flex-1">
+            <p className="text-on-surface-variant/60 text-xs uppercase tracking-widest mb-2">{t("user.welcome") || "Welcome to"}</p>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
+              Smart<span style={{ color: "#ffc174" }}>Dine</span>
+            </h1>
+            <p className="text-on-surface-variant/60 text-sm mt-2 max-w-md">
+              {t("user.welcomeDesc") || "Scan the QR, browse our menu, and enjoy a seamless dining experience."}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className="w-full max-w-lg relative z-10">
-        {/* Branding with parallax */}
-        <div ref={floatRef} className="text-center mb-10 transition-transform duration-75">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-primary/20 backdrop-blur-xl border border-primary/30 flex items-center justify-center shadow-[0_0_30px_rgba(255,193,116,0.15)]" style={{ animation: "floating 6s ease-in-out infinite" }}>
-            <span className="material-symbols-outlined text-5xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>restaurant</span>
-          </div>
-          <h1 className="text-[48px] md:text-6xl font-bold tracking-[-0.02em] text-white mb-2">
-            Smart<span style={{ color: "#ffc174" }}>Dine</span>
-          </h1>
-          <p className="text-on-surface-variant text-lg">{t("user.welcome")}</p>
-          <div className="w-12 h-1 mx-auto mt-4 rounded-full bg-gradient-to-r from-primary via-primary-container to-transparent" />
-        </div>
+      {/* Quick Actions Grid */}
+      <h2 className="text-xs font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-4">
+        {t("user.quickActions") || "Quick Actions"}
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+        <QuickAction icon="restaurant_menu" title={t("user.viewMenu") || "Browse Menu"} desc={t("user.viewMenuDesc") || "Explore our curated dishes & drinks"} color="255,193,116" to={`/customer/${tableId}/menu`} />
+        <QuickAction icon="receipt_long" title={t("user.viewOrders") || "My Orders"} desc={t("user.viewOrdersDesc") || "Track your order status in real-time"} color="236,106,6" to={`/customer/${tableId}/tracking`} />
+        <QuickAction icon="shopping_cart" title={t("user.cart") || "My Cart"} desc="Review and submit your order" color="86,229,169" to={`/customer/${tableId}/cart`} />
+        <QuickAction icon="support_agent" title={t("user.callStaff") || "Call Staff"} desc={t("user.callStaffDesc") || "Need water, napkins, or the bill?"} color="167,139,250" to={`/customer/${tableId}/support`} />
+      </div>
 
-        {/* Glass Card */}
-        <div className="rounded-3xl p-6 space-y-4" style={{ backdropFilter: "blur(20px)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 8px 32px 0 rgba(0,0,0,0.37)" }}>
-          {/* Your Table */}
-          <div className="flex items-center justify-between pb-4 border-b border-white/5 px-1">
+      {/* Info Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          { icon: "wifi", label: "Free Wi-Fi", desc: "Connected & secure", color: "#56e5a9" },
+          { icon: "schedule", label: "Open Hours", desc: "10:00 AM - 10:00 PM", color: "#ffc174" },
+          { icon: "location_on", label: "Location", desc: "123 Gourmet Street", color: "#ffb690" },
+        ].map((card, i) => (
+          <div key={i} className="p-5 rounded-2xl flex items-center gap-4" style={glassCard}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${card.color}20` }}>
+              <span className="material-symbols-outlined text-lg" style={{ color: card.color }}>{card.icon}</span>
+            </div>
             <div>
-              <p className="text-on-surface-variant text-sm">{t("user.yourTable")}</p>
-              <p className="font-mono text-2xl font-bold mt-1" style={{ color: "#ffc174" }}>Table {tableId}</p>
+              <p className="text-white text-sm font-semibold">{card.label}</p>
+              <p className="text-on-surface-variant/50 text-xs">{card.desc}</p>
             </div>
-            <button className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-white/10 text-on-surface-variant hover:text-white hover:bg-white/5 transition-colors">
-              {t("user.changeTable")}
-            </button>
           </div>
-
-          {/* View Menu */}
-          <button onClick={() => navigate(`/customer/${tableId}/menu`)} className="w-full py-6 px-6 rounded-2xl flex items-center justify-between group relative overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)", transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)" }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,193,116,0.1)"; e.currentTarget.style.borderColor = "rgba(255,193,116,0.4)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(255,193,116,0.15)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
-            <div className="absolute top-0 -left-full w-full h-full pointer-events-none" style={{ background: "linear-gradient(120deg, transparent, rgba(255,193,116,0.1), transparent)", transition: "0.5s", left: "var(--shimmer-left, -100%)" }} />
-            <div className="flex items-center gap-5 relative z-10">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-colors" style={{ background: "rgba(245,158,11,0.2)" }}>
-                <span className="material-symbols-outlined text-primary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>restaurant_menu</span>
-              </div>
-              <div className="text-left">
-                <span className="block text-white text-lg font-semibold">{t("user.viewMenu")}</span>
-                <span className="text-on-surface-variant text-sm">{t("user.viewMenuDesc")}</span>
-              </div>
-            </div>
-            <span className="material-symbols-outlined text-primary-fixed-dim opacity-40 group-hover:opacity-100 transition-all relative z-10" style={{ transform: "translateX(0)" }}>arrow_forward_ios</span>
-          </button>
-
-          {/* Call Staff */}
-          <button onClick={() => navigate(`/customer/${tableId}/support`)} className="w-full py-6 px-6 rounded-2xl flex items-center justify-between group relative overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)", transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)" }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(86,229,169,0.08)"; e.currentTarget.style.borderColor = "rgba(86,229,169,0.4)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(86,229,169,0.12)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
-            <div className="flex items-center gap-5 relative z-10">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-colors" style={{ background: "rgba(48,200,143,0.1)" }}>
-                <span className="material-symbols-outlined text-tertiary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>support_agent</span>
-              </div>
-              <div className="text-left">
-                <span className="block text-white text-lg font-semibold">{t("user.callStaff")}</span>
-                <span className="text-on-surface-variant text-sm">{t("user.callStaffDesc")}</span>
-              </div>
-            </div>
-            <span className="material-symbols-outlined text-tertiary opacity-40 group-hover:opacity-100 transition-all relative z-10">arrow_forward_ios</span>
-          </button>
-
-          {/* View My Orders */}
-          <button onClick={() => navigate(`/customer/${tableId}/tracking`)} className="w-full py-6 px-6 rounded-2xl flex items-center justify-between group relative overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.1)", transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)" }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,182,144,0.08)"; e.currentTarget.style.borderColor = "rgba(255,182,144,0.4)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(255,182,144,0.12)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
-            <div className="flex items-center gap-5 relative z-10">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-colors" style={{ background: "rgba(236,106,6,0.1)" }}>
-                <span className="material-symbols-outlined text-secondary text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>receipt_long</span>
-              </div>
-              <div className="text-left">
-                <span className="block text-white text-lg font-semibold">{t("user.viewOrders")}</span>
-                <span className="text-on-surface-variant text-sm">{t("user.viewOrdersDesc")}</span>
-              </div>
-            </div>
-            <span className="material-symbols-outlined text-secondary opacity-40 group-hover:opacity-100 transition-all relative z-10">arrow_forward_ios</span>
-          </button>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-16 text-on-surface-variant/40 flex flex-col items-center">
-          <div className="w-1 h-12 rounded-full bg-gradient-to-b from-primary/40 to-transparent mb-4" />
-          <p className="text-label-sm tracking-widest uppercase">{t("user.bonAppetit")}</p>
-        </div>
+        ))}
       </div>
-
-      <div className="md:hidden h-20" />
-      <UserBottomNav tableId={tableId} />
     </div>
   );
 }

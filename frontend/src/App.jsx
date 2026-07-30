@@ -1,5 +1,6 @@
 ﻿import { Routes, Route, Navigate } from "react-router-dom";
 import { AdminLayout } from "@/components/layout/AdminLayout";
+import UserLayout from "@/components/layout/UserLayout";
 import ProtectedRoute from "@/components/layout/ProtectedRoute.jsx";
 
 // Admin Pages
@@ -39,12 +40,14 @@ export default function App() {
           </Route>
         </Route>
 
-        {/* Customer Routes */}
-        <Route path="/customer/:tableId" element={<WelcomePage />} />
-        <Route path="/customer/:tableId/menu" element={<MenuPage />} />
-        <Route path="/customer/:tableId/cart" element={<CartPage />} />
-        <Route path="/customer/:tableId/tracking" element={<OrderTrackingPage />} />
-        <Route path="/customer/:tableId/support" element={<SupportPaymentPage />} />
+        {/* Customer Routes - Web layout with sidebar */}
+        <Route path="/customer/:tableId" element={<UserLayout />}>
+          <Route index element={<WelcomePage />} />
+          <Route path="menu" element={<MenuPage />} />
+          <Route path="cart" element={<CartPage />} />
+          <Route path="tracking" element={<OrderTrackingPage />} />
+          <Route path="support" element={<SupportPaymentPage />} />
+        </Route>
 
         {/* Default: customer welcome */}
         <Route path="/" element={<Navigate to="/customer/7" replace />} />

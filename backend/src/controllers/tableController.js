@@ -3,7 +3,7 @@ import { emitTableUpdated } from '../socket/index.js';
 
 export const getTables = async (req, res) => {
   try {
-    const tables = await Table.find().sort('number');
+    const tables = await Table.find().sort('number').populate('currentSessionId');
     res.json(tables);
   } catch (error) {
     res.status(500).json({ error: error.message });

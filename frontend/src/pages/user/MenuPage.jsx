@@ -2,24 +2,20 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
-import { UserBottomNav } from "@/components/layout/UserBottomNav";
 import api from "@/lib/api.js";
 import { formatVND } from "@/lib/price.js";
 
 const CATEGORY_ICONS = {
-  appetizer: "tapas",
-  main: "dinner_dining",
-  dessert: "cake",
-  drinks: "local_bar",
-  beverage: "local_cafe",
-  soup: "soup_kitchen",
-  salad: "eco",
-  seafood: "set_meal",
-  grill: "outdoor_grill",
-  special: "star",
+  appetizer: "tapas", main: "dinner_dining", dessert: "cake",
+  drinks: "local_bar", beverage: "local_cafe", soup: "soup_kitchen",
+  salad: "eco", seafood: "set_meal", grill: "outdoor_grill", special: "star",
 };
 
-
+const glassCard = {
+  background: "rgba(255,255,255,0.03)",
+  backdropFilter: "blur(12px)",
+  border: "1px solid rgba(255,255,255,0.08)",
+};
 
 export default function MenuPage() {
   const { t } = useLang();
@@ -34,6 +30,7 @@ export default function MenuPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [showToast, setShowToast] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
     Promise.all([api.get("/menu"), api.get("/categories")])
@@ -42,15 +39,10 @@ export default function MenuPage() {
         const cats = catRes.data || [];
         setCategories([
           { _id: "all", name: t("menu.allItems") || "All", icon: "apps" },
-          ...cats.map((c) => ({
-            ...c,
-            icon: CATEGORY_ICONS[c.name?.toLowerCase()] || "category",
-          })),
+          ...cats.map((c) => ({ ...c, icon: CATEGORY_ICONS[c.name?.toLowerCase()] || "category" })),
         ]);
       })
-      .catch((err) => {
-        setError(err.response?.data?.error || "Failed to load menu");
-      })
+      .catch((err) => setError(err.response?.data?.error || "Failed to load menu"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -71,7 +63,7 @@ export default function MenuPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center py-32">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
           <p className="text-on-surface-variant/60 text-sm">{t("common.loading")}</p>
@@ -82,206 +74,198 @@ export default function MenuPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center py-32">
         <div className="text-center">
           <span className="material-symbols-outlined text-4xl text-error mb-4">error</span>
           <p className="text-error text-sm">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-primary/20 text-primary border border-primary/30"
-          >
-            {t("common.retry")}
-          </button>
+          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-primary/20 text-primary border border-primary/30">{t("common.retry")}</button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#0c1322] text-on-surface pb-24 relative">
-      {/* Toast */}
-      {showToast && (
-        <div
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 rounded-xl text-sm font-bold animate-[slideDown_0.3s_ease]"
-          style={{
-            background: "rgba(86,229,169,0.15)",
-            backdropFilter: "blur(16px)",
-            border: "1px solid rgba(86,229,169,0.3)",
-            color: "#56e5a9",
-          }}
-        >
-          Added "{showToast}" to cart
-        </div>
-      )}
-
-      {/* Noise texture overlay */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.03]" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/carbon-fibre.png')" }} />
-
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-surface-container/80 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-white/5 transition-colors">
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
-            <div className="flex items-center gap-2 px-3 py-1 rounded-lg" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>table_restaurant</span>
-              <span className="text-xs font-bold text-white">
-                {t("user.yourTable")}: <span style={{ color: "#ffc174" }}>#{tableId}</span>
-              </span>
-            </div>
-          </div>
-          <button onClick={() => navigate(`/customer/${tableId}/cart`)} className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-white/5 transition-colors">
-            <span className="material-symbols-outlined text-xl text-primary">shopping_cart</span>
-            {cartCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-tertiary text-on-tertiary text-[10px] font-bold flex items-center justify-center">{cartCount}</span>
+  const ItemDetailModal = () => {
+    if (!selectedItem) return null;
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setSelectedItem(null)}>
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        <div className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden" style={{ background: "#141b2b", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 25px 50px rgba(0,0,0,0.5)" }} onClick={(e) => e.stopPropagation()}>
+          <div className="aspect-[16/10] bg-white/5 relative">
+            {selectedItem.image ? (
+              <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="material-symbols-outlined text-on-surface-variant/20 text-6xl">restaurant</span>
+              </div>
             )}
-          </button>
+            <button onClick={() => setSelectedItem(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white hover:bg-black/60 transition-all">
+              <span className="material-symbols-outlined text-sm">close</span>
+            </button>
+          </div>
+          <div className="p-6">
+            <div className="flex items-start justify-between mb-3">
+              <h3 className="text-white font-bold text-xl">{selectedItem.name}</h3>
+              <span className="font-mono font-bold text-xl" style={{ color: "#ffc174" }}>{formatVND(selectedItem.price)}</span>
+            </div>
+            <p className="text-on-surface-variant/50 text-sm leading-relaxed mb-6">{selectedItem.description || selectedItem.aiDescription || "A delicious dish from our kitchen."}</p>
+            <button
+              onClick={(e) => { addItem(selectedItem, e); setSelectedItem(null); }}
+              disabled={selectedItem.isAvailable === false}
+              className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95"
+              style={{ background: "#ffc174", color: "#472a00", boxShadow: "0 0 20px rgba(255,193,116,0.2)" }}
+            >
+              <span className="material-symbols-outlined text-lg">add_shopping_cart</span>
+              Add to Cart - {formatVND(selectedItem.price)}
+            </button>
+          </div>
         </div>
+      </div>
+    );
+  };
 
-        {/* Category tabs */}
-        <div className="flex gap-1.5 px-4 pb-3 overflow-x-auto category-scroll">
+  return (
+    <div className="flex gap-6 max-w-[1400px] mx-auto">
+      {/* Categories Sidebar */}
+      <div className="w-[200px] shrink-0 hidden lg:block">
+        <div className="sticky top-20 space-y-1">
+          <h3 className="text-xs font-semibold text-on-surface-variant/40 uppercase tracking-wider px-3 mb-3">Categories</h3>
           {categories.map((cat) => (
             <button
               key={cat._id}
               onClick={() => setActiveCategory(cat._id)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
                 activeCategory === cat._id
-                  ? "bg-primary/15 text-primary border border-primary/40 shadow-lg shadow-primary/10"
-                  : "text-on-surface-variant hover:text-white hover:bg-white/5 border border-transparent"
+                  ? "bg-primary/10 text-primary font-semibold border border-primary/20"
+                  : "text-on-surface-variant/60 hover:text-white hover:bg-white/5"
               }`}
             >
-              <span className="material-symbols-outlined text-sm">{cat.icon || "category"}</span>
+              <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: activeCategory === cat._id ? "'FILL' 1" : "'FILL' 0" }}>{cat.icon}</span>
               {cat.name}
             </button>
           ))}
         </div>
-      </header>
-
-      {/* Search */}
-      <div className="max-w-lg mx-auto px-4 py-4 relative z-10">
-        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl backdrop-blur-md" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "inset 1px 1px 0px rgba(255,255,255,0.05)" }}>
-          <span className="material-symbols-outlined text-on-surface-variant/40 text-xl">search</span>
-          <input
-            type="text"
-            placeholder="Find your favorite dish..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-on-surface placeholder-on-surface-variant/30 outline-none"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
-              <span className="material-symbols-outlined text-on-surface-variant/50 text-sm">close</span>
-            </button>
-          )}
-          <span className="material-symbols-outlined text-primary/40">restaurant_menu</span>
-        </div>
       </div>
 
-      {/* Menu Grid */}
-      <div className="max-w-lg mx-auto px-4 py-2 grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+      {/* Main Content */}
+      <div className="flex-1 min-w-0">
+        {/* Search + Mobile Category Tabs */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-lg">search</span>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search dishes..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none transition-all"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#dce2f7" }}
+              onFocus={(e) => { e.target.style.borderColor = "rgba(255,193,116,0.4)"; e.target.style.background = "rgba(255,255,255,0.08)"; }}
+              onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; e.target.style.background = "rgba(255,255,255,0.05)"; }}
+            />
+          </div>
+          {/* Mobile Category Select */}
+          <select
+            value={activeCategory}
+            onChange={(e) => setActiveCategory(e.target.value)}
+            className="lg:hidden px-4 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#dce2f7" }}
+          >
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat._id} style={{ background: "#141b2b" }}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Items Grid */}
         {filtered.length === 0 ? (
-          <div className="col-span-full text-center py-20">
-            <span className="material-symbols-outlined text-6xl text-on-surface-variant/10 mb-4">search_off</span>
+          <div className="text-center py-20">
+            <span className="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-4">search_off</span>
             <p className="text-on-surface-variant/40 text-sm">No items found</p>
             {search && (
-              <button onClick={() => setSearch("")} className="mt-3 text-xs text-primary hover:underline">
-                Clear search
-              </button>
+              <button onClick={() => setSearch("")} className="mt-3 text-xs text-primary hover:underline">Clear search</button>
             )}
           </div>
         ) : (
-          filtered.map((item) => (
-            <div
-              key={item._id}
-              className="glass-card rounded-2xl p-4 flex flex-col transition-all duration-300"
-              style={{
-                backdropFilter: "blur(16px)",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                boxShadow: "inset 1px 1px 0px rgba(255,255,255,0.05)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,193,116,0.3)";
-                e.currentTarget.style.transform = "translateY(-4px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              {/* Image */}
-              <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-3 bg-white/5 flex-shrink-0">
-                {item.image ? (
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="material-symbols-outlined text-on-surface-variant/20 text-5xl">restaurant</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filtered.map((item) => (
+              <div
+                key={item._id}
+                className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1"
+                style={glassCard}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,193,116,0.25)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(0,0,0,0.3)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.boxShadow = "none"; }}
+                onClick={() => setSelectedItem(item)}
+              >
+                {/* Image */}
+                <div className="relative aspect-[16/10] bg-white/5 overflow-hidden">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="material-symbols-outlined text-on-surface-variant/20 text-5xl">restaurant</span>
+                    </div>
+                  )}
+                  {item.popular && (
+                    <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold" style={{ background: "rgba(255,193,116,0.25)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,193,116,0.3)", color: "#ffc174" }}>
+                      <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      POPULAR
+                    </span>
+                  )}
+                  {item.isAvailable === false && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <span className="px-3 py-1 rounded-lg bg-error/20 border border-error/30 text-error text-xs font-bold">Sold Out</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="p-4">
+                  <h3 className="text-white font-semibold text-sm leading-tight mb-1">{item.name}</h3>
+                  <p className="text-on-surface-variant/50 text-xs leading-relaxed line-clamp-2 mb-3">{item.description || item.aiDescription || ""}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatVND(item.price)}</span>
+                    <button
+                      onClick={(e) => addItem(item, e)}
+                      disabled={item.isAvailable === false}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                      style={{
+                        background: item.isAvailable !== false ? "rgba(255,193,116,0.15)" : "rgba(255,255,255,0.05)",
+                        border: item.isAvailable !== false ? "1px solid rgba(255,193,116,0.3)" : "1px solid rgba(255,255,255,0.05)",
+                        color: item.isAvailable !== false ? "#ffc174" : "rgba(216,195,173,0.3)",
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-lg">add</span>
+                    </button>
                   </div>
-                )}
-                {item.popular && (
-                  <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: "rgba(255,193,116,0.2)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,193,116,0.3)", color: "#ffc174" }}>
-                    <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                    POPULAR
-                  </span>
-                )}
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 flex flex-col">
-                <h3 className="text-white font-semibold text-sm leading-tight mb-1 line-clamp-2">{item.name}</h3>
-                <p className="text-on-surface-variant/50 text-xs leading-relaxed line-clamp-2 mb-3 flex-1">
-                  {item.description || item.aiDescription || ""}
-                </p>
-
-                <div className="flex items-center justify-between mt-auto">
-                  <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>
-                    {formatVND(item.price)}
-                  </span>
-                  <button
-                    onClick={(e) => addItem(item, e)}
-                    disabled={item.isAvailable === false}
-                    className="w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 active:scale-90"
-                    style={{
-                      background: item.isAvailable !== false ? "rgba(255,193,116,0.15)" : "rgba(255,255,255,0.05)",
-                      backdropFilter: "blur(12px)",
-                      border: item.isAvailable !== false ? "1px solid rgba(255,193,116,0.3)" : "1px solid rgba(255,255,255,0.05)",
-                      color: item.isAvailable !== false ? "#ffc174" : "rgba(216,195,173,0.3)",
-                      cursor: item.isAvailable !== false ? "pointer" : "not-allowed",
-                    }}
-                  >
-                    <span className="material-symbols-outlined text-lg">{item.isAvailable !== false ? "add" : "close"}</span>
-                  </button>
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
 
-      {/* FAB Cart */}
+      {/* Toast */}
+      {showToast && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 rounded-xl text-sm font-bold animate-[slideUp_0.3s_ease]" style={{ background: "rgba(86,229,169,0.15)", backdropFilter: "blur(16px)", border: "1px solid rgba(86,229,169,0.3)", color: "#56e5a9" }}>
+          Added "{showToast}" to cart
+        </div>
+      )}
+
+      {/* Cart FAB */}
       {cartCount > 0 && (
         <button
-          id="cart-fab"
           onClick={() => navigate(`/customer/${tableId}/cart`)}
-          className="fixed bottom-24 right-4 z-50 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-95 shadow-lg shadow-primary/20"
-          style={{
-            background: "rgba(255,193,116,0.9)",
-            backdropFilter: "blur(12px)",
-            border: "1px solid rgba(255,193,116,0.4)",
-            boxShadow: "0 0 20px rgba(255,193,116,0.2)",
-          }}
+          className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-xl"
+          style={{ background: "#ffc174", boxShadow: "0 0 30px rgba(255,193,116,0.3)" }}
         >
-          <span className="material-symbols-outlined text-on-primary text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_cart</span>
-          <span className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-tertiary text-on-tertiary text-[11px] font-bold flex items-center justify-center border-2 border-[#0c1322]">
-            {cartCount}
-          </span>
+          <span className="material-symbols-outlined text-2xl" style={{ color: "#472a00", fontVariationSettings: "'FILL' 1" }}>shopping_cart</span>
+          <span className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-tertiary text-on-tertiary text-[11px] font-bold flex items-center justify-center border-2 border-[#0c1322]">{cartCount}</span>
         </button>
       )}
 
-      <UserBottomNav tableId={tableId} />
+      <ItemDetailModal />
+
+      <style>{`@keyframes slideUp { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }`}</style>
     </div>
   );
 }
-
-

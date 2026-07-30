@@ -1,4 +1,4 @@
-﻿const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
 const dotenv = require("dotenv");
@@ -65,6 +65,18 @@ const billSchema = new mongoose.Schema({
 }, { timestamps: true });
 const Bill = mongoose.model("Bill", billSchema);
 
+
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true, trim: true },
+  password: { type: String, required: true },
+  role: { type: String, enum: ["ADMIN", "STAFF"], default: "ADMIN" },
+}, { timestamps: true });
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
+});
+const User = mongoose.model("User", userSchema);
 async function seed() {
   console.log("Connecting to MongoDB...");
   await mongoose.connect(mongoUri);
@@ -77,7 +89,7 @@ async function seed() {
     Session.deleteMany({}),
     Order.deleteMany({}),
     OrderItem.deleteMany({}),
-    Bill.deleteMany({}),
+    Bill.deleteMany({}), User.deleteMany({}),
   ]);
 
   // Create Tables
@@ -132,7 +144,7 @@ async function seed() {
     { name: "Truffle Pasta", price: 42, description: "House-made fettuccine, black truffle cream", categoryId: mainCourse._id, isAvailable: true },
     { name: "Lobster Bisque", price: 28, description: "Creamy bisque, cognac, chives", categoryId: mainCourse._id, isAvailable: false },
     { name: "Midnight Lava Cake", price: 12, description: "Molten Belgian chocolate, vanilla ice cream", categoryId: desserts._id, isAvailable: true },
-    { name: "Crème Brûlée", price: 14, description: "Madagascar vanilla, caramelized sugar", categoryId: desserts._id, isAvailable: true },
+    { name: "Cr�me Br�l�e", price: 14, description: "Madagascar vanilla, caramelized sugar", categoryId: desserts._id, isAvailable: true },
     { name: "Tiramisu", price: 15, description: "Espresso-soaked ladyfingers, mascarpone", categoryId: desserts._id, isAvailable: true },
     { name: "Solaris Cocktail", price: 19, description: "House-blended smoked bourbon", categoryId: beverages._id, isAvailable: true },
     { name: "Espresso Martini", price: 18, description: "Vodka, Kahlua, fresh espresso", categoryId: beverages._id, isAvailable: true },
@@ -199,6 +211,9 @@ async function seed() {
 
   // Create bills for closed sessions
   const now = new Date();
+
+  console.log("Creating default admin user...");
+  await User.create({ username: "admin", password: await bcrypt.hash("admin123", 10), role: "ADMIN" });
   await Bill.insertMany([
     { sessionId: session1._id, total: 385, paymentMethod: "CARD", paidAt: new Date(now - 3*86400000) },
     { sessionId: session2._id, total: 210, paymentMethod: "CASH", paidAt: new Date(now - 2*86400000) },

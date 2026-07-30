@@ -24,6 +24,9 @@ import dashboardRoutes from './routes/dashboard.js';
 // Socket
 import { initSocket } from './socket/index.js';
 
+// Models for public routes
+import Table from './models/Table.js';
+
 const app = express();
 const server = http.createServer(app);
 
@@ -50,6 +53,16 @@ app.use('/orders', orderRoutes);
 app.use('/bills', billRoutes);
 app.use('/support', supportRoutes);
 app.use('/dashboard', dashboardRoutes);
+
+// Public: get available tables (for customer table switching)
+app.get('/api/tables/public', async (req, res) => {
+  try {
+    const tables = await Table.find({}, 'number status').sort('number');
+    res.json(tables);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.get('/api/ping', (req, res) => {
   res.json({ message: 'pong from backend' });
