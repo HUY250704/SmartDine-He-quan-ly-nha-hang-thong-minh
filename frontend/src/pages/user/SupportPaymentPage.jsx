@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { UserBottomNav } from "@/components/layout/UserBottomNav";
 import api from "@/lib/api.js";
+import { formatVND } from "@/lib/price.js";
 
 const formatPrice = (p) => (p || 0).toLocaleString("vi-VN") + "\u0111";
 
@@ -245,7 +246,7 @@ export default function SupportPaymentPage() {
                     </div>
                     <span className="text-sm text-on-surface">{item.name}</span>
                   </div>
-                  <span className="font-mono text-sm text-on-surface-variant">{formatPrice(item.price)}</span>
+                  <span className="font-mono text-sm text-on-surface-variant">{formatVND(item.price)}</span>
                 </div>
               ))}
             </div>
@@ -255,19 +256,19 @@ export default function SupportPaymentPage() {
           <div className="border-t border-white/10 pt-4 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-on-surface-variant">Subtotal</span>
-              <span className="text-on-surface font-medium">{formatPrice(subtotal)}</span>
+              <span className="text-on-surface font-medium">{formatVND(subtotal)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-on-surface-variant">Tax (8%)</span>
-              <span className="text-on-surface font-medium">{formatPrice(tax)}</span>
+              <span className="text-on-surface font-medium">{formatVND(tax)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-on-surface-variant">Service (5%)</span>
-              <span className="text-on-surface font-medium">{formatPrice(serviceCharge)}</span>
+              <span className="text-on-surface font-medium">{formatVND(serviceCharge)}</span>
             </div>
             <div className="flex justify-between pt-3 border-t border-white/10">
               <span className="text-white font-bold text-lg">Total</span>
-              <span className="font-mono font-bold text-xl" style={{ color: "#ffc174" }}>{formatPrice(total)}</span>
+              <span className="font-mono font-bold text-xl" style={{ color: "#ffc174" }}>{formatVND(total)}</span>
             </div>
           </div>
 
@@ -360,3 +361,5 @@ export default function SupportPaymentPage() {
     </div>
   );
 }
+
+

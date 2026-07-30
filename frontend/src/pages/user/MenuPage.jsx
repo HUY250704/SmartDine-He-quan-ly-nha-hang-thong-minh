@@ -4,6 +4,7 @@ import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
 import { UserBottomNav } from "@/components/layout/UserBottomNav";
 import api from "@/lib/api.js";
+import { formatVND } from "@/lib/price.js";
 
 const CATEGORY_ICONS = {
   appetizer: "tapas",
@@ -18,10 +19,7 @@ const CATEGORY_ICONS = {
   special: "star",
 };
 
-const formatPrice = (p) => {
-  const vnd = typeof p === "number" ? p : 0;
-  return (vnd * 25000).toLocaleString("vi-VN") + "\u0111";
-};
+
 
 export default function MenuPage() {
   const { t } = useLang();
@@ -238,7 +236,7 @@ export default function MenuPage() {
 
                 <div className="flex items-center justify-between mt-auto">
                   <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>
-                    {formatPrice(item.price)}
+                    {formatVND(item.price)}
                   </span>
                   <button
                     onClick={(e) => addItem(item, e)}
@@ -285,3 +283,5 @@ export default function MenuPage() {
     </div>
   );
 }
+
+

@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { UserBottomNav } from "@/components/layout/UserBottomNav";
 import api from "@/lib/api.js";
+import { getSocket } from "@/lib/socket.js";
+import { formatVND, toVND } from "@/lib/price.js";
 
 const STATUS_STEPS = [
   { key: "received", label: "Order Received", icon: "receipt" },
@@ -21,7 +23,7 @@ const statusIndexMap = {
   CANCELLED: -1,
 };
 
-const formatPrice = (p) => (p || 0).toLocaleString("vi-VN") + "\u0111";
+
 
 const glassCardStyle = {
   backdropFilter: "blur(16px)",
@@ -63,14 +65,14 @@ export default function OrderTrackingPage() {
             const price = it.menuItemId?.price || 0;
             return s + price * it.quantity;
           }, 0);
-          const totalVND = total * 25000;
+          const subtotal = toVND(total);
           const serviceCharge = Math.round(totalVND * 0.1);
           return {
             ...order,
             statusIndex: statusIdx,
-            subtotal: totalVND,
+            subtotal: subtotal,
             serviceCharge,
-            total: totalVND + serviceCharge,
+            total: subtotal + serviceCharge,
             itemCount: order.items?.length || 0,
             items: order.items?.map((it) => ({
               name: it.menuItemId?.name || "Item",
@@ -91,8 +93,28 @@ export default function OrderTrackingPage() {
 
   useEffect(() => {
     fetchOrders();
-    const interval = setInterval(fetchOrders, 15000);
-    return () => clearInterval(interval);
+
+    const sessionId = localStorage.getItem("smartdine_sessionId");
+    if (!sessionId) return;
+
+    const socket = getSocket();
+    socket.emit("join-session", sessionId);
+
+    const onNewOrder = (data) => {
+      fetchOrders();
+    };
+    const onOrderUpdated = (data) => {
+      fetchOrders();
+    };
+
+    socket.on("new-order", onNewOrder);
+    socket.on("order-updated", onOrderUpdated);
+
+    return () => {
+      socket.emit("leave-session", sessionId);
+      socket.off("new-order", onNewOrder);
+      socket.off("order-updated", onOrderUpdated);
+    };
   }, []);
 
   // Animate cards on scroll
@@ -260,22 +282,22 @@ export default function OrderTrackingPage() {
                           </span>
                           <span className="text-sm text-on-surface">{it.name}</span>
                         </div>
-                        <span className="font-mono text-sm text-on-surface-variant">{formatPrice(it.price)}</span>
+                        <span className="font-mono text-sm text-on-surface-variant">{formatVND(it.price)}</span>
                       </div>
                     ))}
 
                     {/* Order Summary */}
                     <div className="flex justify-between text-sm mt-3">
                       <span className="text-on-surface-variant">Subtotal</span>
-                      <span className="font-medium text-on-surface">{formatPrice(order.subtotal)}</span>
+                      <span className="font-medium text-on-surface">{formatVND(order.subtotal)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-on-surface-variant">Service (10%)</span>
-                      <span className="font-medium text-on-surface">{formatPrice(order.serviceCharge)}</span>
+                      <span className="font-medium text-on-surface">{formatVND(order.serviceCharge)}</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold pt-2 border-t border-white/10">
                       <span>Total</span>
-                      <span style={{ color: "#ffc174" }}>{formatPrice(order.total)}</span>
+                      <span style={{ color: "#ffc174" }}>{formatVND(order.total)}</span>
                     </div>
                   </div>
 
@@ -360,3 +382,7 @@ export default function OrderTrackingPage() {
     </div>
   );
 }
+
+
+
+

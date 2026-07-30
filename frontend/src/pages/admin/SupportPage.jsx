@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api.js';
-import { io } from 'socket.io-client';
+import { getSocket } from '@/lib/socket.js';
 
-const SOCKET_URL = 'http://localhost:4000';
+
 
 const typeConfig = {
   assistance: { label: 'Assistance', color: '#ffc174', bg: 'rgba(255,193,116,0.1)', border: 'rgba(255,193,116,0.2)' },
@@ -34,7 +34,7 @@ export default function SupportPage() {
   useEffect(() => {
     fetchRequests();
 
-    const socket = io(SOCKET_URL);
+    const socket = getSocket();
     socketRef.current = socket;
 
     socket.on('connect', () => {
@@ -284,3 +284,4 @@ export default function SupportPage() {
     </div>
   );
 }
+

@@ -4,27 +4,50 @@ import OrderItem from "../models/OrderItem.js";
 import Table from "../models/Table.js";
 import Bill from "../models/Bill.js";
 
+// Shared data fetching — used by both overview and getStats
+async function getStatsData() {
+  const totalTables = await Table.countDocuments();
+  const occupiedTables = await Table.countDocuments({ status: "OCCUPIED" });
+  const activeSessions = await Session.countDocuments({ status: "ACTIVE" });
+  const pendingOrders = await Order.countDocuments({ status: { "$in": ["PENDING", "CONFIRMED", "PREPARING"] } });
+
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const todaySessions = await Session.countDocuments({ startTime: { "$gte": today } });
+
+  const todayRevenue = await Bill.aggregate([
+    { "$match": { paidAt: { "$gte": today } } },
+    { "$group": { _id: null, total: { "$sum": "$total" } } }
+  ]);
+
+  const totalBills = await Bill.countDocuments();
+  const billAgg = await Bill.aggregate([
+    { "$group": { _id: null, totalRevenue: { "$sum": "$total" }, avgBill: { "$avg": "$total" } } }
+  ]);
+
+  return {
+    totalTables,
+    occupiedTables,
+    availableTables: totalTables - occupiedTables,
+    activeSessions,
+    pendingOrders,
+    todaySessions,
+    todayRevenue: todayRevenue[0]?.total || 0,
+    totalBills,
+    totalRevenue: billAgg[0]?.totalRevenue || 0,
+    avgBill: Math.round(billAgg[0]?.avgBill || 0),
+  };
+}
+
 export const overview = async (req, res) => {
   try {
-    const totalTables = await Table.countDocuments();
-    const occupiedTables = await Table.countDocuments({ status: "OCCUPIED" });
-    const activeSessions = await Session.countDocuments({ status: "ACTIVE" });
-    const pendingOrders = await Order.countDocuments({ status: { "$in": ["PENDING", "CONFIRMED", "PREPARING"] } });
-
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const todaySessions = await Session.countDocuments({ startTime: { "$gte": today } });
-    const todayRevenue = await Bill.aggregate([
-      { "$match": { paidAt: { "$gte": today } } },
-      { "$group": { _id: null, total: { "$sum": "$total" } } }
-    ]);
-
+    const stats = await getStatsData();
     res.json({
-      totalTables,
-      occupiedTables,
-      activeSessions,
-      pendingOrders,
-      todaySessions,
-      todayRevenue: todayRevenue[0]?.total || 0
+      totalTables: stats.totalTables,
+      occupiedTables: stats.occupiedTables,
+      activeSessions: stats.activeSessions,
+      pendingOrders: stats.pendingOrders,
+      todaySessions: stats.todaySessions,
+      todayRevenue: stats.todayRevenue,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -33,36 +56,8 @@ export const overview = async (req, res) => {
 
 export const getStats = async (req, res) => {
   try {
-    const totalTables = await Table.countDocuments();
-    const occupiedTables = await Table.countDocuments({ status: "OCCUPIED" });
-    const activeSessions = await Session.countDocuments({ status: "ACTIVE" });
-    const pendingOrders = await Order.countDocuments({ status: { "$in": ["PENDING", "CONFIRMED", "PREPARING"] } });
-
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const todaySessions = await Session.countDocuments({ startTime: { "$gte": today } });
-
-    const todayRevenue = await Bill.aggregate([
-      { "$match": { paidAt: { "$gte": today } } },
-      { "$group": { _id: null, total: { "$sum": "$total" } } }
-    ]);
-
-    const totalBills = await Bill.countDocuments();
-    const billAgg = await Bill.aggregate([
-      { "$group": { _id: null, totalRevenue: { "$sum": "$total" }, avgBill: { "$avg": "$total" } } }
-    ]);
-
-    res.json({
-      totalTables,
-      occupiedTables,
-      availableTables: totalTables - occupiedTables,
-      activeSessions,
-      pendingOrders,
-      todaySessions,
-      todayRevenue: todayRevenue[0]?.total || 0,
-      totalBills,
-      totalRevenue: billAgg[0]?.totalRevenue || 0,
-      avgBill: Math.round(billAgg[0]?.avgBill || 0)
-    });
+    const stats = await getStatsData();
+    res.json(stats);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -96,8 +91,6 @@ export const revenueChart = async (req, res) => {
     const data = [];
 
     if (period === "month") {
-      // Last 4 weeks, aggregated weekly
-      // Week 1 = oldest (28-21 days ago), Week 4 = newest (last 7 days)
       const now = new Date();
       for (let wk = 0; wk < 4; wk++) {
         const endDate = new Date(now);
@@ -119,7 +112,6 @@ export const revenueChart = async (req, res) => {
         });
       }
     } else {
-      // Last 7 days, aggregated daily (week view)
       const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       for (let d = 6; d >= 0; d--) {
         const day = new Date();

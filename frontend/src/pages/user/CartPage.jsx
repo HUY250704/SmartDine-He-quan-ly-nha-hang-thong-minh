@@ -4,11 +4,9 @@ import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
 import { UserBottomNav } from "@/components/layout/UserBottomNav";
 import api from "@/lib/api.js";
+import { formatVND } from "@/lib/price.js";
 
-const formatPrice = (p) => {
-  const vnd = typeof p === "number" ? p * 25000 : p || 0;
-  return vnd.toLocaleString("vi-VN") + "\u0111";
-};
+
 
 const glassCard = {
   backdropFilter: "blur(16px)",
@@ -69,7 +67,7 @@ export default function CartPage() {
           <span className="material-symbols-outlined text-7xl text-tertiary mb-4 animate-bounce" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
           <h2 className="text-2xl font-bold text-white mb-2">{t("user.orderPlaced")}</h2>
           <p className="text-on-surface-variant text-sm">{t("user.orderPlacedDesc")}</p>
-          <p className="font-mono text-primary font-bold text-xl mt-4">{formatPrice(total)}</p>
+          <p className="font-mono text-primary font-bold text-xl mt-4">{formatVND(total)}</p>
           <p className="text-on-surface-variant/40 text-xs mt-4">Redirecting...</p>
         </div>
       </div>
@@ -171,7 +169,7 @@ export default function CartPage() {
                             <span className="material-symbols-outlined text-sm">add</span>
                           </button>
                         </div>
-                        <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatPrice(itemTotal)}</span>
+                        <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatVND(itemTotal)}</span>
                       </div>
                     </div>
                   </div>
@@ -188,25 +186,25 @@ export default function CartPage() {
                     <span className="material-symbols-outlined text-sm text-on-surface-variant/40">receipt</span>
                     Subtotal
                   </span>
-                  <span className="text-on-surface font-medium">{formatPrice(subtotal)}</span>
+                  <span className="text-on-surface font-medium">{formatVND(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-2 text-on-surface-variant">
                     <span className="material-symbols-outlined text-sm text-on-surface-variant/40">percent</span>
                     Tax (8%)
                   </span>
-                  <span className="text-on-surface font-medium">{formatPrice(tax)}</span>
+                  <span className="text-on-surface font-medium">{formatVND(tax)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="flex items-center gap-2 text-on-surface-variant">
                     <span className="material-symbols-outlined text-sm text-on-surface-variant/40">room_service</span>
                     Service Charge (5%)
                   </span>
-                  <span className="text-on-surface font-medium">{formatPrice(serviceCharge)}</span>
+                  <span className="text-on-surface font-medium">{formatVND(serviceCharge)}</span>
                 </div>
                 <div className="border-t border-white/10 pt-3 flex justify-between">
                   <span className="text-white font-bold text-lg">{t("user.total")}</span>
-                  <span className="font-mono font-bold text-xl" style={{ color: "#ffc174" }}>{formatPrice(total)}</span>
+                  <span className="font-mono font-bold text-xl" style={{ color: "#ffc174" }}>{formatVND(total)}</span>
                 </div>
               </div>
             </div>
@@ -252,3 +250,5 @@ export default function CartPage() {
     </div>
   );
 }
+
+

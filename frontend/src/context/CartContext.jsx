@@ -1,22 +1,40 @@
-﻿import React, { createContext, useContext, useState, useCallback } from "react";
+﻿import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
 const CartContext = createContext();
 
-const CART_KEY = "smartdine_cart";
+function cartKey(tableId) {
+  return `smartdine_cart_${tableId || "guest"}`;
+}
 
 export function CartProvider({ children }) {
+  const { tableId } = useParams();
+  const key = cartKey(tableId);
+
   const [cart, setCart] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem(CART_KEY)) || [];
+      return JSON.parse(localStorage.getItem(key)) || [];
     } catch {
       return [];
     }
   });
 
-  const save = (c) => {
-    setCart(c);
-    localStorage.setItem(CART_KEY, JSON.stringify(c));
-  };
+  // Reload cart when tableId changes
+  useEffect(() => {
+    try {
+      setCart(JSON.parse(localStorage.getItem(key)) || []);
+    } catch {
+      setCart([]);
+    }
+  }, [key]);
+
+  const save = useCallback(
+    (c) => {
+      setCart(c);
+      localStorage.setItem(key, JSON.stringify(c));
+    },
+    [key]
+  );
 
   const addToCart = useCallback(
     (item) => {
@@ -25,22 +43,22 @@ export function CartProvider({ children }) {
         const next = found
           ? prev.map((i) => (i._id === item._id ? { ...i, qty: i.qty + 1 } : i))
           : [...prev, { ...item, qty: 1, note: "" }];
-        localStorage.setItem(CART_KEY, JSON.stringify(next));
+        localStorage.setItem(key, JSON.stringify(next));
         return next;
       });
     },
-    []
+    [key]
   );
 
   const removeFromCart = useCallback(
     (id) => {
       setCart((prev) => {
         const next = prev.filter((i) => i._id !== id);
-        localStorage.setItem(CART_KEY, JSON.stringify(next));
+        localStorage.setItem(key, JSON.stringify(next));
         return next;
       });
     },
-    []
+    [key]
   );
 
   const updateQty = useCallback(
@@ -49,27 +67,27 @@ export function CartProvider({ children }) {
         const next = prev
           .map((i) => (i._id === id ? { ...i, qty: Math.max(0, i.qty + delta) } : i))
           .filter((i) => i.qty > 0);
-        localStorage.setItem(CART_KEY, JSON.stringify(next));
+        localStorage.setItem(key, JSON.stringify(next));
         return next;
       });
     },
-    []
+    [key]
   );
 
   const updateNote = useCallback(
     (id, note) => {
       setCart((prev) => {
         const next = prev.map((i) => (i._id === id ? { ...i, note } : i));
-        localStorage.setItem(CART_KEY, JSON.stringify(next));
+        localStorage.setItem(key, JSON.stringify(next));
         return next;
       });
     },
-    []
+    [key]
   );
 
   const clearCart = useCallback(() => {
     save([]);
-  }, []);
+  }, [save]);
 
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
