@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { UserBottomNav } from "@/components/layout/UserBottomNav";
@@ -66,7 +66,7 @@ export default function OrderTrackingPage() {
             return s + price * it.quantity;
           }, 0);
           const subtotal = toVND(total);
-          const serviceCharge = Math.round(totalVND * 0.1);
+          const serviceCharge = Math.round(subtotal * 0.1);
           return {
             ...order,
             statusIndex: statusIdx,
@@ -364,7 +364,7 @@ export default function OrderTrackingPage() {
                 </div>
                 <div>
                   <p className="font-bold text-xs text-white">Loyalty Program</p>
-                  <p className="text-[10px] text-on-surface-variant">Earn {Math.round(order.total / 1000)} points</p>
+                  <p className="text-[10px] text-on-surface-variant">Earn {Math.round((orders[0]?.total || 0) / 1000)} points</p>
                 </div>
               </div>
             </div>

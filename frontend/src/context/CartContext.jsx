@@ -1,5 +1,5 @@
-﻿import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { useLocation, matchPath } from "react-router-dom";
 
 const CartContext = createContext();
 
@@ -8,7 +8,13 @@ function cartKey(tableId) {
 }
 
 export function CartProvider({ children }) {
-  const { tableId } = useParams();
+  const location = useLocation();
+
+  // Derive tableId from URL path instead of useParams() since CartProvider
+  // wraps the entire app at BrowserRouter level (outside <Routes>).
+  const match = matchPath("/customer/:tableId/*", location.pathname);
+  const tableId = match?.params?.tableId;
+
   const key = cartKey(tableId);
 
   const [cart, setCart] = useState(() => {
