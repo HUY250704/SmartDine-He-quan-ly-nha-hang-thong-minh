@@ -1,5 +1,6 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
+import { getSocket } from "@/lib/socket.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
 
@@ -49,18 +50,11 @@ export default function OrdersManagementPage() {
   const [error, setError] = useState("");
   const [searchTable, setSearchTable] = useState("");
   const [newOrderAlert, setNewOrderAlert] = useState(null);
-  const prevCountRef = useRef(0);
-  const pollRef = useRef(null);
 
   const fetchOrders = () => {
     api.get("/orders")
       .then((res) => {
-        const data = res.data;
-        if (prevCountRef.current > 0 && data.length > prevCountRef.current) {
-          setNewOrderAlert({ count: data.length - prevCountRef.current });
-        }
-        prevCountRef.current = data.length;
-        setOrders(data);
+        setOrders(res.data);
       })
       .catch((err) => setError(err.response?.data?.error || "Failed to load orders"))
       .finally(() => setLoading(false));
@@ -68,8 +62,39 @@ export default function OrdersManagementPage() {
 
   useEffect(() => {
     fetchOrders();
-    pollRef.current = setInterval(fetchOrders, 15000);
-    return () => clearInterval(pollRef.current);
+    const socket = getSocket();
+    socket.emit("join-admin");
+
+    const handleNewOrder = (orderData) => {
+      setOrders((prev) => {
+        const order = orderData.order || orderData;
+        const orderId = order._id || orderData._id;
+        const exists = prev.some((o) => o._id === orderId);
+        if (exists) return prev;
+        const items = orderData.items || order.items || [];
+        const enriched = {
+          ...(typeof order === "object" ? order : orderData),
+          items,
+          tableNumber: orderData.tableId || order.tableNumber,
+        };
+        setNewOrderAlert({ count: 1 });
+        return [enriched, ...prev];
+      });
+    };
+
+    const handleOrderUpdated = (orderData) => {
+      setOrders((prev) =>
+        prev.map((o) => (o._id === orderData._id ? { ...o, ...orderData, items: orderData.items || o.items } : o))
+      );
+    };
+
+    socket.on("new-order", handleNewOrder);
+    socket.on("order-updated", handleOrderUpdated);
+
+    return () => {
+      socket.off("new-order", handleNewOrder);
+      socket.off("order-updated", handleOrderUpdated);
+    };
   }, []);
 
   const updateStatus = async (orderId, newStatus) => {
