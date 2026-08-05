@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+﻿﻿import React, { useState, useEffect, useRef } from "react";
 import api from "@/lib/api.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
@@ -13,8 +13,11 @@ export default function MenuManagementPage() {
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [form, setForm] = useState({ name: "", price: "", description: "", categoryId: "", isAvailable: true, image: "" });
+  const [form, setForm] = useState({ name: "", price: "", description: "", categoryId: "", isAvailable: true, image: "", aiDescription: "", upsellSuggestion: "" });
   const [uploading, setUploading] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [upsellGenerating, setUpsellGenerating] = useState(false);
+  const [aiError, setAiError] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const fileRef = useRef(null);
 
@@ -29,7 +32,7 @@ export default function MenuManagementPage() {
   useEffect(() => { fetchData(); }, []);
 
   const resetForm = () => {
-    setForm({ name: "", price: "", description: "", categoryId: categories[0]?._id || "", isAvailable: true, image: "" });
+    setForm({ name: "", price: "", description: "", categoryId: categories[0]?._id || "", isAvailable: true, image: "", aiDescription: "", upsellSuggestion: "" });
     setImagePreview(null);
     setEditingItem(null);
     if (fileRef.current) fileRef.current.value = "";
@@ -37,7 +40,7 @@ export default function MenuManagementPage() {
 
   const openCreate = () => { resetForm(); setShowForm(true); };
   const openEdit = (item) => {
-    setForm({ name: item.name, price: item.price, description: item.description || "", categoryId: item.categoryId?._id || item.categoryId || "", isAvailable: item.isAvailable !== false, image: item.image || "" });
+    setForm({ name: item.name, price: item.price, description: item.description || "", categoryId: item.categoryId?._id || item.categoryId || "", isAvailable: item.isAvailable !== false, image: item.image || "", aiDescription: item.aiDescription || "", upsellSuggestion: item.upsellSuggestion || "" });
     setImagePreview(item.image || null);
     setEditingItem(item);
     setShowForm(true);
@@ -96,6 +99,36 @@ export default function MenuManagementPage() {
       const res = await api.put(`/menu/${item._id}`, { isAvailable: !item.isAvailable });
       setItems((prev) => prev.map((i) => (i._id === item._id ? res.data : i)));
     } catch (err) { alert(err.response?.data?.error || "Failed to update"); }
+  };
+
+  const handleGenerateAI = async () => {
+    const name = form.name.trim();
+    if (!name) { setAiError("Please enter a dish name first"); return; }
+    setAiGenerating(true);
+    setAiError("");
+    try {
+      const { data } = await api.post("/menu/ai-description", { name, category: categories.find(c=>c._id===form.categoryId)?.name, type: "description" });
+      setForm(prev => ({ ...prev, aiDescription: data.aiDescription }));
+    } catch (err) {
+      setAiError(err.response?.data?.error || err.message || "Failed to generate AI description");
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+  const handleGenerateUpsell = async () => {
+    const name = form.name.trim();
+    if (!name) { setAiError("Please enter a dish name first"); return; }
+    setUpsellGenerating(true);
+    setAiError("");
+    try {
+      const { data } = await api.post("/menu/ai-description", { name, category: categories.find(c=>c._id===form.categoryId)?.name, type: "upsell" });
+      setForm(prev => ({ ...prev, upsellSuggestion: data.upsellSuggestion }));
+    } catch (err) {
+      setAiError(err.response?.data?.error || err.message || "Failed to generate upsell suggestions");
+    } finally {
+      setUpsellGenerating(false);
+    }
   };
 
   const filtered = items.filter((i) => {
@@ -275,6 +308,42 @@ export default function MenuManagementPage() {
                 <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Brief description" rows={3}
                   className="w-full px-4 py-2.5 rounded-xl text-sm text-on-surface placeholder-on-surface-variant/20 outline-none resize-none bg-white/5 border border-white/10 focus:border-primary/50 transition-colors" />
               </div>
+
+              {/* AI Description */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-on-surface-variant/60 text-[10px] font-bold uppercase tracking-wider">AI Description</label>
+                  <button type="button" onClick={handleGenerateAI} disabled={aiGenerating || !form.name.trim()}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-40 active:scale-95"
+                    style={{ background: "linear-gradient(135deg, #8b5cf6, #7c3aed)", color: "#fff" }}>
+                    {aiGenerating ? (<span className="flex items-center gap-1"><span className="w-2.5 h-2.5 border border-white/30 border-t-white rounded-full animate-spin inline-block" />Generating...</span>) : (<><span className="material-symbols-outlined text-xs align-middle">auto_awesome</span> Generate AI</>)}
+                  </button>
+                </div>
+                <textarea value={form.aiDescription} onChange={(e) => setForm({ ...form, aiDescription: e.target.value })} placeholder="AI-generated description will appear here..." rows={3}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm text-on-surface placeholder-on-surface-variant/20 outline-none resize-none bg-white/5 border border-white/10 focus:border-primary/50 transition-colors" />
+              </div>
+
+              {/* Upsell Suggestions */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-on-surface-variant/60 text-[10px] font-bold uppercase tracking-wider">Upsell Suggestions</label>
+                  <button type="button" onClick={handleGenerateUpsell} disabled={upsellGenerating || !form.name.trim()}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-40 active:scale-95"
+                    style={{ background: "linear-gradient(135deg, #ec6a06, #f97316)", color: "#fff" }}>
+                    {upsellGenerating ? (<span className="flex items-center gap-1"><span className="w-2.5 h-2.5 border border-white/30 border-t-white rounded-full animate-spin inline-block" />Generating...</span>) : (<><span className="material-symbols-outlined text-xs align-middle">tips_and_updates</span> Upsell</>)}
+                  </button>
+                </div>
+                <textarea value={form.upsellSuggestion} onChange={(e) => setForm({ ...form, upsellSuggestion: e.target.value })} placeholder="AI-generated upsell suggestions will appear here..." rows={3}
+                  className="w-full px-4 py-2.5 rounded-xl text-sm text-on-surface placeholder-on-surface-variant/20 outline-none resize-none bg-white/5 border border-white/10 focus:border-primary/50 transition-colors" />
+              </div>
+
+              {/* AI Error */}
+              {aiError && (
+                <div className="px-3 py-2 rounded-lg text-xs font-semibold"
+                  style={{ background: "rgba(255,180,171,0.1)", border: "1px solid rgba(255,180,171,0.3)", color: "#ffb4ab" }}>
+                  {aiError}
+                </div>
+              )}
 
               {/* Available Toggle */}
               <div className="flex items-center gap-3 pt-1">
