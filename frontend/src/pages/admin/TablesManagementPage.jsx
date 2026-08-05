@@ -1,8 +1,9 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+﻿﻿﻿import React, { useState, useEffect, useRef } from "react";
 import api from "@/lib/api.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { getSocket } from "@/lib/socket.js";
+import { formatVND } from "@/lib/price.js";
 
 const statusConfig = {
   AVAILABLE: { label: "tables.available", color: "#56e5a9", bg: "rgba(86,229,169,0.1)", border: "rgba(86,229,169,0.2)", icon: "check_circle" },
@@ -80,11 +81,6 @@ export default function TablesManagementPage() {
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
     return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
-  };
-
-  const formatVND = (usdTotal) => {
-    if (usdTotal == null) return "0đ";
-    return (usdTotal * 25000).toLocaleString("vi-VN") + "đ";
   };
 
   const handleOpenSession = async (tableId) => {
