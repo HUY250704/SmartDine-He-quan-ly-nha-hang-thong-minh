@@ -79,14 +79,19 @@ server.on('error', (err) => {
   throw err;
 });
 
-mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 10000 }).then(() => {
+// Disable command buffering so queries fail fast instead of timing out
+mongoose.set('bufferCommands', false);
+
+mongoose.connect(mongoUri, {
+  serverSelectionTimeoutMS: 10000,
+  connectTimeoutMS: 10000,
+}).then(() => {
   console.log('MongoDB connected');
   server.listen(port, () => {
     console.log('Backend running on http://localhost:' + port + ' with DB');
   });
 }).catch((error) => {
   console.error('MongoDB connection error:', error.message);
-  server.listen(port, () => {
-    console.log('Backend running on http://localhost:' + port + ' without DB');
-  });
+  console.error('Server will NOT start — database is required.');
+  process.exit(1);
 });

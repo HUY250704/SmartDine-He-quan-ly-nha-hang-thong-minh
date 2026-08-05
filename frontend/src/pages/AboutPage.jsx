@@ -1,4 +1,4 @@
-export default function AboutPage() {
+﻿export default function AboutPage() {
   return (
     <div className="rounded-3xl bg-white p-6 shadow-sm">
       <h2 className="text-2xl font-semibold">About SmartDine</h2>

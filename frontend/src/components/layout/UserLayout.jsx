@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+﻿﻿import React, { useState, useEffect } from "react";
 import { NavLink, Outlet, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
@@ -83,6 +83,10 @@ export function UserTopBar() {
   const [switchLoading, setSwitchLoading] = useState(false);
   const [switching, setSwitching] = useState(false);
   const [switchError, setSwitchError] = useState("");
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiDish, setAiDish] = useState("");
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiResult, setAiResult] = useState("");
 
   const fetchTables = async () => {
     setSwitchLoading(true);
@@ -128,6 +132,25 @@ export function UserTopBar() {
     }
   };
 
+  const generateAi = async () => {
+    if (!aiDish.trim()) return;
+    setAiGenerating(true);
+    setAiResult("");
+    try {
+      const { data } = await api.post("/menu/public/ai-description", {
+        name: aiDish.trim(),
+        type: "description",
+      });
+      setAiResult(data.aiDescription);
+    } catch (err) {
+      const errMsg = err.response?.data?.error || "Xin lỗi, không thể tạo mô tả. Vui lòng thử lại.";
+      setAiResult(errMsg);
+      console.error("AI error:", errMsg);
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
   useEffect(() => {
     if (showSwitch) fetchTables();
   }, [showSwitch]);
@@ -157,6 +180,55 @@ export function UserTopBar() {
           </button>
         </div>
       </header>
+
+
+      {/* AI Description Modal */}
+      {aiOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setAiOpen(false)}>
+          <div className="rounded-3xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}
+            style={{ background: "#141b2b", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 25px 50px rgba(0,0,0,0.5)" }}>
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-white font-bold text-lg">AI Mô tả món ăn</h2>
+              <button onClick={() => setAiOpen(false)} className="text-on-surface-variant hover:text-white">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <p className="text-on-surface-variant/50 text-xs mb-4">
+              Nhập tên món ăn để AI tạo mô tả hấp dẫn bằng tiếng Việt.
+            </p>
+            <div className="flex gap-2 mb-4">
+              <input
+                value={aiDish}
+                onChange={(e) => setAiDish(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && generateAi()}
+                placeholder="VD: Phở bò tái, Bún chả Hà Nội..."
+                className="flex-1 px-4 py-2.5 rounded-xl text-sm border outline-none transition-all"
+                style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)", color: "#fff" }}
+                autoFocus
+              />
+              <button onClick={generateAi} disabled={aiGenerating || !aiDish.trim()}
+                className="px-5 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40"
+                style={{ background: "linear-gradient(135deg, #8b5cf6, #7c3aed)", color: "#fff" }}>
+                {aiGenerating ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Đang tạo...
+                  </span>
+                ) : (
+                  "Tạo mô tả"
+                )}
+              </button>
+            </div>
+            {aiResult && (
+              <div className="p-4 rounded-xl text-sm leading-relaxed"
+                style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.15)", color: "#e2d9ff" }}>
+                {aiResult}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Change Table Modal */}
       {showSwitch && (

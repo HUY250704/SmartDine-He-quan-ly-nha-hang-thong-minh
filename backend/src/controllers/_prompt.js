@@ -1,0 +1,3 @@
+const prompt = isUpsell
+  ? `Báº¡n lÃ  chuyÃªn gia áº©m thá»±c. Äá» xuáº¥t 3 mÃ³n Än kÃ¨m hoáº·c Äá» uá»ng gá»£i Ã½ upsell báº±ng tiáº¿ng Viá»t cho mÃ³n “\u201D. Tráº£ lá»i ngáº¯n gá»n, má»i gá»£i Ã½ 1 dÃ²ng, cÃ¡ch nhau báº±ng dáº¥u xuá»ng dÃ²ng. Chá» tráº£ lá»i danh sÃ¡ch gá»£i Ã½, khÃ´ng thÃªm lá»i dáº«n.`
+  : `Báº¡n lÃ  chuyÃªn gia áº©m thá»±c. Viáº¿t má»t mÃ´ táº£ háº¥p dáº«n, ngáº¯n gá»n báº±ng tiáº¿ng Viá»t cho mÃ³n “\u201D. Giá»i háº¡n 2-3 cÃ¢u, táº­p trung vÃ o hÆ°Æ¡ng vá», nguyÃªn liá»u vÃ  tráº£i nghiá»m. Chá» tráº£ lá»i mÃ´ táº£, khÃ´ng thÃªm lá»i dáº«n.`;
