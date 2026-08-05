@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+﻿﻿import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
@@ -71,6 +71,33 @@ export default function BillsManagementPage() {
     return (<div className="flex items-center justify-center h-96"><div className="text-center"><span className="material-symbols-outlined text-4xl text-error">error</span><p className="text-error text-sm mt-2">{error}</p><button onClick={fetchData} className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-primary/20 text-primary border border-primary/30">{t("common.retry")}</button></div></div>);
   }
 
+  const handleExportCSV = () => {
+    if (filtered.length === 0) return;
+    const headers = ["Bill ID", "Table", "Date", "Time", "Payment Method", "Total (USD)"];
+    const rows = filtered.map((b) => {
+      const id = "#SD-" + (b._id?.toString().slice(-4) || "").toUpperCase();
+      const table = "Table " + (b.sessionId?.tableId?.number || "-");
+      const date = b.paidAt ? new Date(b.paidAt).toLocaleDateString("en-US") : "-";
+      const time = b.paidAt ? new Date(b.paidAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "-";
+      const method = b.paymentMethod || "Cash";
+      const total = (b.total || 0).toFixed(2);
+      return [id, table, date, time, method, total].map(v => `"${v}"`).join(",");
+    });
+    const csv = [headers.join(","), ...rows].join("
+");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `smartdine-bills-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -102,7 +129,7 @@ export default function BillsManagementPage() {
         </div>
         <div className="flex gap-3 w-full md:w-auto">
           <button className="glass-card rounded-lg px-4 py-2 flex items-center gap-2 text-on-surface flex-1 md:flex-none justify-center text-sm font-semibold hover:bg-white/10 transition-colors"><span className="material-symbols-outlined">filter_list</span><span>{t("bills.advanced")}</span></button>
-          <button className="glass-card rounded-lg px-4 py-2 flex items-center gap-2 text-primary flex-1 md:flex-none justify-center text-sm font-semibold hover:bg-primary/10 transition-colors" style={{ background: "rgba(255,193,116,0.1)", borderColor: "rgba(255,193,116,0.2)" }}><span className="material-symbols-outlined">download</span><span>{t("common.exportCSV")}</span></button>
+          <button onClick={handleExportCSV} className="glass-card rounded-lg px-4 py-2 flex items-center gap-2 text-primary flex-1 md:flex-none justify-center text-sm font-semibold hover:bg-primary/10 transition-colors" style={{ background: "rgba(255,193,116,0.1)", borderColor: "rgba(255,193,116,0.2)" }}><span className="material-symbols-outlined">download</span><span>{t("common.exportCSV")}</span></button>
         </div>
       </GlassCard>
 
@@ -160,8 +187,8 @@ export default function BillsManagementPage() {
       </GlassCard>
 
       {selectedBill && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedBill(null)}>
-          <GlassCard className="rounded-3xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print-modal-overlay" onClick={() => setSelectedBill(null)}>
+          <GlassCard className="rounded-3xl p-6 w-full max-w-sm bill-print-card" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6"><div><h2 className="text-white font-bold text-lg">{t("bills.billDetail")} #{selectedBill._id?.toString().slice(-8)}</h2><p className="text-on-surface-variant/50 text-xs">Table {selectedBill.sessionId?.tableId?.number || "-"}</p></div><button onClick={() => setSelectedBill(null)} className="text-on-surface-variant hover:text-white"><span className="material-symbols-outlined">{t("common.close")}</span></button></div>
             <div className="mb-4 pb-3 border-b border-white/5 space-y-2 text-sm text-on-surface-variant">
               <div className="flex justify-between"><span>{t("bills.paymentMethod")}</span><span className="text-white">{t(paymentMethods[selectedBill.paymentMethod]?.label || selectedBill.paymentMethod)}</span></div>
@@ -170,11 +197,25 @@ export default function BillsManagementPage() {
             <div className="flex justify-between pt-3 border-t border-white/10"><span className="text-white font-bold text-lg">{t("bills.total")}</span><span className="font-mono font-bold text-lg text-primary">${(selectedBill.total || 0).toFixed(2)}</span></div>
             <div className="flex gap-2 mt-6">
               <button onClick={() => setSelectedBill(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold border border-white/10 text-on-surface hover:bg-white/5 transition-colors">{t("common.close")}</button>
-              <button className="flex-1 py-3 rounded-xl text-sm font-bold bg-primary text-on-primary active:scale-95 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"><span className="material-symbols-outlined text-lg">print</span>{t("bills.printBill")}</button>
+              <button onClick={handlePrint} className="flex-1 py-3 rounded-xl text-sm font-bold bg-primary text-on-primary active:scale-95 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"><span className="material-symbols-outlined text-lg">print</span>{t("bills.printBill")}</button>
             </div>
           </GlassCard>
         </div>
       )}
+      {/* Print-only styles */}
+      <style>{`
+        @media print {
+          @page { margin: 1cm; }
+          body * { visibility: hidden !important; }
+          .print-modal-overlay, .print-modal-overlay * { visibility: visible !important; }
+          .print-modal-overlay { position: fixed !important; inset: 0 !important; background: white !important; backdrop-filter: none !important; display: flex !important; align-items: flex-start !important; justify-content: center !important; padding-top: 2cm !important; z-index: 99999 !important; }
+          .bill-print-card { background: white !important; backdrop-filter: none !important; border: 2px solid #000 !important; box-shadow: none !important; border-radius: 0 !important; color: #000 !important; max-width: 100% !important; }
+          .bill-print-card * { color: #000 !important; }
+          .bill-print-card button { display: none !important; }
+          .bill-print-card .material-symbols-outlined { display: none !important; }
+          .print-modal-overlay > .bill-print-card { color: #000 !important; }
+        }
+      `}</style>
     </div>
   );
 }
