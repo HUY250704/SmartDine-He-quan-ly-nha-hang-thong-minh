@@ -1,4 +1,5 @@
 import MenuItem from '../models/MenuItem.js';
+import { withRetry } from '../utils/retry.js';
 import { uploadImage, deleteImage } from '../config/upload.js';
 
 export const getMenu = async (req, res) => {
@@ -106,7 +107,7 @@ export const generateAiDescription = async (req, res) => {
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured" });
     }
 
-    const model = "gemini-2.0-flash";
+    const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
     const isUpsell = type === "upsell";
     const catSuffix = category ? ` thuộc danh mục "${category}"` : "";
     const prompt = isUpsell
@@ -116,7 +117,7 @@ export const generateAiDescription = async (req, res) => {
     const { GoogleGenerativeAI } = await import("@google/generative-ai");
     const genAI = new GoogleGenerativeAI(apiKey);
     const genModel = genAI.getGenerativeModel({ model });
-    const result = await genModel.generateContent(prompt);
+    const result = await withRetry(() => genModel.generateContent(prompt));
     const resultText = result.response.text().trim();
     res.json({ [isUpsell ? "upsellSuggestion" : "aiDescription"]: resultText });
   } catch (error) {
