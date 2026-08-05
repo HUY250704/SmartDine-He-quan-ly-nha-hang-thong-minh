@@ -1,4 +1,4 @@
-﻿﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
@@ -83,8 +83,7 @@ export default function BillsManagementPage() {
       const total = (b.total || 0).toFixed(2);
       return [id, table, date, time, method, total].map(v => `"${v}"`).join(",");
     });
-    const csv = [headers.join(","), ...rows].join("
-");
+    const csv = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");

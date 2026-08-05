@@ -1,4 +1,4 @@
-﻿﻿import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
@@ -112,49 +112,79 @@ export default function WelcomePage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Hero */}
-      <div className="relative mb-10 overflow-hidden rounded-3xl p-8 md:p-12" style={{ background: "linear-gradient(135deg, rgba(255,193,116,0.1) 0%, rgba(236,106,6,0.05) 50%, rgba(12,19,34,0) 100%)", border: "1px solid rgba(255,255,255,0.08)" }}>
+      {/* ======= Hero Section with Background Image ======= */}
+      <div
+        className="relative mb-10 overflow-hidden rounded-3xl"
+        style={{
+          background: 'linear-gradient(135deg, rgba(12,19,34,0.92) 0%, rgba(12,19,34,0.78) 100%), url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80") center/cover no-repeat',
+          border: '1px solid rgba(255,255,255,0.08)',
+          minHeight: '260px',
+        }}
+      >
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/5 blur-[80px]" />
-          <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-tertiary/5 blur-[60px]" />
+          <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/10 blur-[80px]" />
+          <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-amber-500/5 blur-[60px]" />
         </div>
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
-          <div ref={floatRef} className="w-16 h-16 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0 transition-transform duration-75">
-            <span className="material-symbols-outlined text-4xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>restaurant</span>
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6 p-8 md:p-12 h-full min-h-[260px]">
+          <div
+            ref={floatRef}
+            className="w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-75"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,193,116,0.25), rgba(236,106,6,0.15))',
+              border: '1px solid rgba(255,193,116,0.35)',
+              boxShadow: '0 0 40px rgba(255,193,116,0.15)',
+            }}
+          >
+            <span className="material-symbols-outlined text-5xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>restaurant</span>
           </div>
           <div className="flex-1">
-            <p className="text-on-surface-variant/60 text-xs uppercase tracking-widest mb-2">{t("user.welcome") || "Welcome to"}</p>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3"
+              style={{ background: 'rgba(255,193,116,0.15)', border: '1px solid rgba(255,193,116,0.25)', color: '#ffc174' }}>
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#ffc174' }}></span>
+              {' '}Bàn #{tableId}
+            </div>
+            <p className="text-on-surface-variant/60 text-xs uppercase tracking-widest mb-1">{t("user.welcome") || "Welcome to"}</p>
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-2">
               Smart<span style={{ color: "#ffc174" }}>Dine</span>
             </h1>
-            <p className="text-on-surface-variant/60 text-sm mt-2 max-w-md">
-              {t("user.welcomeDesc") || "Scan the QR, browse our menu, and enjoy a seamless dining experience."}
+            <p className="text-on-surface-variant/60 text-sm max-w-md">
+              {t("user.welcomeDesc") || "Trải nghiệm ẩm thực đẳng cấp — gọi món nhanh chóng, thanh toán dễ dàng."}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Quick Actions Grid */}
-      <h2 className="text-xs font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-4">
-        {t("user.quickActions") || "Quick Actions"}
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-        <QuickAction icon="restaurant_menu" title={t("user.viewMenu") || "Browse Menu"} desc={t("user.viewMenuDesc") || "Explore our curated dishes & drinks"} color="255,193,116" to={`/customer/${tableId}/menu`} />
-        <QuickAction icon="receipt_long" title={t("user.viewOrders") || "My Orders"} desc={t("user.viewOrdersDesc") || "Track your order status in real-time"} color="236,106,6" to={`/customer/${tableId}/tracking`} />
-        <QuickAction icon="shopping_cart" title={t("user.cart") || "My Cart"} desc="Review and submit your order" color="86,229,169" to={`/customer/${tableId}/cart`} />
-        <QuickAction icon="support_agent" title={t("user.callStaff") || "Call Staff"} desc={t("user.callStaffDesc") || "Need water, napkins, or the bill?"} color="167,139,250" to={`/customer/${tableId}/support`} />
+      {/* ======= Quick Actions Grid ======= */}
+      <div className="mb-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xs font-bold text-on-surface-variant/50 uppercase tracking-wider">
+            {t("user.quickActions") || "Quick Actions"}
+          </h2>
+          <span className="text-[10px] text-on-surface-variant/30">Chạm để khám phá</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <QuickAction icon="restaurant_menu" title={t("user.viewMenu") || "Browse Menu"} desc={t("user.viewMenuDesc") || "Khám phá thực đơn đa dạng"} color="255,193,116" to={`/customer/${tableId}/menu`} />
+          <QuickAction icon="receipt_long" title={t("user.viewOrders") || "My Orders"} desc={t("user.viewOrdersDesc") || "Theo dõi đơn hàng theo thời gian thực"} color="236,106,6" to={`/customer/${tableId}/tracking`} />
+          <QuickAction icon="shopping_cart" title={t("user.cart") || "My Cart"} desc="Kiểm tra & xác nhận đơn hàng" color="86,229,169" to={`/customer/${tableId}/cart`} />
+          <QuickAction icon="support_agent" title={t("user.callStaff") || "Call Staff"} desc={t("user.callStaffDesc") || "Cần thêm khăn, nước hay tính tiền?"} color="167,139,250" to={`/customer/${tableId}/support`} />
+        </div>
       </div>
 
-      {/* Info Cards */}
+      {/* ======= Featured Section ======= */}
+      <h2 className="text-xs font-bold text-on-surface-variant/50 uppercase tracking-wider mb-4">
+        Tiện ích nhà hàng
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { icon: "wifi", label: "Free Wi-Fi", desc: "Connected & secure", color: "#56e5a9" },
-          { icon: "schedule", label: "Open Hours", desc: "10:00 AM - 10:00 PM", color: "#ffc174" },
-          { icon: "location_on", label: "Location", desc: "123 Gourmet Street", color: "#ffb690" },
+          { icon: "wifi", label: "Wi-Fi miễn phí", desc: "Kết nối tốc độ cao", color: "#56e5a9" },
+          { icon: "schedule", label: "Giờ mở cửa", desc: "10:00 AM - 10:00 PM", color: "#ffc174" },
+          { icon: "location_on", label: "Địa chỉ", desc: "123 Gourmet Street", color: "#ffb690" },
         ].map((card, i) => (
-          <div key={i} className="p-5 rounded-2xl flex items-center gap-4" style={glassCard}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${card.color}20` }}>
-              <span className="material-symbols-outlined text-lg" style={{ color: card.color }}>{card.icon}</span>
+          <div key={i} className="p-5 rounded-2xl flex items-center gap-4 transition-all duration-300 hover:-translate-y-0.5" style={glassCard}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${card.color}40`; e.currentTarget.style.boxShadow = `0 0 25px ${card.color}10`; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none'; }}>
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${card.color}18` }}>
+              <span className="material-symbols-outlined text-xl" style={{ color: card.color }}>{card.icon}</span>
             </div>
             <div>
               <p className="text-white text-sm font-semibold">{card.label}</p>

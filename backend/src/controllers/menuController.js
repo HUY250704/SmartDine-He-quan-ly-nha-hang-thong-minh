@@ -1,4 +1,4 @@
-﻿import MenuItem from '../models/MenuItem.js';
+import MenuItem from '../models/MenuItem.js';
 import { uploadImage, deleteImage } from '../config/upload.js';
 
 export const getMenu = async (req, res) => {
@@ -106,7 +106,6 @@ export const generateAiDescription = async (req, res) => {
       return res.status(500).json({ error: "GEMINI_API_KEY is not configured" });
     }
 
-    const isBearerToken = apiKey.startsWith("AQ.");
     const model = "gemini-2.0-flash";
     const isUpsell = type === "upsell";
     const catSuffix = category ? ` thuộc danh mục "${category}"` : "";
@@ -114,31 +113,11 @@ export const generateAiDescription = async (req, res) => {
       ? `Bạn là chuyên gia ẩm thực. Đề xuất 3 món ăn kèm hoặc đồ uống gợi ý upsell bằng tiếng Việt cho món "${name}"${catSuffix}. Trả lời ngắn gọn, mỗi gợi ý 1 dòng, cách nhau bằng dấu xuống dòng. Chỉ trả lời danh sách gợi ý, không thêm lời dẫn.`
       : `Bạn là chuyên gia ẩm thực. Viết một mô tả hấp dẫn, ngắn gọn bằng tiếng Việt cho món "${name}"${catSuffix}. Giới hạn 2-3 câu, tập trung vào hương vị, nguyên liệu và trải nghiệm. Chỉ trả lời mô tả, không thêm lời dẫn.`;
 
-    let resultText;
-    if (isBearerToken) {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 256 },
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error?.message || `HTTP ${response.status}`);
-      resultText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-    } else {
-      const { GoogleGenerativeAI } = await import("@google/generative-ai");
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const genModel = genAI.getGenerativeModel({ model });
-      const result = await genModel.generateContent(prompt);
-      resultText = result.response.text().trim();
-    }
-
+    const { GoogleGenerativeAI } = await import("@google/generative-ai");
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const genModel = genAI.getGenerativeModel({ model });
+    const result = await genModel.generateContent(prompt);
+    const resultText = result.response.text().trim();
     res.json({ [isUpsell ? "upsellSuggestion" : "aiDescription"]: resultText });
   } catch (error) {
     console.error("Gemini API error:", error);

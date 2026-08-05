@@ -1,0 +1,28 @@
+﻿*** Begin Patch
+*** Update File: frontend/src/pages/user/MenuPage.jsx
+@@ -4,7 +4,7 @@
+ import { useLang } from "@/context/LanguageContext.jsx";
+ import { useCart } from "@/context/CartContext.jsx";
+ import api from "@/lib/api.js";
+ import { formatVND } from "@/lib/price.js";
++import { getDishImage } from "@/lib/dishImages.js";
+ const CATEGORY_ICONS = {@@ -91,8 +91,7 @@
+           <div className="aspect-[16/10] bg-white/5 relative">
+-            {selectedItem.image ? (
+-              <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" />
+-            ) : (
+-              <div className="w-full h-full flex items-center justify-center">
+-                <span className="material-symbols-outlined text-on-surface-variant/20 text-6xl">restaurant</span>
+-              </div>
+-            )}
++            <img src={selectedItem.image || getDishImage(selectedItem.name)} alt={selectedItem.name} className="w-full h-full object-cover" />@@ -198,8 +197,7 @@
+                 <div className="relative aspect-[16/10] bg-white/5 overflow-hidden">
+-                  {item.image ? (
+-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+-                  ) : (
+-                    <div className="w-full h-full flex items-center justify-center">
+-                      <span className="material-symbols-outlined text-on-surface-variant/20 text-5xl">restaurant</span>
+-                    </div>
+-                  )}
++                    <img src={item.image || getDishImage(item.name)} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+*** End Patch

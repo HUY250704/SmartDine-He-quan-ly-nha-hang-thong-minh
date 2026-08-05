@@ -1,7 +1,8 @@
-﻿﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "@/lib/api.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
+import { getDishImage } from "@/lib/dishImages.js";
 
 export default function MenuManagementPage() {
   const { t } = useLang();
@@ -185,7 +186,7 @@ export default function MenuManagementPage() {
             return (
               <GlassCard key={item._id} className="rounded-2xl overflow-hidden group cursor-pointer transition-all hover:shadow-xl" onClick={() => openEdit(item)}>
                 <div className="aspect-[4/3] overflow-hidden relative">
-                  {item.image ? (<img src={item.image} alt={item.name} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${!isAvailable ? "grayscale" : ""}`} />)
+                  <img src={item.image || getDishImage(item.name)} alt={item.name} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${!isAvailable ? "grayscale" : ""}`} />
                     : (<div className="w-full h-full flex items-center justify-center bg-white/5"><span className="material-symbols-outlined text-on-surface-variant/20 text-6xl">restaurant</span></div>)}
                   <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isAvailable ? "bg-primary/20 text-primary border border-primary/30" : "bg-error/20 text-error border border-error/30"}`}>
                     {isAvailable ? t("menu.available") : t("menu.soldOut")}

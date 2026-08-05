@@ -1,9 +1,10 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
 import api from "@/lib/api.js";
 import { formatVND } from "@/lib/price.js";
+import { getDishImage } from "@/lib/dishImages.js";
 
 const CATEGORY_ICONS = {
   appetizer: "tapas", main: "dinner_dining", dessert: "cake",
@@ -91,13 +92,7 @@ export default function MenuPage() {
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
         <div className="relative z-10 w-full max-w-md rounded-3xl overflow-hidden" style={{ background: "#141b2b", border: "1px solid rgba(255,255,255,0.12)", boxShadow: "0 25px 50px rgba(0,0,0,0.5)" }} onClick={(e) => e.stopPropagation()}>
           <div className="aspect-[16/10] bg-white/5 relative">
-            {selectedItem.image ? (
-              <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="material-symbols-outlined text-on-surface-variant/20 text-6xl">restaurant</span>
-              </div>
-            )}
+            <img src={selectedItem.image || getDishImage(selectedItem.name)} alt={selectedItem.name} className="w-full h-full object-cover" />
             <button onClick={() => setSelectedItem(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur flex items-center justify-center text-white hover:bg-black/60 transition-all">
               <span className="material-symbols-outlined text-sm">close</span>
             </button>
@@ -198,13 +193,7 @@ export default function MenuPage() {
               >
                 {/* Image */}
                 <div className="relative aspect-[16/10] bg-white/5 overflow-hidden">
-                  {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="material-symbols-outlined text-on-surface-variant/20 text-5xl">restaurant</span>
-                    </div>
-                  )}
+                    <img src={item.image || getDishImage(item.name)} alt={item.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   {item.popular && (
                     <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold" style={{ background: "rgba(255,193,116,0.25)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,193,116,0.3)", color: "#ffc174" }}>
                       <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
