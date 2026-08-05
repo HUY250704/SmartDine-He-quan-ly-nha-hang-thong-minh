@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useRef } from "react";
+﻿﻿import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
@@ -31,7 +31,8 @@ export default function WelcomePage() {
           localStorage.setItem("smartdine_sessionId", newSession._id);
         }
       } catch (err) {
-        setError(err.response?.data?.error || "Failed to start session");
+        console.error("Session init error:", err.response?.data || err.message);
+        setError(err.response?.data?.error || err.message || "Failed to start session");
       } finally {
         setLoading(false);
       }

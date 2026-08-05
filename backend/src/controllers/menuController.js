@@ -1,4 +1,4 @@
-﻿﻿import MenuItem from '../models/MenuItem.js';
+﻿import MenuItem from '../models/MenuItem.js';
 import { uploadImage, deleteImage } from '../config/upload.js';
 
 export const getMenu = async (req, res) => {
@@ -114,7 +114,7 @@ export const generateAiDescription = async (req, res) => {
       ? `Bạn là chuyên gia ẩm thực. Đề xuất 3 món ăn kèm hoặc đồ uống gợi ý upsell bằng tiếng Việt cho món "${name}"${catSuffix}. Trả lời ngắn gọn, mỗi gợi ý 1 dòng, cách nhau bằng dấu xuống dòng. Chỉ trả lời danh sách gợi ý, không thêm lời dẫn.`
       : `Bạn là chuyên gia ẩm thực. Viết một mô tả hấp dẫn, ngắn gọn bằng tiếng Việt cho món "${name}"${catSuffix}. Giới hạn 2-3 câu, tập trung vào hương vị, nguyên liệu và trải nghiệm. Chỉ trả lời mô tả, không thêm lời dẫn.`;
 
-    let text;
+    let resultText;
     if (isBearerToken) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const response = await fetch(url, {
@@ -130,43 +130,16 @@ export const generateAiDescription = async (req, res) => {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || `HTTP ${response.status}`);
-      text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+      resultText = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     } else {
       const { GoogleGenerativeAI } = await import("@google/generative-ai");
       const genAI = new GoogleGenerativeAI(apiKey);
       const genModel = genAI.getGenerativeModel({ model });
       const result = await genModel.generateContent(prompt);
-      text = result.response.text().trim();
+      resultText = result.response.text().trim();
     }
 
-    res.json({ [isUpsell ? "upsellSuggestion" : "aiDescription"]: text });
-  } catch (error) {
-    console.error("Gemini API error:", error);
-    res.status(500).json({ error: error.message || "Failed to generate AI content" });
-  }
-} = req.body;
-    if (!name) return res.status(400).json({ error: "Menu item name is required" });
-
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: "GEMINI_API_KEY is not configured" });
-    }
-
-    const { GoogleGenerativeAI } = await import("@google/generative-ai");
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-    const isUpsell = type === "upsell";
-    const catSuffix = category ? ` thuộc danh mục "${category}"` : "";
-
-    const prompt = isUpsell
-      ? `Bạn là chuyên gia ẩm thực. Đề xuất 3 món ăn kèm hoặc đồ uống gợi ý upsell bằng tiếng Việt cho món "${name}"${catSuffix}. Trả lời ngắn gọn, mỗi gợi ý 1 dòng, cách nhau bằng dấu xuống dòng. Chỉ trả lời danh sách gợi ý, không thêm lời dẫn.`
-      : `Bạn là chuyên gia ẩm thực. Viết một mô tả hấp dẫn, ngắn gọn bằng tiếng Việt cho món "${name}"${catSuffix}. Giới hạn 2-3 câu, tập trung vào hương vị, nguyên liệu và trải nghiệm. Chỉ trả lời mô tả, không thêm lời dẫn.`;
-
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
-
-    res.json({ [isUpsell ? "upsellSuggestion" : "aiDescription"]: text });
+    res.json({ [isUpsell ? "upsellSuggestion" : "aiDescription"]: resultText });
   } catch (error) {
     console.error("Gemini API error:", error);
     res.status(500).json({ error: error.message || "Failed to generate AI content" });

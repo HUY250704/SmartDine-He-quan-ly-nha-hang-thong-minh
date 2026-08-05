@@ -1,4 +1,4 @@
-﻿﻿import React, { useState, useEffect } from "react";
+﻿﻿﻿﻿import React, { useState, useEffect } from "react";
 import { NavLink, Outlet, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
@@ -169,6 +169,12 @@ export function UserTopBar() {
             style={{ background: "rgba(255,193,116,0.1)", border: "1px solid rgba(255,193,116,0.2)", color: "#ffc174" }}>
             <span className="material-symbols-outlined text-sm">swap_horiz</span>
             Đổi bàn
+          </button>
+          <button onClick={() => { setAiOpen(true); setAiDish(""); setAiResult(""); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg active:scale-95"
+            style={{ background: "linear-gradient(135deg, #8b5cf6, #7c3aed)", color: "#fff" }}>
+            <span className="material-symbols-outlined text-sm">auto_awesome</span>
+            AI Mô tả
           </button>
         </div>
 
