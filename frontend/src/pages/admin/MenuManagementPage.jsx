@@ -187,7 +187,6 @@ export default function MenuManagementPage() {
               <GlassCard key={item._id} className="rounded-2xl overflow-hidden group cursor-pointer transition-all hover:shadow-xl" onClick={() => openEdit(item)}>
                 <div className="aspect-[4/3] overflow-hidden relative">
                   <img src={item.image || getDishImage(item.name)} alt={item.name} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${!isAvailable ? "grayscale" : ""}`} />
-                    : (<div className="w-full h-full flex items-center justify-center bg-white/5"><span className="material-symbols-outlined text-on-surface-variant/20 text-6xl">restaurant</span></div>)}
                   <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isAvailable ? "bg-primary/20 text-primary border border-primary/30" : "bg-error/20 text-error border border-error/30"}`}>
                     {isAvailable ? t("menu.available") : t("menu.soldOut")}
                   </div>
@@ -196,7 +195,7 @@ export default function MenuManagementPage() {
                   <h3 className="text-white font-semibold text-lg mb-1">{item.name}</h3>
                   <p className="text-on-surface-variant/50 text-xs mb-3">{item.categoryId?.name || t("menu.uncategorized")}</p>
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{(item.price * 25000).toLocaleString("vi-VN")}đ</span>
+                    <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{(item.price * 25000).toLocaleString("vi-VN")}Ä‘</span>
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       <button onClick={() => toggleAvailable(item)} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isAvailable ? "bg-primary/20 text-primary" : "bg-error/20 text-error"}`}>
                         <span className="material-symbols-outlined text-sm">{isAvailable ? "visibility" : "visibility_off"}</span>
@@ -284,7 +283,7 @@ export default function MenuManagementPage() {
                     <>
                       <span className="material-symbols-outlined text-on-surface-variant/30 text-4xl">cloud_upload</span>
                       <span className="text-on-surface-variant/40 text-xs">Click to upload image</span>
-                      <span className="text-on-surface-variant/20 text-[10px]">JPG, PNG, GIF, WebP · Max 5MB</span>
+                      <span className="text-on-surface-variant/20 text-[10px]">JPG, PNG, GIF, WebP Â· Max 5MB</span>
                     </>
                   ) : (
                     <span className="text-on-surface-variant/40 text-xs flex items-center gap-1">
