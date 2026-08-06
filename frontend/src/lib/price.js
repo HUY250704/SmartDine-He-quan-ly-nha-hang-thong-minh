@@ -1,4 +1,4 @@
-﻿// Centralized price conversion — seed data stores USD, display as VND
+// Centralized price conversion — seed data stores USD, display as VND
 const USD_TO_VND = 25000;
 
 export function toVND(usdPrice) {
