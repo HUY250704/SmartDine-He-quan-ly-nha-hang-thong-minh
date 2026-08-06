@@ -1,0 +1,11 @@
+﻿{
+  "name": "smartdine",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "install": "cd backend && npm install",
+    "start": "cd backend && npm run start"
+  }
+}
