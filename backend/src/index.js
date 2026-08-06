@@ -23,6 +23,8 @@ import dashboardRoutes from './routes/dashboard.js';
 
 // Socket
 import { initSocket } from './socket/index.js';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger.js';
 
 // Models for public routes
 import Table from './models/Table.js';
@@ -42,6 +44,7 @@ initSocket(io);
 
 app.use(cors({ origin: [/^http:\/\/localhost:\d+$/] }));
 app.use(express.json());
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // API routes
 app.use('/auth', authRoutes);
