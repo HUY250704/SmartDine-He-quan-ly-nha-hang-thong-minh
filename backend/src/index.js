@@ -23,8 +23,6 @@ import dashboardRoutes from './routes/dashboard.js';
 
 // Socket
 import { initSocket } from './socket/index.js';
-import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './config/swagger.js';
 
 // Models for public routes
 import Table from './models/Table.js';
@@ -32,9 +30,16 @@ import Table from './models/Table.js';
 const app = express();
 const server = http.createServer(app);
 
+// ─── CORS ─────────────────────────────────────────
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+  : [/^http:\/\/localhost:\d+$/];
+
+app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
+
 const io = new Server(server, {
   cors: {
-    origin: [/^http:\/\/localhost:\d+$/],
+    origin: ALLOWED_ORIGINS,
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   }
 });
@@ -42,9 +47,18 @@ const io = new Server(server, {
 // Initialize socket handlers
 initSocket(io);
 
-app.use(cors({ origin: [/^http:\/\/localhost:\d+$/] }));
 app.use(express.json());
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// ─── Swagger — chỉ bật ở dev ──────────────────────
+if (process.env.NODE_ENV !== 'production') {
+  import('swagger-ui-express').then(async (swaggerUi) => {
+    const swaggerSpec = (await import('./config/swagger.js')).default;
+    app.use('/api-docs', swaggerUi.default.serve, swaggerUi.default.setup(swaggerSpec));
+    console.log('[Swagger] /api-docs enabled (dev mode)');
+  }).catch(() => {
+    console.warn('[Swagger] swagger-ui-express not installed, skipping /api-docs');
+  });
+}
 
 // API routes
 app.use('/auth', authRoutes);

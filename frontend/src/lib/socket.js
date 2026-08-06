@@ -6,7 +6,10 @@ let socket = null;
 
 export function getSocket() {
   if (!socket) {
-    socket = io(SOCKET_URL, { autoConnect: true });
+    socket = io(SOCKET_URL, {
+      autoConnect: true,
+      transports: ["websocket", "polling"],
+    });
   }
   return socket;
 }
