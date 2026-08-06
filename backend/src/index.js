@@ -49,8 +49,8 @@ initSocket(io);
 
 app.use(express.json());
 
-// ─── Swagger — chỉ bật ở dev ──────────────────────
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.SWAGGER_ENABLED !== 'false') {
+
   import('swagger-ui-express').then(async (swaggerUi) => {
     const swaggerSpec = (await import('./config/swagger.js')).default;
     app.use('/api-docs', swaggerUi.default.serve, swaggerUi.default.setup(swaggerSpec));
