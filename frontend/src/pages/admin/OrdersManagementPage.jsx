@@ -99,8 +99,8 @@ export default function OrdersManagementPage() {
 
   const updateStatus = async (orderId, newStatus) => {
     try {
+      // Gửi API, socket event "order-updated" từ backend sẽ tự cập nhật state
       await api.put(`/orders/${orderId}/status`, { status: newStatus });
-      setOrders((prev) => prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o)));
     } catch (err) {
       alert(err.response?.data?.error || "Failed to update order");
     }
