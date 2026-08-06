@@ -18,6 +18,7 @@ import MenuPage from "@/pages/user/MenuPage";
 import CartPage from "@/pages/user/CartPage";
 import OrderTrackingPage from "@/pages/user/OrderTrackingPage";
 import SupportPaymentPage from "@/pages/user/SupportPaymentPage";
+import NotFoundPage from "@/pages/NotFoundPage";
 
 export default function App() {
   return (
@@ -51,7 +52,7 @@ export default function App() {
 
         {/* Default: customer welcome */}
         <Route path="/" element={<Navigate to="/customer/7" replace />} />
-        <Route path="*" element={<Navigate to="/customer/7" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
   );
