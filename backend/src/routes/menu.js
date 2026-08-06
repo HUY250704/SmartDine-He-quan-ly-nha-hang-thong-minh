@@ -5,7 +5,6 @@ import { upload } from "../config/upload.js";
 
 const router = express.Router();
 
-// Public: customer c?n xem menu không c?n token
 router.get("/", getMenu);
 
 // Admin-only routes
