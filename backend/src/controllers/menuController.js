@@ -1,5 +1,6 @@
-import MenuItem from '../models/MenuItem.js';
+﻿import MenuItem from '../models/MenuItem.js';
 import { withRetry } from '../utils/retry.js';
+import { generateContent } from '../services/geminiService.js';
 import { uploadImage, deleteImage } from '../config/upload.js';
 
 export const getMenu = async (req, res) => {
@@ -97,28 +98,19 @@ export const uploadMenuImage = async (req, res) => {
   }
 };
 
+
 export const generateAiDescription = async (req, res) => {
   try {
     const { name, category, type } = req.body;
     if (!name) return res.status(400).json({ error: "Menu item name is required" });
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: "GEMINI_API_KEY is not configured" });
-    }
-
-    const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
     const isUpsell = type === "upsell";
     const catSuffix = category ? ` thuộc danh mục "${category}"` : "";
     const prompt = isUpsell
       ? `Bạn là chuyên gia ẩm thực. Đề xuất 3 món ăn kèm hoặc đồ uống gợi ý upsell bằng tiếng Việt cho món "${name}"${catSuffix}. Trả lời ngắn gọn, mỗi gợi ý 1 dòng, cách nhau bằng dấu xuống dòng. Chỉ trả lời danh sách gợi ý, không thêm lời dẫn.`
       : `Bạn là chuyên gia ẩm thực. Viết một mô tả hấp dẫn, ngắn gọn bằng tiếng Việt cho món "${name}"${catSuffix}. Giới hạn 2-3 câu, tập trung vào hương vị, nguyên liệu và trải nghiệm. Chỉ trả lời mô tả, không thêm lời dẫn.`;
 
-    const { GoogleGenerativeAI } = await import("@google/generative-ai");
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const genModel = genAI.getGenerativeModel({ model });
-    const result = await withRetry(() => genModel.generateContent(prompt));
-    const resultText = result.response.text().trim();
+    const resultText = await generateContent(prompt);
     res.json({ [isUpsell ? "upsellSuggestion" : "aiDescription"]: resultText });
   } catch (error) {
     console.error("Gemini API error:", error);
