@@ -3,3 +3,4 @@ builder = "nixpacks"
 
 [deploy]
 startCommand = "cd backend && npm start"
+
