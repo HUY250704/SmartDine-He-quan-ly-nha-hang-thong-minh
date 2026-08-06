@@ -21,7 +21,7 @@ export default function HomePage() {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, []);s
 
   return (
     <div className="space-y-6 rounded-3xl bg-white p-6 shadow-sm">
