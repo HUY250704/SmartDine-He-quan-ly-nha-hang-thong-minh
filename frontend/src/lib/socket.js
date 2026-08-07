@@ -1,7 +1,13 @@
 import { io } from "socket.io-client";
 
+function normalizeUrl(url) {
+  if (!url) return undefined;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
+
 const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL ||
+  normalizeUrl(import.meta.env.VITE_SOCKET_URL) ||
   (import.meta.env.MODE === "development"
     ? "http://localhost:5000"
     : "https://smartdine-backend-production-3dc2.up.railway.app");

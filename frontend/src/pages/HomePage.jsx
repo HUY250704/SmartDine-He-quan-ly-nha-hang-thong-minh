@@ -2,7 +2,17 @@
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+function normalizeUrl(url) {
+  if (!url) return undefined;
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
+
+const API_URL =
+  normalizeUrl(import.meta.env.VITE_API_URL) ||
+  (import.meta.env.MODE === 'development'
+    ? 'http://localhost:4000'
+    : 'https://smartdine-backend-production-3dc2.up.railway.app');
 
 export default function HomePage() {
   const [status, setStatus] = useState('Checking backend...');
