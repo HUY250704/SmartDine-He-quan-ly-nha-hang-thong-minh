@@ -105,7 +105,7 @@ export default function BillsManagementPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((s, i) => (
-          <GlassCard key={i} className="rounded-xl p-6 flex flex-col justify-between group overflow-hidden relative">
+          <GlassCard key={i} className="rounded-xl p-4 md:p-6 flex flex-col justify-between group overflow-hidden relative">
             <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: s.color }}><span className="material-symbols-outlined text-8xl">{s.icon}</span></div>
             <div className="relative z-10"><p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{s.label}</p><h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: s.color }}>{s.value}</h3><div className="flex items-center mt-2 text-on-surface-variant text-xs"><span className="material-symbols-outlined text-sm mr-1">{s.icon}</span><span>{s.sub}</span></div></div>
           </GlassCard>
@@ -140,12 +140,12 @@ export default function BillsManagementPage() {
             <table className="w-full border-collapse text-left">
               <thead className="bg-surface-container-highest/50 border-b border-white/10">
                 <tr>
-                  <th className="px-6 py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.billID")}</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.tableNum")}</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.dateTime")}</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold text-right">{t("bills.total")}</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.method")}</th>
-                  <th className="px-6 py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold text-center">{t("bills.actions")}</th>
+                  <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.billID")}</th>
+                  <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.tableNum")}</th>
+                  <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.dateTime")}</th>
+                  <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold text-right">{t("bills.total")}</th>
+                  <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.method")}</th>
+                  <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold text-center">{t("bills.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -157,12 +157,12 @@ export default function BillsManagementPage() {
                   const billId = bill._id ? "#SD-" + bill._id.toString().slice(-4).toUpperCase() : "-";
                   return (
                     <tr key={bill._id} className="hover:bg-white/5 transition-colors group">
-                      <td className="px-6 py-4"><span className="font-mono text-sm text-primary">{billId}</span></td>
-                      <td className="px-6 py-4 text-sm text-on-surface">Table {tableNum}</td>
-                      <td className="px-6 py-4"><div className="flex flex-col"><span className="text-sm text-on-surface">{dateStr}</span><span className="text-xs text-on-surface-variant">{timeStr}</span></div></td>
-                      <td className="px-6 py-4 text-right"><span className="font-mono text-lg font-medium text-secondary">${(bill.total || 0).toFixed(2)}</span></td>
-                      <td className="px-6 py-4"><div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm" style={{ color: pm.color }}>{pm.icon}</span><span className="text-sm text-on-surface">{t(pm.label)}</span></div></td>
-                      <td className="px-6 py-4"><div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => setSelectedBill(bill)} className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-primary transition-colors" title={t("bills.printBill")}><span className="material-symbols-outlined">print</span></button><button className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-secondary transition-colors" title={t("bills.exportPDF")}><span className="material-symbols-outlined">picture_as_pdf</span></button></div></td>
+                      <td className="px-4 py-3 md:px-6 md:py-4"><span className="font-mono text-sm text-primary">{billId}</span></td>
+                      <td className="px-4 py-3 md:px-6 md:py-4 text-sm text-on-surface">Table {tableNum}</td>
+                      <td className="px-4 py-3 md:px-6 md:py-4"><div className="flex flex-col"><span className="text-sm text-on-surface">{dateStr}</span><span className="text-xs text-on-surface-variant">{timeStr}</span></div></td>
+                      <td className="px-4 py-3 md:px-6 md:py-4 text-right"><span className="font-mono text-lg font-medium text-secondary">${(bill.total || 0).toFixed(2)}</span></td>
+                      <td className="px-4 py-3 md:px-6 md:py-4"><div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm" style={{ color: pm.color }}>{pm.icon}</span><span className="text-sm text-on-surface">{t(pm.label)}</span></div></td>
+                      <td className="px-4 py-3 md:px-6 md:py-4"><div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => setSelectedBill(bill)} className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-primary transition-colors" title={t("bills.printBill")}><span className="material-symbols-outlined">print</span></button><button className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-secondary transition-colors" title={t("bills.exportPDF")}><span className="material-symbols-outlined">picture_as_pdf</span></button></div></td>
                     </tr>
                   );
                 })}
@@ -172,7 +172,7 @@ export default function BillsManagementPage() {
           )}
         </div>
         {filtered.length > 0 && (
-          <div className="px-6 py-4 bg-surface-container-highest/30 border-t border-white/5 flex items-center justify-between">
+          <div className="px-4 py-3 md:px-6 md:py-4 bg-surface-container-highest/30 border-t border-white/5 flex items-center justify-between">
             <p className="text-xs text-on-surface-variant">{t("bills.showing")} {(page - 1) * ITEMS_PER_PAGE + 1}-{Math.min(page * ITEMS_PER_PAGE, filtered.length)} {t("bills.entries")}</p>
             <div className="flex gap-2">
               <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="glass-card p-2 rounded-lg flex items-center disabled:opacity-30"><span className="material-symbols-outlined text-sm">chevron_left</span></button>

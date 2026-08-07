@@ -66,16 +66,16 @@ export default function AdminLoginPage() {
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+        <div className="text-center mb-5 md:mb-8">
+          <div className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 rounded-2xl flex items-center justify-center"
             style={{ background: "rgba(255,193,116,0.1)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,193,116,0.2)", boxShadow: "0 0 30px rgba(255,193,116,0.1)" }}>
             <span className="material-symbols-outlined text-4xl" style={{ color: "#ffc174", fontVariationSettings: "'FILL' 1" }}>admin_panel_settings</span>
           </div>
-          <h1 className="text-4xl md:text-[48px] font-bold tracking-[-0.02em] text-white leading-tight">SmartDine</h1>
+          <h1 className="text-3xl md:text-[48px] font-bold tracking-[-0.02em] text-white leading-tight">SmartDine</h1>
           <p className="text-on-surface-variant/60 text-xs uppercase tracking-[0.3em] mt-2">{t("login.subtitle")}</p>
         </div>
 
-        <div ref={cardRef} className="rounded-3xl p-6 md:p-8 relative overflow-hidden"
+        <div ref={cardRef} className="rounded-2xl md:rounded-3xl p-5 md:p-8 relative overflow-hidden"
           style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
           <div className="absolute inset-0 pointer-events-none opacity-30 transition-opacity duration-300"
             style={{ background: "radial-gradient(circle 200px at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,193,116,0.15), transparent 80%)" }} />
@@ -93,7 +93,7 @@ export default function AdminLoginPage() {
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 material-symbols-outlined text-lg pointer-events-none">person</span>
                   <input type="text" placeholder="Enter operator ID" value={username}
                     onChange={(e) => { setUsername(e.target.value); setError(""); }}
-                    className="w-full pl-11 pr-4 py-3 rounded-xl text-sm text-on-surface placeholder-on-surface-variant/30 outline-none transition-all duration-300"
+                    className="w-full pl-10 pr-3 py-2.5 md:pl-11 md:pr-4 md:py-3 rounded-xl text-xs md:text-sm text-on-surface placeholder-on-surface-variant/30 outline-none transition-all duration-300"
                     style={{ background: "rgba(255,255,255,0.05)", backdropFilter: "blur(8px)", border: username.length > 3 ? "1px solid rgba(48,200,143,0.4)" : "1px solid rgba(255,255,255,0.1)" }} />
                   {username.length > 3 && (
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-sm" style={{ color: "#30c88f" }}>check_circle</span>
@@ -121,7 +121,7 @@ export default function AdminLoginPage() {
               </div>
 
               <button type="submit" disabled={submitting}
-                className="w-full py-4 rounded-xl font-bold text-[24px] flex items-center justify-center gap-2 transition-all duration-300 bg-gradient-to-r from-[#f59e0b] via-[#ffc174] to-[#f59e0b] text-[#472a00] shadow-xl hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait">
+                className="w-full py-3 md:py-4 rounded-xl font-bold text-lg md:text-[24px] flex items-center justify-center gap-2 transition-all duration-300 bg-gradient-to-r from-[#f59e0b] via-[#ffc174] to-[#f59e0b] text-[#472a00] shadow-xl hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-wait">
                 <span className={`material-symbols-outlined ${submitting ? "animate-spin" : ""}`}>{submitting ? "progress_activity" : "login"}</span>
                 <span>{submitting ? t("login.signingIn") : t("login.signIn")}</span>
               </button>

@@ -1,4 +1,4 @@
-﻿﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "@/lib/api.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
@@ -219,14 +219,14 @@ export default function TablesManagementPage() {
         {statCards.map((s, i) => (
           <GlassCard key={i} className="rounded-xl p-4 flex flex-col items-center gap-1">
             <span className="material-symbols-outlined text-2xl" style={{ color: s.color }}>{s.icon}</span>
-            <h3 className="text-2xl font-bold" style={{ color: s.color }}>{s.val}</h3>
+            <h3 className="text-xl md:text-2xl font-bold" style={{ color: s.color }}>{s.val}</h3>
             <p className="text-on-surface-variant/50 text-xs">{s.label}</p>
           </GlassCard>
         ))}
       </div>
 
       {/* Floor filter */}
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex flex-wrap items-center gap-2 mb-6">
         {floorOptions.map((f) => (
           <button
             key={f}
@@ -239,7 +239,7 @@ export default function TablesManagementPage() {
       </div>
 
       {/* Tables Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
         {filteredTables.map((table) => {
           const sc = statusConfig[table.status] || statusConfig.AVAILABLE;
           const randomZone = table.zone || zoneLabels[table.number % zoneLabels.length];

@@ -71,7 +71,7 @@ export default function WelcomePage() {
         <div className="text-center">
           <span className="material-symbols-outlined text-4xl text-error mb-4">error</span>
           <p className="text-error text-sm">{error}</p>
-          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 rounded-xl text-sm font-semibold bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-colors">
+          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 rounded-xl text-xs md:text-sm font-semibold bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-colors">
             {t("common.retry")}
           </button>
         </div>
@@ -82,7 +82,7 @@ export default function WelcomePage() {
   const QuickAction = ({ icon, title, desc, color, to }) => (
     <button
       onClick={() => navigate(to)}
-      className="group relative p-6 rounded-2xl transition-all duration-300 hover:-translate-y-1"
+      className="group relative p-4 md:p-6 rounded-2xl transition-all duration-300 hover:-translate-y-1"
       style={glassCard}
       onMouseEnter={(e) => {
         e.currentTarget.style.background = `rgba(${color},0.08)`;
@@ -96,12 +96,12 @@ export default function WelcomePage() {
       }}
     >
       <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `rgba(${color},0.15)` }}>
-          <span className="material-symbols-outlined text-2xl" style={{ color: `rgb(${color})`, fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: `rgba(${color},0.15)` }}>
+          <span className="material-symbols-outlined text-xl md:text-2xl" style={{ color: `rgb(${color})`, fontVariationSettings: "'FILL' 1" }}>{icon}</span>
         </div>
         <div className="text-left">
-          <h3 className="text-white font-semibold text-base mb-1">{title}</h3>
-          <p className="text-on-surface-variant/50 text-xs leading-relaxed">{desc}</p>
+          <h3 className="text-white font-semibold text-sm md:text-base mb-1">{title}</h3>
+          <p className="text-on-surface-variant/50 text-[11px] md:text-xs leading-relaxed">{desc}</p>
         </div>
       </div>
       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -114,7 +114,7 @@ export default function WelcomePage() {
     <div className="max-w-5xl mx-auto">
       {/* ======= Hero Section with Background Image ======= */}
       <div
-        className="relative mb-10 overflow-hidden rounded-3xl"
+        className="relative mb-6 overflow-hidden rounded-3xl"
         style={{
           background: 'linear-gradient(135deg, rgba(12,19,34,0.92) 0%, rgba(12,19,34,0.78) 100%), url("https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80") center/cover no-repeat',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -125,17 +125,17 @@ export default function WelcomePage() {
           <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-primary/10 blur-[80px]" />
           <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-amber-500/5 blur-[60px]" />
         </div>
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6 p-8 md:p-12 h-full min-h-[260px]">
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6 p-4 md:p-8 h-full min-h-[180px] md:min-h-[260px]">
           <div
             ref={floatRef}
-            className="w-20 h-20 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-75"
+            className="w-14 h-14 md:w-20 md:h-20 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-75"
             style={{
               background: 'linear-gradient(135deg, rgba(255,193,116,0.25), rgba(236,106,6,0.15))',
               border: '1px solid rgba(255,193,116,0.35)',
               boxShadow: '0 0 40px rgba(255,193,116,0.15)',
             }}
           >
-            <span className="material-symbols-outlined text-5xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>restaurant</span>
+            <span className="material-symbols-outlined text-3xl md:text-5xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>restaurant</span>
           </div>
           <div className="flex-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3"
@@ -143,11 +143,11 @@ export default function WelcomePage() {
               <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#ffc174' }}></span>
               {' '}Bàn #{tableId}
             </div>
-            <p className="text-on-surface-variant/60 text-xs uppercase tracking-widest mb-1">{t("user.welcome") || "Welcome to"}</p>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-2">
+            <p className="text-on-surface-variant/60 text-[10px] uppercase tracking-widest mb-1">{t("user.welcome") || "Welcome to"}</p>
+            <h1 className="text-xl md:text-2xl md:text-4xl font-bold tracking-tight text-white mb-2">
               Smart<span style={{ color: "#ffc174" }}>Dine</span>
             </h1>
-            <p className="text-on-surface-variant/60 text-sm max-w-md">
+            <p className="text-on-surface-variant/60 text-xs md:text-sm max-w-md">
               {t("user.welcomeDesc") || "Trải nghiệm ẩm thực đẳng cấp — gọi món nhanh chóng, thanh toán dễ dàng."}
             </p>
           </div>
@@ -155,14 +155,14 @@ export default function WelcomePage() {
       </div>
 
       {/* ======= Quick Actions Grid ======= */}
-      <div className="mb-10">
+      <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xs font-bold text-on-surface-variant/50 uppercase tracking-wider">
             {t("user.quickActions") || "Quick Actions"}
           </h2>
           <span className="text-[10px] text-on-surface-variant/30">Chạm để khám phá</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <QuickAction icon="restaurant_menu" title={t("user.viewMenu") || "Browse Menu"} desc={t("user.viewMenuDesc") || "Khám phá thực đơn đa dạng"} color="255,193,116" to={`/customer/${tableId}/menu`} />
           <QuickAction icon="receipt_long" title={t("user.viewOrders") || "My Orders"} desc={t("user.viewOrdersDesc") || "Theo dõi đơn hàng theo thời gian thực"} color="236,106,6" to={`/customer/${tableId}/tracking`} />
           <QuickAction icon="shopping_cart" title={t("user.cart") || "My Cart"} desc="Kiểm tra & xác nhận đơn hàng" color="86,229,169" to={`/customer/${tableId}/cart`} />
@@ -171,7 +171,7 @@ export default function WelcomePage() {
       </div>
 
       {/* ======= Featured Section ======= */}
-      <h2 className="text-xs font-bold text-on-surface-variant/50 uppercase tracking-wider mb-4">
+      <h2 className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-wider mb-3">
         Tiện ích nhà hàng
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -180,14 +180,14 @@ export default function WelcomePage() {
           { icon: "schedule", label: "Giờ mở cửa", desc: "10:00 AM - 10:00 PM", color: "#ffc174" },
           { icon: "location_on", label: "Địa chỉ", desc: "123 Gourmet Street", color: "#ffb690" },
         ].map((card, i) => (
-          <div key={i} className="p-5 rounded-2xl flex items-center gap-4 transition-all duration-300 hover:-translate-y-0.5" style={glassCard}
+          <div key={i} className="p-3 md:p-5 rounded-2xl flex items-center gap-4 transition-all duration-300 hover:-translate-y-0.5" style={glassCard}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = `${card.color}40`; e.currentTarget.style.boxShadow = `0 0 25px ${card.color}10`; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none'; }}>
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${card.color}18` }}>
+            <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${card.color}18` }}>
               <span className="material-symbols-outlined text-xl" style={{ color: card.color }}>{card.icon}</span>
             </div>
             <div>
-              <p className="text-white text-sm font-semibold">{card.label}</p>
+              <p className="text-white text-xs md:text-sm font-semibold">{card.label}</p>
               <p className="text-on-surface-variant/50 text-xs">{card.desc}</p>
             </div>
           </div>

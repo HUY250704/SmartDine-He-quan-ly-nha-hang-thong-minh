@@ -122,11 +122,11 @@ export default function DashboardPage() {  const { t } = useLang();
   const maxChartVal = Math.max(...chartData.map((d) => d.value), 1);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 md:space-y-8">
       {/* Stats Bento Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {/* Total Revenue */}
-        <GlassCard className="rounded-xl p-6 flex flex-col justify-between group overflow-hidden relative">
+        <GlassCard className="rounded-xl p-4 md:p-6 flex flex-col justify-between group overflow-hidden relative">
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#56e5a9" }}><span className="material-symbols-outlined text-8xl">payments</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.totalRevenue")}</p>
@@ -139,7 +139,7 @@ export default function DashboardPage() {  const { t } = useLang();
         </GlassCard>
 
         {/* Pending Orders */}
-        <GlassCard className="rounded-xl p-6 flex flex-col justify-between group overflow-hidden relative">
+        <GlassCard className="rounded-xl p-4 md:p-6 flex flex-col justify-between group overflow-hidden relative">
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#ffc174" }}><span className="material-symbols-outlined text-8xl">list_alt</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.pendingOrders")}</p>
@@ -152,7 +152,7 @@ export default function DashboardPage() {  const { t } = useLang();
         </GlassCard>
 
         {/* Active Tables */}
-        <GlassCard className="rounded-xl p-6 flex flex-col justify-between group overflow-hidden relative">
+        <GlassCard className="rounded-xl p-4 md:p-6 flex flex-col justify-between group overflow-hidden relative">
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#ffb690" }}><span className="material-symbols-outlined text-8xl">table_restaurant</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.activeTables")}</p>
@@ -165,7 +165,7 @@ export default function DashboardPage() {  const { t } = useLang();
         </GlassCard>
 
         {/* Avg Bill */}
-        <GlassCard className="rounded-xl p-6 flex flex-col justify-between group overflow-hidden relative">
+        <GlassCard className="rounded-xl p-4 md:p-6 flex flex-col justify-between group overflow-hidden relative">
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#a78bfa" }}><span className="material-symbols-outlined text-8xl">analytics</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.avgBill")}</p>
@@ -182,7 +182,7 @@ export default function DashboardPage() {  const { t } = useLang();
       <GlassCard className="rounded-xl overflow-hidden">
         <div className="p-6 border-b border-white/10 flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div>
-            <h3 className="text-2xl font-semibold text-white">{t("dashboard.revenueTrend")}</h3>
+            <h3 className="text-lg md:text-2xl font-semibold text-white">{t("dashboard.revenueTrend")}</h3>
             <p className="text-on-surface-variant/50 text-xs mt-1">{t("dashboard.revenueTrendDesc")}</p>
           </div>
           <div className="flex gap-2">
@@ -203,7 +203,7 @@ export default function DashboardPage() {  const { t } = useLang();
         {/* Recent Orders List */}
         <GlassCard className="lg:col-span-2 rounded-xl overflow-hidden flex flex-col">
           <div className="p-6 border-b border-white/10 flex justify-between items-center">
-            <h3 className="text-2xl font-semibold text-white">Recent Orders</h3>
+            <h3 className="text-lg md:text-2xl font-semibold text-white">Recent Orders</h3>
             <button className="text-primary hover:underline text-xs font-bold">{t("common.viewAll")}</button>
           </div>
           {recentOrders.length === 0 ? (
@@ -213,10 +213,10 @@ export default function DashboardPage() {  const { t } = useLang();
               <table className="w-full text-left min-w-[650px]">
                 <thead className="bg-white/5 sticky top-0">
                   <tr>
-                    <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider">Order ID</th>
-                    <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider">Customer</th>
-                    <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider">Items</th>
-                    <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider">Status</th>
+                    <th className="p-2 md:p-4 text-[10px] md:text-xs text-on-surface-variant font-bold uppercase tracking-wider">Order ID</th>
+                    <th className="p-2 md:p-4 text-[10px] md:text-xs text-on-surface-variant font-bold uppercase tracking-wider">Customer</th>
+                    <th className="p-2 md:p-4 text-[10px] md:text-xs text-on-surface-variant font-bold uppercase tracking-wider">Items</th>
+                    <th className="p-2 md:p-4 text-[10px] md:text-xs text-on-surface-variant font-bold uppercase tracking-wider">Status</th>
                     <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider text-right">Amount</th>
                   </tr>
                 </thead>
@@ -226,15 +226,15 @@ export default function DashboardPage() {  const { t } = useLang();
                     const itemsText = order.items?.map((it) => it.name || it.menuItemId?.name || "Item").join(", ") || "-";
                     return (
                       <tr key={order._id} className="hover:bg-white/5 transition-colors">
-                        <td className="p-4 font-mono text-sm text-primary">#{order._id.toString().slice(-8)}</td>
-                        <td className="p-4 text-on-surface text-sm">{order.tableNumber ? `Table ${order.tableNumber}` : t("dashboard.walkIn")}</td>
-                        <td className="p-4 text-on-surface-variant text-sm truncate max-w-[160px]">{itemsText}</td>
+                        <td className="p-2 md:p-4 font-mono text-xs md:text-sm text-primary">#{order._id.toString().slice(-8)}</td>
+                        <td className="p-2 md:p-4 text-on-surface text-xs md:text-sm">{order.tableNumber ? `Table ${order.tableNumber}` : t("dashboard.walkIn")}</td>
+                        <td className="p-2 md:p-4 text-on-surface-variant text-xs md:text-sm truncate max-w-[100px] md:max-w-[160px]">{itemsText}</td>
                         <td className="p-4">
                           <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${pill}`}>
                             {order.status}
                           </span>
                         </td>
-                        <td className="p-4 text-right font-bold text-sm text-white">${(order.totalAmount || 0).toFixed(2)}</td>
+                        <td className="p-2 md:p-4 text-right font-bold text-xs md:text-sm text-white">${(order.totalAmount || 0).toFixed(2)}</td>
                       </tr>
                     );
                   })}
@@ -245,7 +245,7 @@ export default function DashboardPage() {  const { t } = useLang();
         </GlassCard>
 
         {/* Top Selling Items */}
-        <GlassCard className="rounded-xl p-6 flex flex-col max-h-[500px]">
+        <GlassCard className="rounded-xl p-4 md:p-6 flex flex-col max-h-[500px]">
           <h3 className="text-2xl font-semibold text-white mb-6">Top Selling Items</h3>
           {topItems.length === 0 ? (
             <div className="flex-1 flex items-center justify-center text-on-surface-variant/40 text-sm">No order data yet</div>
@@ -253,7 +253,7 @@ export default function DashboardPage() {  const { t } = useLang();
             <div className="space-y-6 overflow-y-auto custom-scrollbar flex-grow pr-2">
               {topItems.map((item, i) => (
                 <div key={i} className="flex items-center gap-4 group cursor-pointer">
-                  <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg transition-transform group-hover:scale-110 flex-shrink-0">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl overflow-hidden shadow-lg transition-transform group-hover:scale-110 flex-shrink-0">
                     {item.menuItem?.image ? (
                       <img src={item.menuItem.image} alt="" className="w-full h-full object-cover" />
                     ) : (

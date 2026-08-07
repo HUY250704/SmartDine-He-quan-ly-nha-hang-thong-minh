@@ -85,7 +85,7 @@ export default function SupportPaymentPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-sm md:max-w-2xl lg:max-w-5xl mx-auto">
       {/* Toast */}
       {confirmMsg && (
         <div className="fixed top-24 md:top-20 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 rounded-xl text-sm font-bold animate-[slideUp_0.3s_ease]" style={{
@@ -96,15 +96,15 @@ export default function SupportPaymentPage() {
         }}>{confirmMsg.text}</div>
       )}
 
-      <h2 className="text-xl font-bold text-white mb-6">{t("user.support") || "Support & Payment"}</h2>
+      <h2 className="text-lg md:text-xl font-bold text-white mb-4">{t("user.support") || "Support & Payment"}</h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Left Column */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Quick Call Staff */}
-          <div className="rounded-2xl p-6" style={glassCard}>
-            <h3 className="text-xs font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-4">Call Staff</h3>
-            <div className="flex flex-wrap gap-2 mb-4">
+          <div className="rounded-2xl p-4 md:p-6" style={glassCard}>
+            <h3 className="text-[10px] md:text-xs font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-3">Call Staff</h3>
+            <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2 mb-4">
               {quickChips.map((chip, i) => (
                 <button key={i} onClick={() => callStaff(chip.label)} disabled={sending}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
@@ -130,7 +130,7 @@ export default function SupportPaymentPage() {
           </div>
 
           {/* FAQ */}
-          <div className="rounded-2xl p-6" style={glassCard}>
+          <div className="rounded-2xl p-4 md:p-6" style={glassCard}>
             <h3 className="text-xs font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-4 flex items-center gap-2">
               <span className="material-symbols-outlined text-sm" style={{ color: "#a78bfa" }}>help</span>
               Frequently Asked Questions
@@ -152,10 +152,10 @@ export default function SupportPaymentPage() {
         </div>
 
         {/* Right Column: Bill & Payment */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Bill Summary */}
-          <div className="rounded-2xl p-6" style={glassCard}>
-            <h3 className="text-xs font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-4">Your Bill</h3>
+          <div className="rounded-2xl p-4 md:p-6" style={glassCard}>
+            <h3 className="text-[10px] md:text-xs font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-3">Your Bill</h3>
             {billLoading ? (
               <div className="flex justify-center py-8"><div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>
             ) : billItems.length === 0 ? (
@@ -165,9 +165,9 @@ export default function SupportPaymentPage() {
               </div>
             ) : (
               <>
-                <div className="space-y-2 mb-4">
+                <div className="space-y-1.5 mb-3">
                   {billItems.map((item, i) => (
-                    <div key={i} className="flex justify-between text-sm">
+                    <div key={i} className="flex justify-between text-xs md:text-sm">
                       <span className="text-on-surface-variant/70">{item.name} <span className="text-on-surface-variant/30 text-xs">x{item.qty}</span></span>
                       <span className="text-on-surface font-mono text-xs">{formatPrice(item.price)}</span>
                     </div>
@@ -187,22 +187,22 @@ export default function SupportPaymentPage() {
           </div>
 
           {/* Payment Methods */}
-          <div className="rounded-2xl p-6" style={glassCard}>
-            <h3 className="text-xs font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-4">Payment Method</h3>
-            <div className="space-y-2 mb-4">
+          <div className="rounded-2xl p-4 md:p-6" style={glassCard}>
+            <h3 className="text-[10px] md:text-xs font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-3">Payment Method</h3>
+            <div className="space-y-1.5 mb-3">
               {paymentMethods.map((m) => (
                 <button key={m.id} onClick={() => setSelectedMethod(m.id === selectedMethod ? null : m.id)}
-                  className="w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300"
+                  className="w-full flex items-center gap-3 p-3 md:p-4 rounded-2xl transition-all duration-300"
                   style={{
                     background: selectedMethod === m.id ? `${m.color}10` : "rgba(255,255,255,0.03)",
                     border: selectedMethod === m.id ? `1px solid ${m.color}50` : "1px solid rgba(255,255,255,0.06)",
                     boxShadow: selectedMethod === m.id ? `0 0 20px ${m.color}15` : "none",
                   }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${m.color}20` }}>
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${m.color}20` }}>
                     <span className="material-symbols-outlined text-lg" style={{ color: selectedMethod === m.id ? m.color : "rgba(255,255,255,0.5)" }}>{m.icon}</span>
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="font-bold text-sm" style={{ color: selectedMethod === m.id ? m.color : "#dce2f7" }}>{m.label}</p>
+                    <p className="font-bold text-xs md:text-sm" style={{ color: selectedMethod === m.id ? m.color : "#dce2f7" }}>{m.label}</p>
                     <p className="text-xs text-on-surface-variant/40">{m.desc}</p>
                   </div>
                   {selectedMethod === m.id && (
@@ -212,7 +212,7 @@ export default function SupportPaymentPage() {
               ))}
             </div>
             <button onClick={requestPayment} disabled={!selectedMethod || sending}
-              className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-40"
+              className="w-full py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-40"
               style={{ background: "#ffc174", color: "#472a00", boxShadow: selectedMethod ? "0 0 20px rgba(255,193,116,0.25)" : "none" }}>
               {sending ? (
                 <><div className="w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" /> Processing...</>

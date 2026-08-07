@@ -213,7 +213,7 @@ export default function OrdersManagementPage() {
           <p className="text-on-surface-variant mt-1 max-w-xs">{t("orders.noOrdersDesc")}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6">
           {filtered.map((order) => {
             const orderSc = statusConfig[order.status] || statusConfig["PENDING"];
             const actions = nextActions[order.status] || [];
@@ -234,7 +234,7 @@ export default function OrdersManagementPage() {
                 <div className="p-5 border-b border-white/10 flex justify-between items-start">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-2xl" style={{ color: orderSc.color }}>
+                      <span className="font-bold text-xl md:text-2xl" style={{ color: orderSc.color }}>
                         {order.tableNumber ? `T-${String(order.tableNumber).padStart(2, "0")}` : "T-??"}
                       </span>
                       <span className="text-on-surface-variant text-xs">{orderIdShort}</span>
@@ -252,7 +252,7 @@ export default function OrdersManagementPage() {
                   </span>
                 </div>
 
-                <div className="p-5 flex-1 space-y-3">
+                <div className="p-4 md:p-5 flex-1 space-y-2">
                   {order.items?.map((item, j) => {
                     const isServed = item.status === "SERVED";
                     return (
@@ -276,7 +276,7 @@ export default function OrdersManagementPage() {
                 <div className="p-5 mt-auto" style={{ background: "rgba(255,255,255,0.02)" }}>
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-on-surface-variant text-xs font-bold uppercase tracking-wider">{t("orders.totalAmount")}</span>
-                    <span className="font-bold text-2xl" style={{ color: orderSc.color }}>${total.toFixed(0)}</span>
+                    <span className="font-bold text-xl md:text-2xl" style={{ color: orderSc.color }}>${total.toFixed(0)}</span>
                   </div>
                   {actions.length > 0 && (
                     actions.length === 1 ? (

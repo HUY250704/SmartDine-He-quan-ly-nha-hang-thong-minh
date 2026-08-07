@@ -88,10 +88,10 @@ export default function OrderTrackingPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-white">{t("user.orders") || "My Orders"}</h2>
-        <button onClick={() => navigate(`/customer/${tableId}/menu`)} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all" style={{ background: "rgba(255,193,116,0.1)", border: "1px solid rgba(255,193,116,0.2)", color: "#ffc174" }}>
+    <div className="max-w-sm md:max-w-2xl lg:max-w-4xl mx-auto">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg md:text-xl font-bold text-white">{t("user.orders") || "My Orders"}</h2>
+        <button onClick={() => navigate(`/customer/${tableId}/menu`)} className="flex items-center gap-1.5 px-3 py-2 md:px-4 md:py-2 rounded-xl text-xs md:text-sm font-semibold transition-all" style={{ background: "rgba(255,193,116,0.1)", border: "1px solid rgba(255,193,116,0.2)", color: "#ffc174" }}>
           <span className="material-symbols-outlined text-lg">add_circle</span>
           Add Items
         </button>
@@ -120,15 +120,15 @@ export default function OrderTrackingPage() {
           const isServed = order.status === "SERVED";
 
           return (
-            <div key={order._id} className="rounded-2xl overflow-hidden" style={{ ...glassCard, opacity: isCancelled ? 0.5 : 1 }}>
-              <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <div key={order._id} className="rounded-xl md:rounded-2xl overflow-hidden" style={{ ...glassCard, opacity: isCancelled ? 0.5 : 1 }}>
+              <div className="px-4 py-3 md:px-6 md:py-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                 <div className="flex items-center gap-4">
                   <span className="font-mono text-sm font-bold text-white">{order.displayId}</span>
                   <span className="text-on-surface-variant/30 text-xs">{order.time}</span>
                   {isCancelled && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: "rgba(255,180,171,0.15)", color: "#ffb4ab", border: "1px solid rgba(255,180,171,0.3)" }}>CANCELLED</span>}
                   {isServed && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold" style={{ background: "rgba(86,229,169,0.15)", color: "#56e5a9", border: "1px solid rgba(86,229,169,0.3)" }}>SERVED</span>}
                 </div>
-                <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatPrice(order.total)}</span>
+                <span className="font-mono font-bold text-xs md:text-sm" style={{ color: "#ffc174" }}>{formatPrice(order.total)}</span>
               </div>
 
               <div className="flex flex-col md:flex-row">
@@ -159,26 +159,26 @@ export default function OrderTrackingPage() {
                   <div className="space-y-3">
                     {order.items.map((it, i) => (
                       <div key={i} className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-white/5 overflow-hidden shrink-0">
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-white/5 overflow-hidden shrink-0">
                           {it.image ? <img src={it.image} alt={it.name} className="w-full h-full object-cover" />
                             : <div className="w-full h-full flex items-center justify-center"><span className="material-symbols-outlined text-on-surface-variant/20 text-sm">restaurant</span></div>}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm font-medium truncate">{it.name}</p>
+                          <p className="text-white text-xs md:text-sm font-medium truncate">{it.name}</p>
                           <p className="text-on-surface-variant/40 text-xs">x{it.qty} · {formatPrice(it.price)}</p>
                         </div>
-                        <span className="font-mono text-xs text-on-surface-variant/60">{formatPrice(it.price * it.qty)}</span>
+                        <span className="font-mono text-[10px] md:text-xs text-on-surface-variant/60">{formatPrice(it.price * it.qty)}</span>
                       </div>
                     ))}
                   </div>
                   <div className="border-t border-white/5 mt-4 pt-4 flex items-center justify-between">
                     <span className="text-on-surface-variant/60 text-xs">Subtotal + Service (10%)</span>
-                    <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatPrice(order.total)}</span>
+                    <span className="font-mono font-bold text-xs md:text-sm" style={{ color: "#ffc174" }}>{formatPrice(order.total)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="px-6 py-4 flex items-center justify-end gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+              <div className="px-4 py-3 md:px-6 md:py-4 flex items-center justify-end gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                 <button onClick={() => navigate(`/customer/${tableId}/menu`)} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#dce2f7" }}>
                   <span className="material-symbols-outlined text-sm">add_circle</span> Add More
                 </button>
@@ -200,20 +200,20 @@ export default function OrderTrackingPage() {
 
       {orders.length > 0 && orders.some((o) => o.statusIdx >= 0 && o.statusIdx < 4) && (
         <section className="mt-10">
-          <h3 className="text-base font-bold text-white mb-4">While You Wait...</h3>
+          <h3 className="text-sm md:text-base font-bold text-white mb-3">While You Wait...</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { icon: "menu_book", label: "Dessert Menu", desc: "Pre-order for later", color: "#ffb690", to: "menu" },
               { icon: "wifi", label: "Free Wi-Fi", desc: "Connected & Secure", color: "#56e5a9", to: null },
               { icon: "star", label: "Loyalty Points", desc: `Earn ${Math.round((orders[0]?.total || 0) / 1000)} pts`, color: "#ffc174", to: null },
             ].map((card, i) => (
-              <div key={i} className="p-4 rounded-2xl flex items-center gap-3 cursor-pointer hover:bg-white/[0.06] transition-all" style={glassCard}
+              <div key={i} className="p-3 md:p-4 rounded-2xl flex items-center gap-2 md:gap-3 cursor-pointer hover:bg-white/[0.06] transition-all" style={glassCard}
                 onClick={() => card.to && navigate(`/customer/${tableId}/${card.to}`)}>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: `${card.color}20` }}>
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: `${card.color}20` }}>
                   <span className="material-symbols-outlined text-lg" style={{ color: card.color }}>{card.icon}</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-xs text-white">{card.label}</p>
+                  <p className="font-semibold text-[10px] md:text-xs text-white">{card.label}</p>
                   <p className="text-[10px] text-on-surface-variant/40">{card.desc}</p>
                 </div>
               </div>

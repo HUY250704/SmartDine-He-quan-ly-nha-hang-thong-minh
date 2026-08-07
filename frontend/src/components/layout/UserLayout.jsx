@@ -1,4 +1,4 @@
-﻿﻿import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { NavLink, Outlet, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
@@ -75,7 +75,7 @@ export function UserSidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) 
   return (
     <>
       {/* Desktop sidebar */}
-      <div className="hidden md:block fixed left-0 top-0 h-full z-50 transition-all duration-300">
+      <div className={`hidden md:block fixed left-0 top-0 h-full z-50 transition-all duration-300 ${collapsed ? "w-[72px]" : "w-[240px]"}`}>
         {sidebarContent}
       </div>
       {/* Mobile overlay */}
@@ -175,10 +175,14 @@ export function UserTopBar({ onMenuClick }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 h-16 flex items-center justify-between px-6"
+      <header className="sticky top-0 z-40 h-14 md:h-16 flex items-center justify-between px-3 md:px-6"
         style={{ background: "rgba(12,19,34,0.85)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
+        {/* Hamburger - mobile only */}
+        <button onClick={onMenuClick} className="md:hidden mr-3 w-10 h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-colors shrink-0">
+          <span className="material-symbols-outlined text-2xl">menu</span>
+        </button>
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="flex items-center gap-1.5 px-2 py-1 md:px-3 md:py-1.5 rounded-lg bg-white/5 border border-white/10">
             <span className="material-symbols-outlined text-primary text-sm">table_restaurant</span>
             <span className="text-white text-sm font-semibold">Bàn #{tableId}</span>
           </div>
@@ -196,7 +200,7 @@ export function UserTopBar({ onMenuClick }) {
           </button>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 md:gap-3">
           <button onClick={toggleLang}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-on-surface-variant text-xs font-medium hover:text-white hover:bg-white/10 transition-all">
             <span className="material-symbols-outlined text-sm">translate</span>
@@ -328,9 +332,9 @@ export default function UserLayout() {
   return (
     <div className="min-h-screen" style={{ background: "#0c1322" }}>
       <UserSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} mobileOpen={mobileOpen} onMobileClose={closeMobile} />
-      <div className={`transition-all duration-300 md:${collapsed ? "ml-[72px]" : "ml-[240px]"} ml-0`}>
+      <div className={`transition-all duration-300 ml-0 ${collapsed ? "md:ml-[72px]" : "md:ml-[240px]"}`}>
         <UserTopBar onMenuClick={() => setMobileOpen(true)} />
-        <main className="p-4 md:p-6">
+        <main className="p-3 md:p-6">
           <Outlet />
         </main>
       </div>

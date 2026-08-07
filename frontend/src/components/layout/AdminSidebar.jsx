@@ -124,7 +124,7 @@ export function AdminSidebar({ collapsed, setCollapsed, mobileOpen, onMobileClos
   return (
     <>
       {/* Desktop */}
-      <div className={`hidden md:block fixed left-0 top-0 h-screen z-50 transition-all duration-300`}>
+      <div className={`hidden md:block fixed left-0 top-0 h-screen z-50 transition-all duration-300 ${collapsed ? "w-20" : "w-64"}`}>
         {sidebarInner}
       </div>
       {/* Mobile overlay */}

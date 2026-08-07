@@ -14,8 +14,8 @@ export function AdminLayout() {
         <span className="material-symbols-outlined text-2xl">menu</span>
       </button>
       <AdminSidebar collapsed={collapsed} setCollapsed={setCollapsed} mobileOpen={mobileOpen} onMobileClose={closeMobile} />
-      <main className={`min-h-screen transition-all duration-300 w-full md:${collapsed ? "ml-20" : "ml-64"} ml-0`}>
-        <div className="p-4 pt-16 md:p-6 md:pt-8">
+      <main className={`min-h-screen transition-all duration-300 w-full ml-0 ${collapsed ? "md:ml-20" : "md:ml-64"}`}>
+        <div className="p-3 pt-14 md:p-6 md:pt-8">
           <Outlet />
         </div>
       </main>

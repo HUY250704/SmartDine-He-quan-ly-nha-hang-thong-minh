@@ -99,8 +99,8 @@ export default function MenuPage() {
           </div>
           <div className="p-6">
             <div className="flex items-start justify-between mb-3">
-              <h3 className="text-white font-bold text-xl">{selectedItem.name}</h3>
-              <span className="font-mono font-bold text-xl" style={{ color: "#ffc174" }}>{formatVND(selectedItem.price)}</span>
+              <h3 className="text-white font-bold text-lg md:text-xl">{selectedItem.name}</h3>
+              <span className="font-mono font-bold text-lg md:text-xl" style={{ color: "#ffc174" }}>{formatVND(selectedItem.price)}</span>
             </div>
             <p className="text-on-surface-variant/50 text-sm leading-relaxed mb-6">{selectedItem.description || selectedItem.aiDescription || "A delicious dish from our kitchen."}</p>
             <button
@@ -145,7 +145,7 @@ export default function MenuPage() {
       <div className="flex-1 min-w-0">
         {/* Search + Mobile Category Tabs */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="relative flex-1">
+          <div className="relative flex-1 w-full">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-lg">search</span>
             <input
               type="text"
@@ -181,7 +181,7 @@ export default function MenuPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
             {filtered.map((item) => (
               <div
                 key={item._id}
@@ -208,11 +208,11 @@ export default function MenuPage() {
                 </div>
 
                 {/* Info */}
-                <div className="p-4">
-                  <h3 className="text-white font-semibold text-sm leading-tight mb-1">{item.name}</h3>
-                  <p className="text-on-surface-variant/50 text-xs leading-relaxed line-clamp-2 mb-3">{item.description || item.aiDescription || ""}</p>
+                <div className="p-3 md:p-4">
+                  <h3 className="text-white font-semibold text-xs md:text-sm leading-tight mb-1">{item.name}</h3>
+                  <p className="text-on-surface-variant/50 text-[10px] md:text-xs leading-relaxed line-clamp-2 mb-3">{item.description || item.aiDescription || ""}</p>
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatVND(item.price)}</span>
+                    <span className="font-mono font-bold text-xs md:text-sm" style={{ color: "#ffc174" }}>{formatVND(item.price)}</span>
                     <button
                       onClick={(e) => addItem(item, e)}
                       disabled={item.isAvailable === false}
@@ -235,7 +235,7 @@ export default function MenuPage() {
 
       {/* Toast */}
       {showToast && (
-        <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 rounded-xl text-sm font-bold animate-[slideUp_0.3s_ease]" style={{ background: "rgba(86,229,169,0.15)", backdropFilter: "blur(16px)", border: "1px solid rgba(86,229,169,0.3)", color: "#56e5a9" }}>
+        <div className="fixed bottom-20 md:bottom-8 left-1/2 w-[90%] max-w-sm -translate-x-1/2 z-[60] px-5 py-3 rounded-xl text-sm font-bold animate-[slideUp_0.3s_ease]" style={{ background: "rgba(86,229,169,0.15)", backdropFilter: "blur(16px)", border: "1px solid rgba(86,229,169,0.3)", color: "#56e5a9" }}>
           Added "{showToast}" to cart
         </div>
       )}
@@ -244,7 +244,7 @@ export default function MenuPage() {
       {cartCount > 0 && (
         <button
           onClick={() => navigate(`/customer/${tableId}/cart`)}
-          className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-50 w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-xl"
+          className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-50 w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-xl"
           style={{ background: "#ffc174", boxShadow: "0 0 30px rgba(255,193,116,0.3)" }}
         >
           <span className="material-symbols-outlined text-2xl" style={{ color: "#472a00", fontVariationSettings: "'FILL' 1" }}>shopping_cart</span>

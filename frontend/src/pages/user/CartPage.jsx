@@ -53,7 +53,7 @@ export default function CartPage() {
       <div className="flex items-center justify-center py-32">
         <div className="text-center p-8 rounded-3xl max-w-sm" style={glassCard}>
           <span className="material-symbols-outlined text-6xl text-tertiary mb-4 animate-bounce" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-          <h2 className="text-2xl font-bold text-white mb-2">{t("user.orderPlaced")}</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-2">{t("user.orderPlaced")}</h2>
           <p className="text-on-surface-variant/60 text-sm mb-4">{t("user.orderPlacedDesc")}</p>
           <p className="font-mono text-primary font-bold text-xl">{formatPrice(total)}</p>
           <p className="text-on-surface-variant/30 text-xs mt-4">Redirecting...</p>
@@ -63,11 +63,11 @@ export default function CartPage() {
   }
 
   return (
-    <div className="flex gap-6 max-w-[1200px] mx-auto pb-20 lg:pb-0">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 max-w-sm md:max-w-2xl lg:max-w-[1200px] mx-auto pb-20 lg:pb-0">
       {/* Left: Cart Items */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">{t("user.cart") || "My Cart"}</h2>
+          <h2 className="text-lg md:text-xl font-bold text-white">{t("user.cart") || "My Cart"}</h2>
           {cart.length > 0 && (
             <button onClick={clearCart} className="flex items-center gap-1.5 text-xs font-semibold text-error/70 hover:text-error transition-colors">
               <span className="material-symbols-outlined text-sm">delete_sweep</span>
@@ -77,7 +77,7 @@ export default function CartPage() {
         </div>
 
         {cart.length === 0 ? (
-          <div className="text-center py-20 rounded-2xl" style={glassCard}>
+          <div className="text-center py-12 md:py-20 rounded-2xl" style={glassCard}>
             <span className="material-symbols-outlined text-6xl text-on-surface-variant/20 mb-4">shopping_cart</span>
             <p className="text-on-surface-variant/50 text-sm mb-4">{t("user.emptyCart") || "Your cart is empty"}</p>
             <button onClick={() => navigate(`/customer/${tableId}/menu`)} className="px-5 py-2.5 rounded-xl text-sm font-bold" style={{ background: "rgba(255,193,116,0.15)", border: "1px solid rgba(255,193,116,0.3)", color: "#ffc174" }}>
@@ -89,8 +89,8 @@ export default function CartPage() {
             {cart.map((item) => {
               const itemTotal = (item.price || 0) * 25000 * item.qty;
               return (
-                <div key={item._id} className="flex gap-4 p-4 rounded-2xl group" style={glassCard}>
-                  <div className="w-20 h-20 rounded-xl bg-white/5 overflow-hidden shrink-0">
+                <div key={item._id} className="flex gap-3 p-3 md:p-4 rounded-2xl group" style={glassCard}>
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white/5 overflow-hidden shrink-0">
                     {item.image ? (
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
@@ -102,7 +102,7 @@ export default function CartPage() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-white font-semibold text-sm truncate">{item.name}</h3>
+                      <h3 className="text-white font-semibold text-xs md:text-sm truncate">{item.name}</h3>
                       <button onClick={() => updateQty(item._id, -item.qty)} className="text-on-surface-variant/30 hover:text-error transition-colors shrink-0">
                         <span className="material-symbols-outlined text-lg">close</span>
                       </button>
@@ -123,15 +123,15 @@ export default function CartPage() {
 
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center gap-1 rounded-lg" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                        <button onClick={() => updateQty(item._id, -1)} className="w-7 h-7 flex items-center justify-center text-on-surface-variant/60 hover:text-white transition-colors">
+                        <button onClick={() => updateQty(item._id, -1)} className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center text-on-surface-variant/60 hover:text-white transition-colors">
                           <span className="material-symbols-outlined text-sm">remove</span>
                         </button>
                         <span className="text-white text-sm font-mono w-7 text-center">{item.qty}</span>
-                        <button onClick={() => updateQty(item._id, 1)} className="w-7 h-7 flex items-center justify-center text-on-surface-variant/60 hover:text-white transition-colors">
+                        <button onClick={() => updateQty(item._id, 1)} className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center text-on-surface-variant/60 hover:text-white transition-colors">
                           <span className="material-symbols-outlined text-sm">add</span>
                         </button>
                       </div>
-                      <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatPrice(itemTotal)}</span>
+                      <span className="font-mono font-bold text-xs md:text-sm" style={{ color: "#ffc174" }}>{formatPrice(itemTotal)}</span>
                     </div>
                   </div>
                 </div>
@@ -144,7 +144,7 @@ export default function CartPage() {
       {/* Right: Order Summary */}
       <div className="w-[340px] shrink-0 hidden lg:block">
         <div className="sticky top-20 rounded-2xl p-6 space-y-5" style={{ ...glassCard, border: "1px solid rgba(255,255,255,0.1)" }}>
-          <h3 className="text-sm font-semibold text-on-surface-variant uppercase tracking-wider">Order Summary</h3>
+          <h3 className="text-xs md:text-sm font-semibold text-on-surface-variant uppercase tracking-wider">Order Summary</h3>
           {cart.length === 0 ? (
             <p className="text-on-surface-variant/40 text-xs">Add items to see your order summary.</p>
           ) : (
@@ -167,7 +167,7 @@ export default function CartPage() {
                 </div>
                 <div className="border-t border-white/10 pt-3 flex justify-between">
                   <span className="text-white font-bold text-base">Total</span>
-                  <span className="font-mono font-bold text-lg" style={{ color: "#ffc174" }}>{formatPrice(total)}</span>
+                  <span className="font-mono font-bold text-base md:text-lg" style={{ color: "#ffc174" }}>{formatPrice(total)}</span>
                 </div>
               </div>
 
@@ -178,7 +178,7 @@ export default function CartPage() {
               )}
 
               <button onClick={handlePlaceOrder} disabled={submitting}
-                className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+                className="w-full py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
                 style={{ background: "#ffc174", color: "#472a00", boxShadow: "0 0 20px rgba(255,193,116,0.2)" }}>
                 {submitting ? (
                   <><div className="w-4 h-4 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" /> Processing...</>
@@ -196,11 +196,11 @@ export default function CartPage() {
       {cart.length > 0 && (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 p-4" style={{ background: "rgba(12,19,34,0.95)", backdropFilter: "blur(16px)", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
           <div className="flex items-center justify-between mb-3">
-            <span className="text-white font-bold">{cart.reduce((s, i) => s + i.qty, 0)} items</span>
-            <span className="font-mono font-bold text-lg" style={{ color: "#ffc174" }}>{formatPrice(total)}</span>
+            <span className="text-white font-bold text-sm md:text-base">{cart.reduce((s, i) => s + i.qty, 0)} items</span>
+            <span className="font-mono font-bold text-base md:text-lg" style={{ color: "#ffc174" }}>{formatPrice(total)}</span>
           </div>
           <button onClick={handlePlaceOrder} disabled={submitting}
-            className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+            className="w-full py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
             style={{ background: "#ffc174", color: "#472a00" }}>
             {submitting ? "Processing..." : `${t("user.submitOrder") || "Place Order"} - ${formatPrice(total)}`}
           </button>
