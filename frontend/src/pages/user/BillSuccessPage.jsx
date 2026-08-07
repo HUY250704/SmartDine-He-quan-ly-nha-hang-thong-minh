@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { formatPrice } from "@/lib/price.js";
@@ -28,6 +28,22 @@ export default function BillSuccessPage() {
       try { setBill(JSON.parse(saved)); } catch {}
     }
   }, []);
+
+  const handlePrintOrDownload = (download = false) => {
+    const originalTitle = document.title;
+    document.title = `SmartDine_Invoice_${bill?._id?.toString().slice(-8) || "receipt"}`;
+
+    if (download) {
+      // Trigger save as PDF via print dialog
+      window.print();
+    } else {
+      window.print();
+    }
+
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 500);
+  };
 
   if (!bill) {
     return (
@@ -64,7 +80,7 @@ export default function BillSuccessPage() {
       </div>
 
       {/* Bill Card */}
-      <div className="rounded-2xl p-5 md:p-6 mb-6" style={glassCard}>
+      <div className="rounded-2xl p-5 md:p-6 mb-6 bill-print-area" style={glassCard}>
         {/* Header */}
         <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/10">
           <div>
@@ -137,8 +153,24 @@ export default function BillSuccessPage() {
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-3">
+      {/* Invoice Actions */}
+      <div className="flex flex-col gap-3 mb-4 no-print">
+        <button onClick={() => handlePrintOrDownload(false)}
+          className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
+          style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "#dce2f7" }}>
+          <span className="material-symbols-outlined text-lg">print</span>
+          Print Invoice
+        </button>
+        <button onClick={() => handlePrintOrDownload(true)}
+          className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
+          style={{ background: "rgba(86,229,169,0.12)", border: "1px solid rgba(86,229,169,0.25)", color: "#56e5a9" }}>
+          <span className="material-symbols-outlined text-lg">download</span>
+          Download Invoice
+        </button>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex gap-3 no-print">
         <button onClick={() => navigate(`/customer/${tableId}`)}
           className="flex-1 py-3 rounded-xl text-sm font-bold border border-white/10 text-white hover:bg-white/5 transition-colors">
           New Session
@@ -150,7 +182,58 @@ export default function BillSuccessPage() {
         </button>
       </div>
 
-      <style>{`@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+      {/* Print styles */}
+      <style>{`
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media print {
+          @page { size: A4 portrait; margin: 12mm; }
+          body { background: white !important; color: black !important; }
+          body * { visibility: hidden !important; }
+          /* Show only bill content */
+          .bill-print-area,
+          .bill-print-area * { visibility: visible !important; color: black !important; }
+          .bill-print-area { 
+            position: fixed !important; 
+            inset: 0 !important; 
+            display: block !important; 
+            max-width: 100% !important; 
+            padding: 0 !important; 
+          }
+          .no-print { display: none !important; }
+          /* Override glass effects */
+          .bill-print-area [style*="background"] { background: white !important; backdrop-filter: none !important; }
+          .bill-print-area [style*="border"] { border-color: #ddd !important; }
+          .bill-print-area [style*="color"] { color: black !important; }
+          .bill-print-area [style*="#ffc174"] { color: #d4a017 !important; }
+          .bill-print-area [style*="#56e5a9"] { color: #1a8a5a !important; }
+          /* Brand name */
+          .bill-print-area::before {
+            content: 'SmartDine - Invoice';
+            display: block !important;
+            font-size: 20px !important;
+            font-weight: bold !important;
+            text-align: center !important;
+            margin-bottom: 20px !important;
+            padding-bottom: 10px !important;
+            border-bottom: 2px solid #333 !important;
+            visibility: visible !important;
+            color: black !important;
+          }
+          /* Footer */
+          .bill-print-area::after {
+            content: 'Thank you for dining with us! - www.smartdine.vn';
+            display: block !important;
+            font-size: 10px !important;
+            text-align: center !important;
+            margin-top: 30px !important;
+            padding-top: 10px !important;
+            border-top: 1px solid #ddd !important;
+            visibility: visible !important;
+            color: #666 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
