@@ -126,19 +126,32 @@ export const confirmStripePayment = async (req, res) => {
     const table = await Table.findById(session.tableId);
     const tableNumber = table ? table.number : null;
 
-    const bill = await Bill.create({
-      sessionId,
-      tableNumber,
-      items: merged,
-      subtotal,
-      tax,
-      serviceCharge,
-      total,
-      paymentMethod: 'CARD',
-      paymentStatus: 'PAID',
-      stripePaymentIntentId: paymentIntentId,
-      paidAt: new Date(),
-    });
+    let bill;
+    try {
+      bill = await Bill.create({
+        sessionId,
+        tableNumber,
+        items: merged,
+        subtotal,
+        tax,
+        serviceCharge,
+        total,
+        paymentMethod: 'CARD',
+        paymentStatus: 'PAID',
+        stripePaymentIntentId: paymentIntentId,
+        paidAt: new Date(),
+      });
+    } catch (createErr) {
+      if (createErr.code === 11000) {
+        // Race condition: another request already created the bill — fetch and return it
+        const concurrent = await Bill.findOne({ sessionId });
+        if (concurrent) {
+          return res.json(concurrent);
+        }
+        throw createErr;
+      }
+      throw createErr;
+    }
 
     // Đóng session
     session.status = 'CLOSED';
@@ -217,19 +230,24 @@ export const handleStripeWebhook = async (req, res) => {
 
             const table = await Table.findById(session.tableId);
 
-            await Bill.create({
-              sessionId,
-              tableNumber: table?.number,
-              items: merged,
-              subtotal,
-              tax,
-              serviceCharge,
-              total,
-              paymentMethod: 'CARD',
-              paymentStatus: 'PAID',
-              stripePaymentIntentId: paymentIntent.id,
-              paidAt: new Date(),
-            });
+            try {
+              await Bill.create({
+                sessionId,
+                tableNumber: table?.number,
+                items: merged,
+                subtotal,
+                tax,
+                serviceCharge,
+                total,
+                paymentMethod: 'CARD',
+                paymentStatus: 'PAID',
+                stripePaymentIntentId: paymentIntent.id,
+                paidAt: new Date(),
+              });
+            } catch (createErr) {
+              if (createErr.code !== 11000) throw createErr;
+              // duplicate is fine — FE already created it
+            }
 
             session.status = 'CLOSED';
             session.endTime = new Date();

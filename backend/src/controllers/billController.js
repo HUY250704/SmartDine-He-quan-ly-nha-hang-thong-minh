@@ -97,17 +97,25 @@ export const generateBill = async (req, res) => {
     const table = await Table.findById(session.tableId);
     const tableNumber = table ? table.number : null;
 
-    const bill = await Bill.create({
-      sessionId,
-      tableNumber,
-      items: merged,
-      subtotal,
-      tax,
-      serviceCharge,
-      total,
-      paymentMethod,
-      paymentStatus: paymentMethod === 'CASH' ? 'PENDING' : 'PAID'
-    });
+    let bill;
+    try {
+      bill = await Bill.create({
+        sessionId,
+        tableNumber,
+        items: merged,
+        subtotal,
+        tax,
+        serviceCharge,
+        total,
+        paymentMethod,
+        paymentStatus: paymentMethod === 'CASH' ? 'PENDING' : 'PAID'
+      });
+    } catch (createErr) {
+      if (createErr.code === 11000) {
+        return res.status(409).json({ error: 'Bill already exists for this session (concurrent request)' });
+      }
+      throw createErr;
+    }
 
     // For non-cash payments, close session immediately
     if (paymentMethod !== 'CASH') {
