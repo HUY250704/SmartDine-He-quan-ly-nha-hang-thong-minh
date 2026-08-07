@@ -204,10 +204,27 @@ export default function SupportPaymentPage() {
     }
   };
 
+  const handleQRConfirm = async () => {
+    setShowQR(false);
+    setSending(true);
+    try {
+      const sessionId = localStorage.getItem("smartdine_sessionId");
+      const { data: bill } = await api.post("/bills/generate", { sessionId, tableId, paymentMethod: selectedMethod });
+      localStorage.setItem("smartdine_lastBill", JSON.stringify(bill));
+      navigate("/customer/" + tableId + "/bill-success");
+    } catch (err) {
+      showToast(err.response?.data?.error || "Payment failed", true);
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handlePayment = async () => {
     if (!selectedMethod) return;
     if (selectedMethod === "CARD") {
       await handleStripePayment();
+    } else if (selectedMethod === "E_WALLET" || selectedMethod === "BANK_TRANSFER") {
+      setShowQR(true);
     } else {
       await handleNonCardPayment(selectedMethod);
     }
@@ -415,6 +432,16 @@ export default function SupportPaymentPage() {
           </div>
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      {showQR && (
+        <QRCodeModal
+          total={total}
+          sending={sending}
+          onCancel={() => setShowQR(false)}
+          onConfirm={handleQRConfirm}
+        />
+      )}
 
       <style>{`
         @keyframes slideUp {
