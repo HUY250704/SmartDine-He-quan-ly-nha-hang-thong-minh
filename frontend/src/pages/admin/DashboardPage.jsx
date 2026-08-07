@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
 import { BarChart } from "@/components/ui/Charts.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
@@ -209,8 +209,8 @@ export default function DashboardPage() {  const { t } = useLang();
           {recentOrders.length === 0 ? (
             <div className="p-12 text-center text-on-surface-variant/40 text-sm">No recent orders</div>
           ) : (
-            <div className="overflow-y-auto custom-scrollbar flex-grow max-h-[500px]">
-              <table className="w-full text-left">
+            <div className="overflow-auto custom-scrollbar flex-grow max-h-[500px]">
+              <table className="w-full text-left min-w-[650px]">
                 <thead className="bg-white/5 sticky top-0">
                   <tr>
                     <th className="p-4 text-xs text-on-surface-variant font-bold uppercase tracking-wider">Order ID</th>

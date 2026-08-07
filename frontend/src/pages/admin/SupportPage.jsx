@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api.js';
 import { getSocket } from '@/lib/socket.js';
 
@@ -107,7 +107,7 @@ export default function SupportPage() {
     <div>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-[32px] font-bold tracking-[-0.01em] text-white">Support Requests</h1>
+          <h1 className="text-2xl md:text-[32px] font-bold tracking-[-0.01em] text-white">Support Requests</h1>
           <p className="text-on-surface-variant/60 text-sm mt-1">
             {activeCount > 0 ? (
               <>
@@ -156,7 +156,7 @@ export default function SupportPage() {
       </div>
 
       {/* Type Filter */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-6">
         {[
           { key: 'all', label: 'All Types' },
           { key: 'assistance', label: 'Assistance' },

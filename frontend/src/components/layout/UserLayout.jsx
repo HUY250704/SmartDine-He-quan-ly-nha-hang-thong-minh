@@ -1,4 +1,4 @@
-﻿﻿﻿﻿import React, { useState, useEffect } from "react";
+﻿﻿import React, { useState, useEffect, useCallback } from "react";
 import { NavLink, Outlet, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
@@ -19,16 +19,16 @@ const statusConfig = {
   CLEANING:  { color: "#a08e7a", bg: "rgba(160,142,122,0.1)", label: "Dọn dẹp" },
 };
 
-export function UserSidebar({ collapsed, onToggle }) {
+export function UserSidebar({ collapsed, onToggle, mobileOpen, onMobileClose }) {
   const { t } = useLang();
   const { tableId } = useParams();
   const location = useLocation();
   const { cartCount } = useCart();
   const items = navItems(tableId, t);
 
-  return (
+  const sidebarContent = (
     <aside
-      className={`fixed left-0 top-0 h-full z-50 flex flex-col transition-all duration-300 ${collapsed ? "w-[72px]" : "w-[240px]"}`}
+      className={`h-full flex flex-col ${collapsed ? "w-[72px]" : "w-[240px]"}`}
       style={{ background: "linear-gradient(180deg, #0f172a 0%, #0c1322 100%)", borderRight: "1px solid rgba(255,255,255,0.08)" }}
     >
       <div className="flex items-center gap-3 px-4 h-16 border-b border-white/5 shrink-0">
@@ -43,6 +43,7 @@ export function UserSidebar({ collapsed, onToggle }) {
           const active = item.exact ? location.pathname === item.to : location.pathname.startsWith(item.to);
           return (
             <NavLink key={item.to} to={item.to}
+              onClick={onMobileClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative ${active ? "bg-primary/10 text-primary" : "text-on-surface-variant/70 hover:text-white hover:bg-white/5"}`}>
               <span className="material-symbols-outlined text-xl shrink-0" style={{ fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0" }}>{item.icon}</span>
               {!collapsed && (
@@ -61,7 +62,7 @@ export function UserSidebar({ collapsed, onToggle }) {
         })}
       </nav>
 
-      <div className="p-3 border-t border-white/5">
+      <div className="p-3 border-t border-white/5 hidden md:block">
         <button onClick={onToggle}
           className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-on-surface-variant/50 hover:text-white hover:bg-white/5 transition-all">
           <span className="material-symbols-outlined text-lg">{collapsed ? "chevron_right" : "chevron_left"}</span>
@@ -70,9 +71,26 @@ export function UserSidebar({ collapsed, onToggle }) {
       </div>
     </aside>
   );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <div className="hidden md:block fixed left-0 top-0 h-full z-50 transition-all duration-300">
+        {sidebarContent}
+      </div>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" onClick={onMobileClose} />
+      )}
+      {/* Mobile sidebar slide-in */}
+      <div className={`md:hidden fixed left-0 top-0 h-full z-[65] transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        {sidebarContent}
+      </div>
+    </>
+  );
 }
 
-export function UserTopBar() {
+export function UserTopBar({ onMenuClick }) {
   const { lang, toggleLang } = useLang();
   const { tableId } = useParams();
   const navigate = useNavigate();
@@ -304,13 +322,15 @@ export function UserTopBar() {
 
 export default function UserLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
 
   return (
     <div className="min-h-screen" style={{ background: "#0c1322" }}>
-      <UserSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
-      <div className={`transition-all duration-300 ${collapsed ? "ml-[72px]" : "ml-[240px]"}`}>
-        <UserTopBar />
-        <main className="p-6">
+      <UserSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} mobileOpen={mobileOpen} onMobileClose={closeMobile} />
+      <div className={`transition-all duration-300 md:${collapsed ? "ml-[72px]" : "ml-[240px]"} ml-0`}>
+        <UserTopBar onMenuClick={() => setMobileOpen(true)} />
+        <main className="p-4 md:p-6">
           <Outlet />
         </main>
       </div>

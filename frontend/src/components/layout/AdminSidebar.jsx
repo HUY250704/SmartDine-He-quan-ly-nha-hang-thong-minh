@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
@@ -12,7 +12,7 @@ const navItems = [
   { to: "/admin/support", icon: "support_agent", label: "sidebar.support" },
 ];
 
-export function AdminSidebar({ collapsed, setCollapsed }) {
+export function AdminSidebar({ collapsed, setCollapsed, mobileOpen, onMobileClose }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -23,9 +23,9 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
     navigate("/login", { replace: true });
   };
 
-  return (
+  const sidebarInner = (
     <aside
-      className={`fixed left-0 top-0 h-screen z-50 bg-surface-container/60 backdrop-blur-xl border-r border-white/10 flex flex-col transition-all duration-300 ${
+      className={`h-full bg-surface-container/60 backdrop-blur-xl border-r border-white/10 flex flex-col ${
         collapsed ? "w-20" : "w-64"
       }`}
     >
@@ -119,5 +119,22 @@ export function AdminSidebar({ collapsed, setCollapsed }) {
         </button>
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop */}
+      <div className={`hidden md:block fixed left-0 top-0 h-screen z-50 transition-all duration-300`}>
+        {sidebarInner}
+      </div>
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div className="md:hidden fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" onClick={onMobileClose} />
+      )}
+      {/* Mobile slide-in */}
+      <div className={`md:hidden fixed left-0 top-0 h-screen z-[65] transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        {sidebarInner}
+      </div>
+    </>
   );
 }

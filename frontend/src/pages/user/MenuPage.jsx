@@ -235,7 +235,7 @@ export default function MenuPage() {
 
       {/* Toast */}
       {showToast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 rounded-xl text-sm font-bold animate-[slideUp_0.3s_ease]" style={{ background: "rgba(86,229,169,0.15)", backdropFilter: "blur(16px)", border: "1px solid rgba(86,229,169,0.3)", color: "#56e5a9" }}>
+        <div className="fixed bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 rounded-xl text-sm font-bold animate-[slideUp_0.3s_ease]" style={{ background: "rgba(86,229,169,0.15)", backdropFilter: "blur(16px)", border: "1px solid rgba(86,229,169,0.3)", color: "#56e5a9" }}>
           Added "{showToast}" to cart
         </div>
       )}
@@ -244,7 +244,7 @@ export default function MenuPage() {
       {cartCount > 0 && (
         <button
           onClick={() => navigate(`/customer/${tableId}/cart`)}
-          className="fixed bottom-8 right-8 z-50 w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-xl"
+          className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-50 w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-xl"
           style={{ background: "#ffc174", boxShadow: "0 0 30px rgba(255,193,116,0.3)" }}
         >
           <span className="material-symbols-outlined text-2xl" style={{ color: "#472a00", fontVariationSettings: "'FILL' 1" }}>shopping_cart</span>

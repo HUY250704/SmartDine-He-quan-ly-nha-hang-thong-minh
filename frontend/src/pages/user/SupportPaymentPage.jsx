@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import api from "@/lib/api.js";
@@ -88,7 +88,7 @@ export default function SupportPaymentPage() {
     <div className="max-w-5xl mx-auto">
       {/* Toast */}
       {confirmMsg && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 rounded-xl text-sm font-bold animate-[slideUp_0.3s_ease]" style={{
+        <div className="fixed top-24 md:top-20 left-1/2 -translate-x-1/2 z-[60] px-5 py-3 rounded-xl text-sm font-bold animate-[slideUp_0.3s_ease]" style={{
           background: confirmMsg.isError ? "rgba(255,180,171,0.15)" : "rgba(86,229,169,0.15)",
           backdropFilter: "blur(16px)",
           border: confirmMsg.isError ? "1px solid rgba(255,180,171,0.3)" : "1px solid rgba(86,229,169,0.3)",

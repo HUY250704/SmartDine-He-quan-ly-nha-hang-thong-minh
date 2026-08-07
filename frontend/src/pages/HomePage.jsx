@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
@@ -34,19 +34,19 @@ export default function HomePage() {
   }, []);s
 
   return (
-    <div className="space-y-6 rounded-3xl bg-white p-6 shadow-sm">
+    <div className="space-y-6 rounded-3xl p-6" style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.08)" }}>
       <div>
-        <h2 className="text-2xl font-semibold">SmartDine Dashboard</h2>
-        <p className="mt-2 text-slate-600">React + Vite + Tailwind + Router + Axios + Socket.IO</p>
+        <h2 className="text-2xl font-bold text-white">SmartDine Dashboard</h2>
+        <p className="mt-2 text-on-surface-variant/60">React + Vite + Tailwind + Router + Axios + Socket.IO</p>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-3xl border border-slate-200 p-5">
-          <p className="text-sm text-slate-500">Backend status</p>
-          <p className="mt-4 text-xl font-medium text-slate-900">{status}</p>
+        <div className="rounded-3xl p-5" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <p className="text-sm text-on-surface-variant/50">Backend status</p>
+          <p className="mt-4 text-xl font-medium text-white">{status}</p>
         </div>
-        <div className="rounded-3xl border border-slate-200 p-5">
-          <p className="text-sm text-slate-500">Socket status</p>
-          <p className="mt-4 text-xl font-medium text-slate-900">{socketStatus}</p>
+        <div className="rounded-3xl p-5" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <p className="text-sm text-on-surface-variant/50">Socket status</p>
+          <p className="mt-4 text-xl font-medium text-white">{socketStatus}</p>
         </div>
       </div>
     </div>

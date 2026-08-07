@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
@@ -71,11 +71,11 @@ export default function AdminLoginPage() {
             style={{ background: "rgba(255,193,116,0.1)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,193,116,0.2)", boxShadow: "0 0 30px rgba(255,193,116,0.1)" }}>
             <span className="material-symbols-outlined text-4xl" style={{ color: "#ffc174", fontVariationSettings: "'FILL' 1" }}>admin_panel_settings</span>
           </div>
-          <h1 className="text-[48px] font-bold tracking-[-0.02em] text-white leading-tight">SmartDine</h1>
+          <h1 className="text-4xl md:text-[48px] font-bold tracking-[-0.02em] text-white leading-tight">SmartDine</h1>
           <p className="text-on-surface-variant/60 text-xs uppercase tracking-[0.3em] mt-2">{t("login.subtitle")}</p>
         </div>
 
-        <div ref={cardRef} className="rounded-3xl p-8 relative overflow-hidden"
+        <div ref={cardRef} className="rounded-3xl p-6 md:p-8 relative overflow-hidden"
           style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
           <div className="absolute inset-0 pointer-events-none opacity-30 transition-opacity duration-300"
             style={{ background: "radial-gradient(circle 200px at var(--mouse-x,50%) var(--mouse-y,50%), rgba(255,193,116,0.15), transparent 80%)" }} />

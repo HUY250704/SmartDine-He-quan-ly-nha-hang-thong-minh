@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
@@ -63,7 +63,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="flex gap-6 max-w-[1200px] mx-auto">
+    <div className="flex gap-6 max-w-[1200px] mx-auto pb-20 lg:pb-0">
       {/* Left: Cart Items */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-6">
