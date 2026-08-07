@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+﻿import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'smartdine-secret-key';
@@ -9,13 +9,14 @@ const generateToken = (user) => {
 
 export const register = async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
 
     const existingUser = await User.findOne({ username });
     if (existingUser) return res.status(400).json({ error: 'Username already exists' });
 
-    const user = await User.create({ username, password, role: role || 'ADMIN' });
+    // New users always default to STAFF — never trust client-supplied role
+    const user = await User.create({ username, password, role: 'STAFF' });
     const token = generateToken(user);
 
     res.status(201).json({ token, user: { id: user._id, username: user.username, role: user.role } });
