@@ -178,12 +178,24 @@ export const revenueChart = async (req, res) => {
   }
 };
 
+
 export const getTopItems = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
 
+    // Fetch non-cancelled order IDs first to exclude items from cancelled orders
+    const validOrderIds = await Order.find(
+      { status: { "$nin": ["CANCELLED"] } },
+      "_id"
+    ).lean();
+    const orderIdList = validOrderIds.map(o => o._id);
+
+    if (!orderIdList.length) {
+      return res.json([]);
+    }
+
     const topItems = await OrderItem.aggregate([
-      { "$match": { status: { "$nin": ["CANCELLED"] } } },
+      { "$match": { orderId: { "$in": orderIdList }, status: { "$nin": ["CANCELLED"] } } },
       {
         "$group": {
           _id: "$menuItemId",
@@ -220,7 +232,6 @@ export const getTopItems = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 export const recentOrders = async (req, res) => {
   try {
     const orders = await Order.find()
@@ -245,4 +256,5 @@ export const recentOrders = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
