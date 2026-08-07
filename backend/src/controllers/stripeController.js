@@ -5,6 +5,7 @@ import OrderItem from '../models/OrderItem.js';
 import Bill from '../models/Bill.js';
 import Table from '../models/Table.js';
 import { emitTableUpdated } from '../socket/index.js';
+import { batchOrderItems } from '../utils/batchHelpers.js';
 
 // Tạo PaymentIntent để khách nhập thẻ
 export const createPaymentIntent = async (req, res) => {
@@ -22,11 +23,12 @@ export const createPaymentIntent = async (req, res) => {
 
     // Tính tổng tiền từ orders
     const orders = await Order.find({ sessionId, status: { '$ne': 'CANCELLED' } });
-    let subtotal = 0;
+    const orderIds = orders.map(o => o._id);
+    const itemsMap = await batchOrderItems(orderIds, 'price');
 
+    let subtotal = 0;
     for (const order of orders) {
-      const items = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'price');
-      for (const it of items) {
+      for (const it of (itemsMap.get(order._id.toString()) || [])) {
         subtotal += (it.menuItemId?.price || 0) * (it.quantity || 1);
       }
     }
@@ -90,11 +92,14 @@ export const confirmStripePayment = async (req, res) => {
 
     // Lấy chi tiết items
     const orders = await Order.find({ sessionId, status: { '$ne': 'CANCELLED' } });
+    const orderIds = orders.map(o => o._id);
+    const itemsMap = await batchOrderItems(orderIds, 'name price image');
+
     const billItems = [];
     let subtotal = 0;
 
     for (const order of orders) {
-      const items = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'name price image');
+      const items = itemsMap.get(order._id.toString()) || [];
       for (const it of items) {
         const price = (it.menuItemId?.price || 0);
         const qty = it.quantity || 1;
@@ -143,7 +148,6 @@ export const confirmStripePayment = async (req, res) => {
       });
     } catch (createErr) {
       if (createErr.code === 11000) {
-        // Race condition: another request already created the bill — fetch and return it
         const concurrent = await Bill.findOne({ sessionId });
         if (concurrent) {
           return res.json(concurrent);
@@ -196,15 +200,17 @@ export const handleStripeWebhook = async (req, res) => {
       try {
         const session = await Session.findById(sessionId);
         if (session && session.status === 'ACTIVE') {
-          // Tự động tạo bill qua webhook nếu FE chưa xác nhận
           const existingBill = await Bill.findOne({ sessionId });
           if (!existingBill) {
             const orders = await Order.find({ sessionId, status: { '$ne': 'CANCELLED' } });
+            const orderIds = orders.map(o => o._id);
+            const itemsMap = await batchOrderItems(orderIds);
+
             const billItems = [];
             let subtotal = 0;
 
             for (const order of orders) {
-              const items = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'name price');
+              const items = itemsMap.get(order._id.toString()) || [];
               for (const it of items) {
                 const price = (it.menuItemId?.price || 0);
                 const qty = it.quantity || 1;
@@ -213,7 +219,6 @@ export const handleStripeWebhook = async (req, res) => {
               }
             }
 
-            // Merge identical items (price is unit price, only add quantity)
             const merged = [];
             billItems.forEach((item) => {
               const existing = merged.find((m) => m.name === item.name);
@@ -246,7 +251,6 @@ export const handleStripeWebhook = async (req, res) => {
               });
             } catch (createErr) {
               if (createErr.code !== 11000) throw createErr;
-              // duplicate is fine — FE already created it
             }
 
             session.status = 'CLOSED';

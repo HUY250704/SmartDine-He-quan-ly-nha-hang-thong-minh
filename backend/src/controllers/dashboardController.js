@@ -3,6 +3,7 @@ import Order from "../models/Order.js";
 import OrderItem from "../models/OrderItem.js";
 import Table from "../models/Table.js";
 import Bill from "../models/Bill.js";
+import { batchOrderItems } from "../utils/batchHelpers.js";
 
 // Shared data fetching — used by both overview and getStats
 async function getStatsData() {
@@ -194,11 +195,13 @@ export const recentOrders = async (req, res) => {
         populate: { path: "tableId", select: "number" }
       });
 
-    const enriched = await Promise.all(orders.map(async (order) => {
-      const items = await OrderItem.find({ orderId: order._id }).populate("menuItemId", "name price");
+    const orderIds = orders.map(o => o._id);
+    const itemsMap = await batchOrderItems(orderIds);
+
+    const enriched = orders.map(order => {
       const tableNumber = order.sessionId?.tableId?.number || null;
-      return { ...order.toObject(), items, tableNumber };
-    }));
+      return { ...order.toObject(), items: itemsMap.get(order._id.toString()) || [], tableNumber };
+    });
 
     res.json(enriched);
   } catch (error) {

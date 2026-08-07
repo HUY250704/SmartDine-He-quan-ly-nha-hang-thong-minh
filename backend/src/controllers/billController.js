@@ -4,6 +4,7 @@ import Order from '../models/Order.js';
 import OrderItem from '../models/OrderItem.js';
 import Table from '../models/Table.js';
 import { emitTableUpdated } from '../socket/index.js';
+import { batchOrderItems } from '../utils/batchHelpers.js';
 
 export const getBills = async (req, res) => {
   try {
@@ -30,9 +31,12 @@ export const getBillById = async (req, res) => {
     if (!bill) return res.status(404).json({ error: 'Bill not found' });
 
     const orders = await Order.find({ sessionId: bill.sessionId._id });
-    const enrichedOrders = await Promise.all(orders.map(async (order) => {
-      const items = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'name price');
-      return { ...order.toObject(), items };
+    const orderIds = orders.map(o => o._id);
+    const itemsMap = await batchOrderItems(orderIds);
+
+    const enrichedOrders = orders.map(order => ({
+      ...order.toObject(),
+      items: itemsMap.get(order._id.toString()) || []
     }));
 
     res.json({ bill, orders: enrichedOrders });
@@ -61,11 +65,14 @@ export const generateBill = async (req, res) => {
 
     // Get all orders for this session
     const orders = await Order.find({ sessionId, status: { '$ne': 'CANCELLED' } });
+    const orderIds = orders.map(o => o._id);
+    const itemsMap = await batchOrderItems(orderIds, 'name price image');
+
     const billItems = [];
     let subtotal = 0;
 
     for (const order of orders) {
-      const items = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'name price image');
+      const items = itemsMap.get(order._id.toString()) || [];
       for (const it of items) {
         const price = (it.menuItemId?.price || 0);
         const qty = it.quantity || 1;

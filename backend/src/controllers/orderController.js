@@ -3,6 +3,7 @@ import OrderItem from '../models/OrderItem.js';
 import Session from '../models/Session.js';
 import MenuItem from '../models/MenuItem.js';
 import { emitNewOrder, emitOrderUpdated } from '../socket/index.js';
+import { batchOrderItems } from '../utils/batchHelpers.js';
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -11,11 +12,15 @@ export const getAllOrders = async (req, res) => {
       select: 'tableId',
       populate: { path: 'tableId', select: 'number' }
     });
-    const enriched = await Promise.all(orders.map(async (order) => {
-      const items = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'name price');
+
+    const orderIds = orders.map(o => o._id);
+    const itemsMap = await batchOrderItems(orderIds);
+
+    const enriched = orders.map(order => {
       const tableNumber = order.sessionId?.tableId?.number || null;
-      return { ...order.toObject(), items, tableNumber };
-    }));
+      return { ...order.toObject(), items: itemsMap.get(order._id.toString()) || [], tableNumber };
+    });
+
     res.json(enriched);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -63,10 +68,14 @@ export const createOrder = async (req, res) => {
 export const getOrdersBySession = async (req, res) => {
   try {
     const orders = await Order.find({ sessionId: req.params.id }).sort('-createdAt');
-    const enriched = await Promise.all(orders.map(async (order) => {
-      const items = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'name price');
-      return { ...order.toObject(), items };
+    const orderIds = orders.map(o => o._id);
+    const itemsMap = await batchOrderItems(orderIds);
+
+    const enriched = orders.map(order => ({
+      ...order.toObject(),
+      items: itemsMap.get(order._id.toString()) || []
     }));
+
     res.json(enriched);
   } catch (error) {
     res.status(500).json({ error: error.message });
