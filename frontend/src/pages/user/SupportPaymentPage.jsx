@@ -29,7 +29,7 @@ let elementsInstance = null;
 
 function getStripe() {
   if (!stripePromise) {
-    const key = "pk_test_YOUR_STRIPE_PUBLISHABLE_KEY"; // ← Thay bằng key thật từ https://dashboard.stripe.com/test/apikeys
+    const key = "pk_test_51U1HMlGfkv5nnXdOoP2XInIxnMclByIyz8JIiurgPiqJIQpIr8omOHNfdpxw1MI8K10XJ1wojGk3rDv41StJY2aB00dUkADP1L"; // ← Thay bằng key thật từ https://dashboard.stripe.com/test/apikeys
     const script = document.createElement("script");
     script.src = "https://js.stripe.com/v3/";
     script.async = true;

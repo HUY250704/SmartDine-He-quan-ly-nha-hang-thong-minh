@@ -157,12 +157,35 @@ export default function BillsManagementPage() {
                   const billId = bill._id ? "#SD-" + bill._id.toString().slice(-4).toUpperCase() : "-";
                   return (
                     <tr key={bill._id} className="hover:bg-white/5 transition-colors group">
-                      <td className="px-4 py-3 md:px-6 md:py-4"><span className="font-mono text-sm text-primary">{billId}</span></td>
+                      <td className="px-4 py-3 md:px-6 md:py-4">
+                        <span className="font-mono text-sm text-primary">{billId}</span>
+                      </td>
                       <td className="px-4 py-3 md:px-6 md:py-4 text-sm text-on-surface">Table {tableNum}</td>
-                      <td className="px-4 py-3 md:px-6 md:py-4"><div className="flex flex-col"><span className="text-sm text-on-surface">{dateStr}</span><span className="text-xs text-on-surface-variant">{timeStr}</span></div></td>
-                      <td className="px-4 py-3 md:px-6 md:py-4 text-right"><span className="font-mono text-lg font-medium text-secondary">${(bill.total || 0).toFixed(2)}</span></td>
-                      <td className="px-4 py-3 md:px-6 md:py-4"><div className="flex items-center gap-2"><span className="material-symbols-outlined text-sm" style={{ color: pm.color }}>{pm.icon}</span><span className="text-sm text-on-surface">{t(pm.label)}</span></div></td>
-                      <td className="px-4 py-3 md:px-6 md:py-4"><div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => setSelectedBill(bill)} className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-primary transition-colors" title={t("bills.printBill")}><span className="material-symbols-outlined">print</span></button><button className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-secondary transition-colors" title={t("bills.exportPDF")}><span className="material-symbols-outlined">picture_as_pdf</span></button></div></td>
+                      <td className="px-4 py-3 md:px-6 md:py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-on-surface">{dateStr}</span>
+                          <span className="text-xs text-on-surface-variant">{timeStr}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 md:px-6 md:py-4 text-right">
+                        <span className="font-mono text-lg font-medium text-secondary">${(bill.total || 0).toFixed(2)}</span>
+                      </td>
+                      <td className="px-4 py-3 md:px-6 md:py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-sm" style={{ color: pm.color }}>{pm.icon}</span>
+                          <span className="text-sm text-on-surface">{t(pm.label)}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 md:px-6 md:py-4">
+                        <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => setSelectedBill(bill)} className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-primary transition-colors" title={t("bills.printBill")}> 
+                            <span className="material-symbols-outlined">print</span>
+                          </button>
+                          <button className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-secondary transition-colors" title={t("bills.exportPDF")}>
+                            <span className="material-symbols-outlined">picture_as_pdf</span>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}

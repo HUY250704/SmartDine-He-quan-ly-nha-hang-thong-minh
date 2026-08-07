@@ -1,4 +1,4 @@
-﻿import SupportRequest from '../models/SupportRequest.js';
+import SupportRequest from '../models/SupportRequest.js';
 import Table from '../models/Table.js';
 import { emitSupportRequest } from '../socket/index.js';
 
@@ -7,7 +7,8 @@ export const callStaff = async (req, res) => {
     const { tableId, message, type } = req.body;
     if (!tableId) return res.status(400).json({ error: 'tableId is required' });
 
-    const table = await Table.findById(tableId);
+    // tableId from frontend is table number, not MongoDB _id
+    const table = await Table.findOne({ number: Number(tableId) });
     if (!table) return res.status(404).json({ error: 'Table not found' });
 
     const supportRequest = await SupportRequest.create({
@@ -43,8 +44,15 @@ export const requestPayment = async (req, res) => {
     const { sessionId, tableId, message } = req.body;
     if (!sessionId && !tableId) return res.status(400).json({ error: 'sessionId or tableId is required' });
 
+    // tableId from frontend is table number, resolve to actual _id
+    let resolvedTableId = tableId;
+    if (tableId && isNaN(Number(tableId)) === false) {
+      const tbl = await Table.findOne({ number: Number(tableId) });
+      resolvedTableId = tbl ? tbl._id : tableId;
+    }
+
     const supportRequest = await SupportRequest.create({
-      tableId: tableId || null,
+      tableId: resolvedTableId,
       sessionId: sessionId || null,
       type: 'payment',
       message: message || 'Customer requests payment',
