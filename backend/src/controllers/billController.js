@@ -1,4 +1,4 @@
-﻿import Bill from '../models/Bill.js';
+import Bill from '../models/Bill.js';
 import Session from '../models/Session.js';
 import Order from '../models/Order.js';
 import OrderItem from '../models/OrderItem.js';
@@ -43,7 +43,7 @@ export const getBillById = async (req, res) => {
 
 export const generateBill = async (req, res) => {
   try {
-    const { sessionId, paymentMethod } = req.body;
+    const { sessionId, paymentMethod, tableId } = req.body;
     if (!sessionId || !paymentMethod) {
       return res.status(400).json({ error: 'sessionId and paymentMethod are required' });
     }
@@ -59,22 +59,68 @@ export const generateBill = async (req, res) => {
       return res.status(400).json({ error: 'Bill already exists for this session' });
     }
 
-    const bill = await Bill.create({
-      sessionId,
-      total: session.totalAmount,
-      paymentMethod
+    // Get all orders for this session
+    const orders = await Order.find({ sessionId, status: { '$ne': 'CANCELLED' } });
+    const billItems = [];
+    let subtotal = 0;
+
+    for (const order of orders) {
+      const items = await OrderItem.find({ orderId: order._id }).populate('menuItemId', 'name price image');
+      for (const it of items) {
+        const price = (it.menuItemId?.price || 0);
+        const qty = it.quantity || 1;
+        billItems.push({
+          name: it.menuItemId?.name || 'Item',
+          quantity: qty,
+          price: price,
+          image: it.menuItemId?.image || ''
+        });
+        subtotal += price * qty;
+      }
+    }
+
+    // Merge identical items
+    const merged = [];
+    billItems.forEach((item) => {
+      const existing = merged.find((m) => m.name === item.name);
+      if (existing) {
+        existing.quantity += item.quantity;
+        existing.price += item.price;
+      } else {
+        merged.push(item);
+      }
     });
 
-    session.status = 'CLOSED';
-    session.endTime = new Date();
-    await session.save();
+    const tax = Math.round(subtotal * 0.08 * 100) / 100;
+    const serviceCharge = Math.round(subtotal * 0.05 * 100) / 100;
+    const total = Math.round((subtotal + tax + serviceCharge) * 100) / 100;
 
-    const table = await Table.findByIdAndUpdate(session.tableId, {
-      status: 'AVAILABLE',
-      currentSessionId: null
-    }, { new: true });
+    const table = await Table.findById(session.tableId);
+    const tableNumber = table ? table.number : null;
 
-    if (table) emitTableUpdated(table);
+    const bill = await Bill.create({
+      sessionId,
+      tableNumber,
+      items: merged,
+      subtotal,
+      tax,
+      serviceCharge,
+      total,
+      paymentMethod,
+      paymentStatus: paymentMethod === 'CASH' ? 'PENDING' : 'PAID'
+    });
+
+    // For non-cash payments, close session immediately
+    if (paymentMethod !== 'CASH') {
+      session.status = 'CLOSED';
+      session.endTime = new Date();
+      await session.save();
+
+      await Table.findByIdAndUpdate(session.tableId, {
+        status: 'CLEANING',
+        currentSessionId: null
+      }, { new: true }).then((t) => { if (t) emitTableUpdated(t); });
+    }
 
     res.status(201).json(bill);
   } catch (error) {

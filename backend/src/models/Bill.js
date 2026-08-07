@@ -1,4 +1,4 @@
-﻿import mongoose from 'mongoose';
+import mongoose from 'mongoose';
 
 const billSchema = new mongoose.Schema({
   sessionId: {
@@ -6,6 +6,31 @@ const billSchema = new mongoose.Schema({
     ref: 'Session',
     required: true,
     unique: true
+  },
+  tableNumber: {
+    type: Number
+  },
+  items: [{
+    name: String,
+    quantity: Number,
+    price: Number,
+    image: String
+  }],
+  subtotal: {
+    type: Number,
+    default: 0
+  },
+  tax: {
+    type: Number,
+    default: 0
+  },
+  serviceCharge: {
+    type: Number,
+    default: 0
+  },
+  discount: {
+    type: Number,
+    default: 0
   },
   total: {
     type: Number,
@@ -15,6 +40,15 @@ const billSchema = new mongoose.Schema({
     type: String,
     enum: ['CASH', 'CARD', 'BANK_TRANSFER', 'E_WALLET'],
     required: true
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['PENDING', 'PAID', 'REFUNDED'],
+    default: 'PAID'
+  },
+  stripePaymentIntentId: {
+    type: String,
+    default: null
   },
   paidAt: {
     type: Date,

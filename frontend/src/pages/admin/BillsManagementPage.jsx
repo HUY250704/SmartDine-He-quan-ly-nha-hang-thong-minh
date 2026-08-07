@@ -168,7 +168,6 @@ export default function BillsManagementPage() {
                 })}
               </tbody>
             </table>
-            </div>
           )}
         </div>
         {filtered.length > 0 && (

@@ -1,4 +1,4 @@
-﻿import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import UserLayout from "@/components/layout/UserLayout";
 import ProtectedRoute from "@/components/layout/ProtectedRoute.jsx";
@@ -48,6 +48,7 @@ export default function App() {
           <Route path="cart" element={<CartPage />} />
           <Route path="tracking" element={<OrderTrackingPage />} />
           <Route path="support" element={<SupportPaymentPage />} />
+          <Route path="bill-success" element={<BillSuccessPage />} />
         </Route>
 
         {/* Default: customer welcome */}
