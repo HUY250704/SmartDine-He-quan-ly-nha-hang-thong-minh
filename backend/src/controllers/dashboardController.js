@@ -7,22 +7,31 @@ import { batchOrderItems } from "../utils/batchHelpers.js";
 
 // Shared data fetching — used by both overview and getStats
 async function getStatsData() {
-  const totalTables = await Table.countDocuments();
-  const occupiedTables = await Table.countDocuments({ status: "OCCUPIED" });
-  const activeSessions = await Session.countDocuments({ status: "ACTIVE" });
-  const pendingOrders = await Order.countDocuments({ status: { "$in": ["PENDING", "CONFIRMED", "PREPARING"] } });
-
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const todaySessions = await Session.countDocuments({ startTime: { "$gte": today } });
 
-  const todayRevenue = await Bill.aggregate([
-    { "$match": { paidAt: { "$gte": today } } },
-    { "$group": { _id: null, total: { "$sum": "$total" } } }
-  ]);
-
-  const totalBills = await Bill.countDocuments();
-  const billAgg = await Bill.aggregate([
-    { "$group": { _id: null, totalRevenue: { "$sum": "$total" }, avgBill: { "$avg": "$total" } } }
+  const [
+    totalTables,
+    occupiedTables,
+    activeSessions,
+    pendingOrders,
+    todaySessions,
+    todayRevenue,
+    totalBills,
+    billAgg
+  ] = await Promise.all([
+    Table.countDocuments(),
+    Table.countDocuments({ status: "OCCUPIED" }),
+    Session.countDocuments({ status: "ACTIVE" }),
+    Order.countDocuments({ status: { "$in": ["PENDING", "CONFIRMED", "PREPARING"] } }),
+    Session.countDocuments({ startTime: { "$gte": today } }),
+    Bill.aggregate([
+      { "$match": { paidAt: { "$gte": today } } },
+      { "$group": { _id: null, total: { "$sum": "$total" } } }
+    ]),
+    Bill.countDocuments(),
+    Bill.aggregate([
+      { "$group": { _id: null, totalRevenue: { "$sum": "$total" }, avgBill: { "$avg": "$total" } } }
+    ])
   ]);
 
   return {
