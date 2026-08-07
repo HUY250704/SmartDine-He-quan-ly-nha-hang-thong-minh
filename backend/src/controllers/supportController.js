@@ -1,4 +1,4 @@
-import SupportRequest from '../models/SupportRequest.js';
+﻿import SupportRequest from '../models/SupportRequest.js';
 import Table from '../models/Table.js';
 import { emitSupportRequest } from '../socket/index.js';
 
@@ -12,7 +12,7 @@ export const callStaff = async (req, res) => {
     if (!table) return res.status(404).json({ error: 'Table not found' });
 
     const supportRequest = await SupportRequest.create({
-      tableId,
+      tableId: table._id,
       sessionId: table.currentSessionId,
       type: type || 'assistance',
       message: message || 'Customer needs assistance',
