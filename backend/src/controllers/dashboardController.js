@@ -95,13 +95,15 @@ export const revenue = async (req, res) => {
   }
 };
 
+
 export const revenueChart = async (req, res) => {
   try {
     const { period = "month" } = req.query;
-    const data = [];
+    const now = new Date();
 
     if (period === "month") {
-      const now = new Date();
+      // Compute 4 weekly date ranges
+      const weeks = [];
       for (let wk = 0; wk < 4; wk++) {
         const endDate = new Date(now);
         endDate.setDate(now.getDate() - wk * 7);
@@ -111,37 +113,63 @@ export const revenueChart = async (req, res) => {
         startDate.setDate(endDate.getDate() - 6);
         startDate.setHours(0, 0, 0, 0);
 
-        const result = await Bill.aggregate([
-          { "$match": { paidAt: { "$gte": startDate, "$lte": endDate } } },
-          { "$group": { _id: null, total: { "$sum": "$total" } } }
-        ]);
-
-        data.unshift({
-          label: `Week ${4 - wk}`,
-          value: Math.round(result[0]?.total || 0)
-        });
+        weeks.push({ startDate, endDate, label: `Week ${4 - wk}` });
       }
-    } else {
-      const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-      for (let d = 6; d >= 0; d--) {
-        const day = new Date();
-        day.setDate(day.getDate() - d);
+      weeks.reverse(); // oldest first
 
-        const start = new Date(day);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(day);
-        end.setHours(23, 59, 59, 999);
+      // Single query using $facet — 4 pipelines, one DB round-trip
+      const [result] = await Bill.aggregate([
+        { "$facet": Object.fromEntries(weeks.map((w, i) => [
+          `wk${i}`,
+          [
+            { "$match": { paidAt: { "$gte": w.startDate, "$lte": w.endDate } } },
+            { "$group": { _id: null, total: { "$sum": "$total" } } }
+          ]
+        ])) }
+      ]);
 
-        const result = await Bill.aggregate([
-          { "$match": { paidAt: { "$gte": start, "$lte": end } } },
-          { "$group": { _id: null, total: { "$sum": "$total" } } }
-        ]);
+      const data = weeks.map((w, i) => ({
+        label: w.label,
+        value: Math.round(result[`wk${i}`]?.[0]?.total || 0)
+      }));
 
-        data.push({
-          label: dayNames[(day.getDay() + 6) % 7],
-          value: Math.round(result[0]?.total || 0)
-        });
-      }
+      return res.json(data);
+    }
+
+    // period === "week" — single aggregate grouped by day
+    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    const sixDaysAgo = new Date(now);
+    sixDaysAgo.setDate(now.getDate() - 6);
+    sixDaysAgo.setHours(0, 0, 0, 0);
+
+    const dailyResults = await Bill.aggregate([
+      { "$match": { paidAt: { "$gte": sixDaysAgo } } },
+      {
+        "$group": {
+          _id: { "$dateToString": { format: "%Y-%m-%d", date: "$paidAt" } },
+          total: { "$sum": "$total" }
+        }
+      },
+      { "$sort": { _id: 1 } }
+    ]);
+
+    // Map results by date string for fast lookup
+    const resultMap = {};
+    for (const r of dailyResults) {
+      resultMap[r._id] = r.total;
+    }
+
+    // Fill all 7 days, including empty ones
+    const data = [];
+    for (let d = 6; d >= 0; d--) {
+      const day = new Date();
+      day.setDate(day.getDate() - d);
+      const key = day.toISOString().slice(0, 10);
+      data.push({
+        label: dayNames[(day.getDay() + 6) % 7],
+        value: Math.round(resultMap[key] || 0)
+      });
     }
 
     res.json(data);
@@ -217,3 +245,4 @@ export const recentOrders = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
