@@ -108,13 +108,12 @@ export const confirmStripePayment = async (req, res) => {
       }
     }
 
-    // Merge
+    // Merge identical items (price is unit price, only add quantity)
     const merged = [];
     billItems.forEach((item) => {
       const existing = merged.find((m) => m.name === item.name);
       if (existing) {
         existing.quantity += item.quantity;
-        existing.price += item.price;
       } else {
         merged.push(item);
       }
@@ -201,11 +200,15 @@ export const handleStripeWebhook = async (req, res) => {
               }
             }
 
+            // Merge identical items (price is unit price, only add quantity)
             const merged = [];
             billItems.forEach((item) => {
               const existing = merged.find((m) => m.name === item.name);
-              if (existing) { existing.quantity += item.quantity; existing.price += item.price; }
-              else { merged.push(item); }
+              if (existing) {
+                existing.quantity += item.quantity;
+              } else {
+                merged.push(item);
+              }
             });
 
             const tax = Math.round(subtotal * 0.08 * 100) / 100;

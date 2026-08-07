@@ -1,4 +1,4 @@
-import Bill from '../models/Bill.js';
+﻿import Bill from '../models/Bill.js';
 import Session from '../models/Session.js';
 import Order from '../models/Order.js';
 import OrderItem from '../models/OrderItem.js';
@@ -79,13 +79,12 @@ export const generateBill = async (req, res) => {
       }
     }
 
-    // Merge identical items
+    // Merge identical items (price is unit price, only add quantity)
     const merged = [];
     billItems.forEach((item) => {
       const existing = merged.find((m) => m.name === item.name);
       if (existing) {
         existing.quantity += item.quantity;
-        existing.price += item.price;
       } else {
         merged.push(item);
       }
