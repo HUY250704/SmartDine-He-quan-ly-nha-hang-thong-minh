@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api.js';
 import { getSocket } from '@/lib/socket.js';
+import { playNotification } from '@/lib/notify.js';
 
 
 
@@ -48,6 +49,7 @@ export default function SupportPage() {
       setRequests((prev) => {
         const exists = prev.find((r) => r._id === data._id);
         if (exists) return prev;
+        playNotification();
         return [data, ...prev];
       });
     });
