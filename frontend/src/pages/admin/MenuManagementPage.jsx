@@ -9,6 +9,7 @@ export default function MenuManagementPage() {
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCat, setActiveCat] = useState("All");
+  const [availFilter, setAvailFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -136,7 +137,8 @@ export default function MenuManagementPage() {
     const catName = i.categoryId?.name || "";
     const mCat = activeCat === "All" || catName === activeCat;
     const mSearch = !search || i.name.toLowerCase().includes(search.toLowerCase()) || catName.toLowerCase().includes(search.toLowerCase());
-    return mCat && mSearch;
+    const mAvail = availFilter === "All" || (availFilter === "available" && i.isAvailable !== false) || (availFilter === "soldout" && i.isAvailable === false);
+    return mCat && mSearch && mAvail;
   });
 
   const catNames = ["All", ...new Set(items.map((i) => i.categoryId?.name).filter(Boolean))];
@@ -168,6 +170,26 @@ export default function MenuManagementPage() {
           <button key={cat} onClick={() => setActiveCat(cat)}
             className={`px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${activeCat === cat ? "text-primary bg-primary/10 border border-primary/30" : "text-on-surface-variant/50 hover:bg-white/5"}`}>
             {cat}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-2 mb-6">
+        <span className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-wider mr-1">Trang thai:</span>
+        {[
+          { key: "All", label: "Tat ca" },
+          { key: "available", label: "Con hang", color: "#56e5a9" },
+          { key: "soldout", label: "Het hang", color: "#ffb4ab" },
+        ].map((f) => (
+          <button key={f.key} onClick={() => setAvailFilter(f.key)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
+              availFilter === f.key
+                ? "border"
+                : "text-on-surface-variant/40 hover:text-on-surface-variant/70"
+            }`}
+            style={availFilter === f.key ? { background: f.color + "15", borderColor: f.color + "40", color: f.color } : {}}
+          >
+            {f.label}
           </button>
         ))}
       </div>
