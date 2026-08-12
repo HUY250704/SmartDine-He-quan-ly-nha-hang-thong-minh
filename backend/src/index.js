@@ -1,4 +1,4 @@
-﻿import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
@@ -25,13 +25,11 @@ import dashboardRoutes from './routes/dashboard.js';
 // Socket
 import { initSocket } from './socket/index.js';
 
-// Models for public routes
-import Table from './models/Table.js';
 
 const app = express();
 const server = http.createServer(app);
 
-// â”€â”€â”€ CORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── CORS ─────────────────────────────────────────
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : [/^http:\/\/localhost:\d+$/];
@@ -75,16 +73,6 @@ app.use('/bills', billRoutes);
 app.use('/support', supportRoutes);
 app.use('/dashboard', dashboardRoutes);
 
-// Public: get available tables (for customer table switching)
-app.get('/tables/public', async (req, res) => {
-  try {
-    const tables = await Table.find({}, 'number status').sort('number');
-    res.json(tables);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 app.get('/ping', (req, res) => {
   res.json({ message: 'pong from backend' });
 });
@@ -113,7 +101,7 @@ mongoose.connect(mongoUri, {
   });
 }).catch((error) => {
   console.error('MongoDB connection error:', error.message);
-  console.error('Server will NOT start â€” database is required.');
+  console.error('Server will NOT start — database is required.');
   process.exit(1);
 });
 
