@@ -182,7 +182,7 @@ export default function BillsManagementPage() {
                           <button onClick={() => setSelectedBill(bill)} className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-primary transition-colors" title={t("bills.printBill")}> 
                             <span className="material-symbols-outlined">print</span>
                           </button>
-                          <button className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-secondary transition-colors" title={t("bills.exportPDF")}>
+                          <button onClick={() => handleExportPDF(bill)} className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-secondary transition-colors" title={t("bills.exportPDF")}>
                             <span className="material-symbols-outlined">picture_as_pdf</span>
                           </button>
                         </div>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
 import { BarChart } from "@/components/ui/Charts.jsx";
+import { formatVND } from "@/lib/price.js";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
+import { getSocket } from "@/lib/socket.js";
 
 const statusPill = {
   PENDING: "bg-primary/20 text-primary border-primary/30",
@@ -58,6 +60,51 @@ export default function DashboardPage() {  const { t } = useLang();
         setError(err.response?.data?.error || "Failed to load dashboard data");
       })
       .finally(() => setLoading(false));
+  }, []);
+
+  // Real-time socket: auto-refresh when orders/tables change
+  useEffect(() => {
+    const socket = getSocket();
+    socket.emit("join-admin");
+
+    const refresh = () => {
+      Promise.all([
+        api.get("/dashboard/stats"),
+        api.get("/dashboard/recent-orders"),
+        api.get("/dashboard/top-items?limit=5"),
+      ])
+        .then(([statsRes, ordersRes, topRes]) => {
+          const s = statsRes.data;
+          setStats({
+            totalRevenue: s.totalRevenue || 0,
+            avgBill: s.avgBill || 0,
+            totalOrders: s.pendingOrders || 0,
+            activeTables: s.occupiedTables || 0,
+            totalTables: s.totalTables || 0,
+            todayRevenue: s.todayRevenue || 0,
+            todaySessions: s.todaySessions || 0,
+          });
+          setTableStats({
+            occupied: s.occupiedTables || 0,
+            available: s.availableTables || 0,
+            reserved: s.reservedTables || 0,
+            total: s.totalTables || 0,
+          });
+          setRecentOrders(ordersRes.data.slice(0, 8));
+          setTopItems(topRes.data);
+        })
+        .catch(() => {}); // silent refresh
+    };
+
+    socket.on("new-order", refresh);
+    socket.on("order-updated", refresh);
+    socket.on("table-updated", refresh);
+
+    return () => {
+      socket.off("new-order", refresh);
+      socket.off("order-updated", refresh);
+      socket.off("table-updated", refresh);
+    };
   }, []);
 
   // Fetch chart data separately, re-fetch when period changes
