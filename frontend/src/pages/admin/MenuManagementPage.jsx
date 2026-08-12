@@ -305,7 +305,7 @@ export default function MenuManagementPage() {
                     <>
                       <span className="material-symbols-outlined text-on-surface-variant/30 text-4xl">cloud_upload</span>
                       <span className="text-on-surface-variant/40 text-xs">Click to upload image</span>
-                      <span className="text-on-surface-variant/20 text-[10px]">JPG, PNG, GIF, WebP Ä‚â€Ă‚Â· Max 5MB</span>
+                      <span className="text-on-surface-variant/20 text-[10px]">JPG, PNG, GIF, WebP - Max 5MB</span>
                     </>
                   ) : (
                     <span className="text-on-surface-variant/40 text-xs flex items-center gap-1">
