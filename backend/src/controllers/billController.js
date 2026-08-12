@@ -1,4 +1,4 @@
-ï»¿import Bill from '../models/Bill.js';
+import Bill from '../models/Bill.js';
 import Session from '../models/Session.js';
 import Order from '../models/Order.js';
 import OrderItem from '../models/OrderItem.js';
@@ -115,7 +115,7 @@ export const generateBill = async (req, res) => {
         serviceCharge,
         total,
         paymentMethod,
-        paymentStatus: paymentMethod === 'CASH' ? 'PENDING' : 'PAID'
+        paymentStatus: paymentMethod === 'CARD' ? 'PAID' : 'PENDING'
       });
     } catch (createErr) {
       if (createErr.code === 11000) {
@@ -124,17 +124,9 @@ export const generateBill = async (req, res) => {
       throw createErr;
     }
 
-    // For non-cash payments, close session immediately
-    if (paymentMethod !== 'CASH') {
-      session.status = 'CLOSED';
-      session.endTime = new Date();
-      await session.save();
-
-      await Table.findByIdAndUpdate(session.tableId, {
-        status: 'CLEANING',
-        currentSessionId: null
-      }, { new: true }).then((t) => { if (t) emitTableUpdated(t); });
-    }
+    // Only CASH keeps session open for manual staff verification
+    // E_WALLET and BANK_TRANSFER also stay PENDING — staff must verify payment before closing
+    // (Session is only auto-closed by Stripe confirmStripePayment)
 
     res.status(201).json(bill);
   } catch (error) {

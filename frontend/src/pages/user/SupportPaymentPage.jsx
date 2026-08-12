@@ -192,11 +192,11 @@ export default function SupportPaymentPage() {
         showToast("Staff has been notified. Please wait at your table.");
         setSelectedMethod(null);
       } else {
-        // E-WALLET / BANK_TRANSFER: tạo bill ngay
+        // E-WALLET / BANK_TRANSFER: send payment request, staff verifies later
         const sessionId = localStorage.getItem("smartdine_sessionId");
-        const { data: bill } = await api.post("/bills/generate", { sessionId, tableId, paymentMethod: method });
-        localStorage.setItem("smartdine_lastBill", JSON.stringify(bill));
-        navigate("/customer/" + tableId + "/bill-success");
+        await api.post("/support/payment", { sessionId, tableId, message: "Customer wants to pay via " + method });
+        showToast("Staff will verify your payment. Please wait at your table.");
+        setSelectedMethod(null);
       }
     } catch (err) {
       showToast(err.response?.data?.error || "Payment failed", true);
@@ -210,9 +210,10 @@ export default function SupportPaymentPage() {
     setSending(true);
     try {
       const sessionId = localStorage.getItem("smartdine_sessionId");
-      const { data: bill } = await api.post("/bills/generate", { sessionId, tableId, paymentMethod: selectedMethod });
-      localStorage.setItem("smartdine_lastBill", JSON.stringify(bill));
-      navigate("/customer/" + tableId + "/bill-success");
+      // Send support request — staff will verify and generate bill later
+      await api.post("/support/payment", { sessionId, tableId, message: "Customer has paid via QR (" + selectedMethod + ")" });
+      showToast("Staff will verify your payment. Please wait at your table.");
+      setSelectedMethod(null);
     } catch (err) {
       showToast(err.response?.data?.error || "Payment failed", true);
     } finally {
@@ -426,7 +427,7 @@ export default function SupportPaymentPage() {
                     ? "Pay Securely with Stripe"
                     : selectedMethod === "CASH"
                     ? "Request Cash Payment"
-                    : "Proceed to Checkout"}
+                    : "Show QR & Request Payment"}
                 </>
               )}
             </button>
