@@ -29,11 +29,10 @@ export default function DashboardPage() {  const { t } = useLang();
   useEffect(() => {
     Promise.all([
       api.get("/dashboard/stats"),
-      api.get("/tables"),
       api.get("/dashboard/recent-orders"),
       api.get("/dashboard/top-items?limit=5"),
     ])
-      .then(([statsRes, tablesRes, ordersRes, topRes]) => {
+      .then(([statsRes, ordersRes, topRes]) => {
         const s = statsRes.data;
         setStats({
           totalRevenue: s.totalRevenue || 0,
@@ -45,12 +44,11 @@ export default function DashboardPage() {  const { t } = useLang();
           todaySessions: s.todaySessions || 0,
         });
 
-        const tables = tablesRes.data;
         setTableStats({
-          occupied: tables.filter((tbl) => tbl.status === "OCCUPIED").length,
-          available: tables.filter((tbl) => tbl.status === "AVAILABLE").length,
-          reserved: tables.filter((tbl) => tbl.status === "RESERVED").length,
-          total: tables.length,
+          occupied: s.occupiedTables || 0,
+          available: s.availableTables || 0,
+          reserved: s.reservedTables || 0,
+          total: s.totalTables || 0,
         });
 
         setRecentOrders(ordersRes.data.slice(0, 8));
