@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -52,6 +52,14 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-size: 16px;
+  }
+
+  /* Scale down UI on mobile for easier one-hand operation */
+  @media (max-width: 640px) {
+    html {
+      font-size: 13px;
+    }
   }
 
   body {
