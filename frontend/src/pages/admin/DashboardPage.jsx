@@ -232,7 +232,7 @@ export default function DashboardPage() {  const { t } = useLang();
                             {order.status}
                           </span>
                         </td>
-                        <td className="p-2 md:p-4 text-right font-bold text-xs md:text-sm text-white">${(order.totalAmount || 0).toFixed(2)}</td>
+                        <td className="p-2 md:p-4 text-right font-bold text-xs md:text-sm" style={{ color: "#ffc174" }}>{formatVND(order.totalAmount || 0)}</td>
                       </tr>
                     );
                   })}
@@ -265,7 +265,7 @@ export default function DashboardPage() {  const { t } = useLang();
                     <p className="text-xs text-on-surface-variant">{item.totalQuantity || 0} {t("dashboard.ordersThisWeek")}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-primary font-bold">${(item.menuItem?.price || 0).toFixed(2)}</p>
+                    <p className="text-primary font-bold">{formatVND(item.menuItem?.price || 0)}</p>
                     <p className="text-[10px] text-tertiary">{item.orderCount ? `x${item.orderCount}` : "+0%"}</p>
                   </div>
                 </div>

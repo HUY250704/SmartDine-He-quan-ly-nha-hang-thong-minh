@@ -249,8 +249,21 @@ export const recentOrders = async (req, res) => {
     const itemsMap = await batchOrderItems(orderIds);
 
     const enriched = orders.map(order => {
+      const items = itemsMap.get(order._id.toString()) || [];
       const tableNumber = order.sessionId?.tableId?.number || null;
-      return { ...order.toObject(), items: itemsMap.get(order._id.toString()) || [], tableNumber };
+      const subtotal = items.reduce((sum, it) => sum + (it.menuItemId?.price || 0) * (it.quantity || 1), 0);
+      const tax = Math.round(subtotal * 0.08 * 100) / 100;
+      const serviceCharge = Math.round(subtotal * 0.05 * 100) / 100;
+      const total = Math.round((subtotal + tax + serviceCharge) * 100) / 100;
+      return {
+        ...order.toObject(),
+        items,
+        tableNumber,
+        subtotal,
+        tax,
+        serviceCharge,
+        totalAmount: total
+      };
     });
 
     res.json(enriched);
