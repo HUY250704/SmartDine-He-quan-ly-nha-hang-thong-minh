@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
+import { formatVND } from "@/lib/price.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
 
@@ -58,10 +59,10 @@ export default function BillsManagementPage() {
     .reduce((s, b) => s + (b.total || 0), 0);
 
   const statCards = [
-    { label: t("bills.totalRevenue"), value: `$${totalRevenue.toFixed(0)}`, icon: "payments", color: "#ffb690", sub: t("bills.allTimeGross") },
+    { label: t("bills.totalRevenue"), value: formatVND(totalRevenue), icon: "payments", color: "#ffb690", sub: t("bills.allTimeGross") },
     { label: t("bills.billsIssued"), value: bills.length, icon: "receipt_long", color: "#56e5a9", sub: t("bills.totalTransactions") },
-    { label: t("bills.todayRevenue"), value: `$${todayRevenue.toFixed(0)}`, icon: "today", color: "#ffc174", sub: t("bills.todaysVolume") },
-    { label: t("bills.averageBill"), value: `$${avgBill.toFixed(2)}`, icon: "analytics", color: "#56e5a9", sub: t("bills.perTableAvg") },
+    { label: t("bills.todayRevenue"), value: formatVND(todayRevenue), icon: "today", color: "#ffc174", sub: t("bills.todaysVolume") },
+    { label: t("bills.averageBill"), value: formatVND(avgBill), icon: "analytics", color: "#56e5a9", sub: t("bills.perTableAvg") },
   ];
 
   if (loading) {
@@ -73,7 +74,7 @@ export default function BillsManagementPage() {
 
   const handleExportCSV = () => {
     if (filtered.length === 0) return;
-    const headers = ["Bill ID", "Table", "Date", "Time", "Payment Method", "Total (USD)"];
+    const headers = ["Bill ID", "Table", "Date", "Time", "Payment Method", "Thanh tien"];
     const rows = filtered.map((b) => {
       const id = "#SD-" + (b._id?.toString().slice(-4) || "").toUpperCase();
       const table = "Table " + (b.sessionId?.tableId?.number || "-");
@@ -168,7 +169,7 @@ export default function BillsManagementPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 md:px-6 md:py-4 text-right">
-                        <span className="font-mono text-lg font-medium text-secondary">${(bill.total || 0).toFixed(2)}</span>
+                        <span className="font-mono text-lg font-medium" style={{ color: "#ffc174" }}>{formatVND(bill.total || 0)}</span>
                       </td>
                       <td className="px-4 py-3 md:px-6 md:py-4">
                         <div className="flex items-center gap-2">
@@ -208,23 +209,69 @@ export default function BillsManagementPage() {
         )}
       </GlassCard>
 
+      
       {selectedBill && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print-modal-overlay" onClick={() => setSelectedBill(null)}>
-          <GlassCard className="rounded-3xl p-6 w-full max-w-sm bill-print-card" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-6"><div><h2 className="text-white font-bold text-lg">{t("bills.billDetail")} #{selectedBill._id?.toString().slice(-8)}</h2><p className="text-on-surface-variant/50 text-xs">Table {selectedBill.sessionId?.tableId?.number || "-"}</p></div><button onClick={() => setSelectedBill(null)} className="text-on-surface-variant hover:text-white"><span className="material-symbols-outlined">{t("common.close")}</span></button></div>
-            <div className="mb-4 pb-3 border-b border-white/5 space-y-2 text-sm text-on-surface-variant">
-              <div className="flex justify-between"><span>{t("bills.paymentMethod")}</span><span className="text-white">{t(paymentMethods[selectedBill.paymentMethod]?.label || selectedBill.paymentMethod)}</span></div>
-              <div className="flex justify-between"><span>{t("bills.date")}</span><span className="font-mono text-white">{selectedBill.paidAt ? new Date(selectedBill.paidAt).toLocaleString() : "-"}</span></div>
+          <GlassCard className="rounded-3xl p-6 w-full max-w-md bill-print-card" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-white font-bold text-lg">Hoa don #{selectedBill._id?.toString().slice(-8)}</h2>
+                <p className="text-on-surface-variant/50 text-xs">Ban {selectedBill.sessionId?.tableId?.number || selectedBill.tableNumber || "-"}</p>
+              </div>
+              <button onClick={() => setSelectedBill(null)} className="text-on-surface-variant hover:text-white"><span className="material-symbols-outlined">close</span></button>
             </div>
-            <div className="flex justify-between pt-3 border-t border-white/10"><span className="text-white font-bold text-lg">{t("bills.total")}</span><span className="font-mono font-bold text-lg text-primary">${(selectedBill.total || 0).toFixed(2)}</span></div>
+
+            {/* Payment info */}
+            <div className="mb-4 pb-3 border-b border-white/5 space-y-2 text-sm text-on-surface-variant">
+              <div className="flex justify-between"><span>Phuong thuc</span><span className="text-white">{paymentMethods[selectedBill.paymentMethod]?.label || selectedBill.paymentMethod}</span></div>
+              <div className="flex justify-between"><span>Ngay</span><span className="font-mono text-white text-xs">{selectedBill.paidAt ? new Date(selectedBill.paidAt).toLocaleString("vi-VN") : "-"}</span></div>
+              <div className="flex justify-between"><span>Trang thai</span><span className="text-white">{selectedBill.paymentStatus || "PAID"}</span></div>
+            </div>
+
+            {/* Items list */}
+            <div className="mb-4 pb-3 border-b border-white/5">
+              <h3 className="text-[10px] font-semibold text-on-surface-variant/50 uppercase tracking-wider mb-3">Danh sach mon</h3>
+              {(selectedBill.items && selectedBill.items.length > 0) ? (
+                <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
+                  {selectedBill.items.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-on-surface-variant/40 text-xs w-5 text-right">{item.quantity || 1}x</span>
+                        <span className="text-white text-xs truncate">{item.name || "Mon an"}</span>
+                      </div>
+                      <span className="font-mono text-xs text-on-surface-variant ml-2 shrink-0">{formatVND((item.price || 0) * (item.quantity || 1))}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-on-surface-variant/30 text-xs">Khong co du lieu mon an</p>
+              )}
+            </div>
+
+            {/* Totals */}
+            <div className="space-y-2 text-sm mb-4 pb-3 border-b border-white/5">
+              {selectedBill.subtotal != null && (
+                <div className="flex justify-between"><span className="text-on-surface-variant/50">Tam tinh</span><span className="text-on-surface-variant font-mono">{formatVND(selectedBill.subtotal)}</span></div>
+              )}
+              {selectedBill.tax != null && selectedBill.tax > 0 && (
+                <div className="flex justify-between"><span className="text-on-surface-variant/50">Thue (8%)</span><span className="text-on-surface-variant font-mono">{formatVND(selectedBill.tax)}</span></div>
+              )}
+              {selectedBill.serviceCharge != null && selectedBill.serviceCharge > 0 && (
+                <div className="flex justify-between"><span className="text-on-surface-variant/50">Phi dich vu (5%)</span><span className="text-on-surface-variant font-mono">{formatVND(selectedBill.serviceCharge)}</span></div>
+              )}
+            </div>
+
+            <div className="flex justify-between pt-1">
+              <span className="text-white font-bold text-lg">Tong cong</span>
+              <span className="font-mono font-bold text-lg" style={{ color: "#ffc174" }}>{formatVND(selectedBill.total || 0)}</span>
+            </div>
             <div className="flex gap-2 mt-6">
-              <button onClick={() => setSelectedBill(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold border border-white/10 text-on-surface hover:bg-white/5 transition-colors">{t("common.close")}</button>
-              <button onClick={handlePrint} className="flex-1 py-3 rounded-xl text-sm font-bold bg-primary text-on-primary active:scale-95 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"><span className="material-symbols-outlined text-lg">print</span>{t("bills.printBill")}</button>
+              <button onClick={() => setSelectedBill(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold border border-white/10 text-on-surface hover:bg-white/5 transition-colors">Dong</button>
+              <button onClick={handlePrint} className="flex-1 py-3 rounded-xl text-sm font-bold bg-primary text-on-primary active:scale-95 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2"><span className="material-symbols-outlined text-lg">print</span>In hoa don</button>
             </div>
           </GlassCard>
         </div>
-      )}
-      {/* Print-only styles */}
+      )}{/* Print-only styles */}
       <style>{`
         @media print {
           @page { margin: 1cm; }
