@@ -198,7 +198,7 @@ export default function OrdersManagementPage() {
             />
           </div>
           <button onClick={fetchOrders} className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-            <span className="material-symbols-outlined text-on-surface-variant text-sm">{t("common.refresh").toLowerCase() === "refresh" ? "refresh" : "refresh"}</span>
+            <span className="material-symbols-outlined text-on-surface-variant text-sm">refresh</span>
           </button>
         </div>
       </div>
