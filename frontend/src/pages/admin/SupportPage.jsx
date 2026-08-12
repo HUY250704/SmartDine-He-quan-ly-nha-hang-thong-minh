@@ -53,7 +53,9 @@ export default function SupportPage() {
     });
 
     return () => {
-      socket.disconnect();
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('support-request');
     };
   }, []);
 
