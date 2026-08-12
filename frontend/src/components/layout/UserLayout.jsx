@@ -110,7 +110,7 @@ export function UserTopBar({ onMenuClick }) {
     setSwitchLoading(true);
     setSwitchError("");
     try {
-      const { data } = await api.get("/api/tables/public");
+      const { data } = await api.get("/tables/public");
       setTables(data);
     } catch {
       setSwitchError("Không thể tải danh sách bàn");
