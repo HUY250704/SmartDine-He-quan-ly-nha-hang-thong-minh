@@ -53,6 +53,7 @@ export default function SupportPaymentPage() {
   const [sending, setSending] = useState(false);
   const [customMsg, setCustomMsg] = useState("");
   const [stripeReady, setStripeReady] = useState(false);
+  const [showQR, setShowQR] = useState(false);
   const cardRef = useRef(null);
   const cardInstance = useRef(null);
 
