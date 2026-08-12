@@ -137,8 +137,7 @@ export default function AdminLoginPage() {
                   <span className="material-symbols-outlined text-sm">security</span><span>Policy</span>
                 </button>
               </div>
-              <div className="font-mono text-[10px] text-white/20 tracking-[0.2em] uppercase">Encrypted Session ID: 77-SD-4091-LX</div>
-            </div>
+                          </div>
           </div>
         </div>
 
