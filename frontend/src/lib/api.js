@@ -6,11 +6,16 @@ function normalizeUrl(url) {
   return `https://${url}`;
 }
 
-const API_BASE =
+let API_BASE =
   normalizeUrl(import.meta.env.VITE_API_URL) ||
   (import.meta.env.MODE === "development"
     ? "http://localhost:5000"
-    : "https://smartdine-backend-production-3dc2.up.railway.app");
+    : "https://smartdine-backend-production-a3ba.up.railway.app");
+
+// Strip trailing /api if accidentally set in VITE_API_URL (backend has no /api prefix)
+if (API_BASE && API_BASE.endsWith("/api")) {
+  API_BASE = API_BASE.slice(0, -4);
+}
 
 const api = axios.create({
   baseURL: API_BASE,
