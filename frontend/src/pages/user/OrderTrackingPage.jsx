@@ -39,12 +39,13 @@ export default function OrderTrackingPage() {
         setOrders(res.data.map((order) => {
           const totalUSD = order.items?.reduce((s, it) => s + (it.menuItemId?.price || 0) * it.quantity, 0);
           const subtotal = toVND(totalUSD);
-          const serviceCharge = Math.round(subtotal * 0.1);
+          const tax = Math.round(subtotal * 0.08);
+          const serviceCharge = Math.round(subtotal * 0.05);
           return {
             ...order,
             statusIdx: STATUS_MAP[order.status] ?? 0,
-            subtotal, serviceCharge,
-            total: subtotal + serviceCharge,
+            subtotal, tax, serviceCharge,
+            total: subtotal + tax + serviceCharge,
             itemCount: order.items?.length || 0,
             items: order.items?.map((it) => ({
               name: it.menuItemId?.name || "Item",
@@ -172,7 +173,7 @@ export default function OrderTrackingPage() {
                     ))}
                   </div>
                   <div className="border-t border-white/5 mt-4 pt-4 flex items-center justify-between">
-                    <span className="text-on-surface-variant/60 text-xs">Subtotal + Service (10%)</span>
+                    <span className="text-on-surface-variant/60 text-xs">Subtotal + Tax (8%) + Service (5%)</span>
                     <span className="font-mono font-bold text-xs md:text-sm" style={{ color: "#ffc174" }}>{formatPrice(order.total)}</span>
                   </div>
                 </div>
