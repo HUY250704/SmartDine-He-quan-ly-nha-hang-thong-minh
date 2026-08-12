@@ -22,7 +22,7 @@ export default function MenuPage() {
   const { t } = useLang();
   const { tableId } = useParams();
   const navigate = useNavigate();
-  const { addToCart, cartCount } = useCart();
+  const { addToCart, addToCartWithDetails, cartCount } = useCart();
 
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -32,6 +32,8 @@ export default function MenuPage() {
   const [search, setSearch] = useState("");
   const [showToast, setShowToast] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [detailQty, setDetailQty] = useState(1);
+  const [detailNote, setDetailNote] = useState("");
 
   useEffect(() => {
     Promise.all([api.get("/menu"), api.get("/categories")])
@@ -103,14 +105,62 @@ export default function MenuPage() {
               <span className="font-mono font-bold text-lg md:text-xl" style={{ color: "#ffc174" }}>{formatVND(selectedItem.price)}</span>
             </div>
             <p className="text-on-surface-variant/50 text-sm leading-relaxed mb-6">{selectedItem.description || selectedItem.aiDescription || "A delicious dish from our kitchen."}</p>
+            {/* Quantity selector */}
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-on-surface-variant/60 text-xs uppercase tracking-wider">So luong</span>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setDetailQty((q) => Math.max(1, q - 1))}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-white/10 transition-all"
+                >
+                  <span className="material-symbols-outlined text-sm">remove</span>
+                </button>
+                <span className="text-white font-bold text-lg w-6 text-center">{detailQty}</span>
+                <button
+                  onClick={() => setDetailQty((q) => Math.min(99, q + 1))}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-white/10 transition-all"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Note input */}
+            <div className="mb-5">
+              <span className="text-on-surface-variant/60 text-xs uppercase tracking-wider mb-2 block">Ghi chu</span>
+              <input
+                type="text"
+                value={detailNote}
+                onChange={(e) => setDetailNote(e.target.value)}
+                placeholder="VD: it ot, khong hanh..."
+                className="w-full px-3 py-2.5 rounded-xl text-sm text-white placeholder-on-surface-variant/30 outline-none transition-all border"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
+                onFocus={(e) => { e.target.style.borderColor = "rgba(255,193,116,0.4)"; }}
+                onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.1)"; }}
+              />
+            </div>
+
+            {/* Line total */}
+            <div className="flex items-center justify-between mb-5 px-3 py-2 rounded-xl" style={{ background: "rgba(255,193,116,0.08)", border: "1px solid rgba(255,193,116,0.15)" }}>
+              <span className="text-on-surface-variant/70 text-xs">Thanh tien</span>
+              <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatVND((selectedItem.price || 0) * detailQty)}</span>
+            </div>
+
             <button
-              onClick={(e) => { addItem(selectedItem, e); setSelectedItem(null); }}
+              onClick={(e) => {
+                addToCartWithDetails(selectedItem, detailQty, detailNote);
+                setShowToast(selectedItem.name + " x" + detailQty);
+                setTimeout(() => setShowToast(null), 2000);
+                setSelectedItem(null);
+                setDetailQty(1);
+                setDetailNote("");
+              }}
               disabled={selectedItem.isAvailable === false}
               className="w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95"
               style={{ background: "#ffc174", color: "#472a00", boxShadow: "0 0 20px rgba(255,193,116,0.2)" }}
             >
               <span className="material-symbols-outlined text-lg">add_shopping_cart</span>
-              Add to Cart - {formatVND(selectedItem.price)}
+              Them vao gio - {formatVND((selectedItem.price || 0) * detailQty)}
             </button>
           </div>
         </div>
@@ -189,7 +239,7 @@ export default function MenuPage() {
                 style={glassCard}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,193,116,0.25)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(0,0,0,0.3)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.boxShadow = "none"; }}
-                onClick={() => setSelectedItem(item)}
+                onClick={() => { setSelectedItem(item); setDetailQty(1); setDetailNote(""); }}
               >
                 {/* Image */}
                 <div className="relative aspect-[16/10] bg-white/5 overflow-hidden">

@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { useLocation, matchPath } from "react-router-dom";
 
 const CartContext = createContext();
@@ -56,7 +56,23 @@ export function CartProvider({ children }) {
     [key]
   );
 
-  const removeFromCart = useCallback(
+  
+  const addToCartWithDetails = useCallback(
+    (item, qty, note) => {
+      const quantity = Math.max(1, qty || 1);
+      const itemNote = note || "";
+      setCart((prev) => {
+        const found = prev.find((i) => i._id === item._id && i.note === itemNote);
+        const next = found
+          ? prev.map((i) => (i._id === item._id && i.note === itemNote ? { ...i, qty: i.qty + quantity } : i))
+          : [...prev, { ...item, qty: quantity, note: itemNote }];
+        localStorage.setItem(key, JSON.stringify(next));
+        return next;
+      });
+    },
+    [key]
+  );
+const removeFromCart = useCallback(
     (id) => {
       setCart((prev) => {
         const next = prev.filter((i) => i._id !== id);
@@ -98,7 +114,7 @@ export function CartProvider({ children }) {
   const cartCount = cart.reduce((s, i) => s + i.qty, 0);
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQty, updateNote, clearCart, cartCount }}>
+    <CartContext.Provider value={{ cart, addToCart, addToCartWithDetails, removeFromCart, updateQty, updateNote, clearCart, cartCount }}>
       {children}
     </CartContext.Provider>
   );
