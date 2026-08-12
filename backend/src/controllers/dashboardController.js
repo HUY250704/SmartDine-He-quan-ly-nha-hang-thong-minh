@@ -1,17 +1,18 @@
-ï»¿import Session from "../models/Session.js";
+import Session from "../models/Session.js";
 import Order from "../models/Order.js";
 import OrderItem from "../models/OrderItem.js";
 import Table from "../models/Table.js";
 import Bill from "../models/Bill.js";
 import { batchOrderItems } from "../utils/batchHelpers.js";
 
-// Shared data fetching â€” used by both overview and getStats
+// Shared data fetching — used by both overview and getStats
 async function getStatsData() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
   const [
     totalTables,
     occupiedTables,
+    reservedTables,
     activeSessions,
     pendingOrders,
     todaySessions,
@@ -21,6 +22,7 @@ async function getStatsData() {
   ] = await Promise.all([
     Table.countDocuments(),
     Table.countDocuments({ status: "OCCUPIED" }),
+    Table.countDocuments({ status: "RESERVED" }),
     Session.countDocuments({ status: "ACTIVE" }),
     Order.countDocuments({ status: { "$in": ["PENDING", "CONFIRMED", "PREPARING"] } }),
     Session.countDocuments({ startTime: { "$gte": today } }),
@@ -117,7 +119,7 @@ export const revenueChart = async (req, res) => {
       }
       weeks.reverse(); // oldest first
 
-      // Single query using $facet â€” 4 pipelines, one DB round-trip
+      // Single query using $facet — 4 pipelines, one DB round-trip
       const [result] = await Bill.aggregate([
         { "$facet": Object.fromEntries(weeks.map((w, i) => [
           `wk${i}`,
@@ -136,7 +138,7 @@ export const revenueChart = async (req, res) => {
       return res.json(data);
     }
 
-    // period === "week" â€” single aggregate grouped by day
+    // period === "week" — single aggregate grouped by day
     const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
     const sixDaysAgo = new Date(now);
