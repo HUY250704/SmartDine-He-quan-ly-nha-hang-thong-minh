@@ -25,9 +25,11 @@ export default function WelcomePage() {
       try {
         const { data: active } = await api.get(`/sessions/table/${tableId}/active`);
         if (active && active._id) {
+          localStorage.removeItem("smartdine_sessionId");
           localStorage.setItem("smartdine_sessionId", active._id);
         } else {
           const { data: newSession } = await api.post("/sessions/open", { tableId });
+          localStorage.removeItem("smartdine_sessionId");
           localStorage.setItem("smartdine_sessionId", newSession._id);
         }
       } catch (err) {
@@ -38,7 +40,6 @@ export default function WelcomePage() {
       }
     };
     clearCart();
-    localStorage.removeItem("smartdine_sessionId");
     initSession();
   }, [tableId]);
 
