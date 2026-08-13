@@ -175,10 +175,10 @@ export default function DashboardPage() {  const { t } = useLang();
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#56e5a9" }}><span className="material-symbols-outlined text-8xl">payments</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.totalRevenue")}</p>
-            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#56e5a9" }}>${(stats?.totalRevenue || 0).toLocaleString()}</h3>
+            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#56e5a9" }}>{formatVND(stats?.totalRevenue || 0)}</h3>
             <div className="flex items-center mt-2 text-on-surface-variant text-xs">
               <span className="material-symbols-outlined text-sm mr-1">today</span>
-              <span>${(stats?.todayRevenue || 0).toLocaleString()} {t("dashboard.todayRevenue")}</span>
+              <span>{formatVND(stats?.todayRevenue || 0)} {t("dashboard.todayRevenue")}</span>
             </div>
           </div>
         </GlassCard>
@@ -214,7 +214,7 @@ export default function DashboardPage() {  const { t } = useLang();
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#a78bfa" }}><span className="material-symbols-outlined text-8xl">analytics</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.avgBill")}</p>
-            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#a78bfa" }}>${(stats?.avgBill || 0).toLocaleString()}</h3>
+            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#a78bfa" }}>{formatVND(stats?.avgBill || 0)}</h3>
             <div className="flex items-center mt-2 text-on-surface-variant text-xs">
               <span className="material-symbols-outlined text-sm mr-1">receipt_long</span>
               <span>{stats?.todaySessions || 0} {t("dashboard.sessionsToday")}</span>

@@ -38,7 +38,13 @@ export function BarChart({ data, height = 280, color = "#56e5a9" }) {
   const yTicks = 4;
 
   const formatValue = (v) =>
-    v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(1)}K` : `$${v}`;
+    v >= 1e9
+      ? `${(v / 1e9).toFixed(1)} tỷ`
+      : v >= 1e6
+      ? `${(v / 1e6).toFixed(1)} tr`
+      : v >= 1e3
+      ? `${(v / 1e3).toFixed(1)}K`
+      : `${Math.round(v).toLocaleString("vi-VN")}đ`;
 
   // Unique gradient IDs per instance
   const gid = useRef(Math.random().toString(36).slice(2)).current;
@@ -177,7 +183,13 @@ export function LineChart({ data, height = 260, color = "#56e5a9" }) {
   const areaD = `M ${points[0].x} ${padTop + innerH} ${pathD.slice(1)} L ${points[points.length - 1].x} ${padTop + innerH} Z`;
 
   const formatValue = (v) =>
-    v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(1)}K` : `$${v}`;
+    v >= 1e9
+      ? `${(v / 1e9).toFixed(1)} tỷ`
+      : v >= 1e6
+      ? `${(v / 1e6).toFixed(1)} tr`
+      : v >= 1e3
+      ? `${(v / 1e3).toFixed(1)}K`
+      : `${Math.round(v).toLocaleString("vi-VN")}đ`;
 
   const gid = useRef(Math.random().toString(36).slice(2)).current;
 
