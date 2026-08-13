@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import api from "@/lib/api.js";
 import { formatPrice, toVND } from "@/lib/price.js";
+import QRCodeModal from "@/components/ui/QRCodeModal.jsx";
 
 const glassCard = {
   background: "rgba(255,255,255,0.03)",
