@@ -113,8 +113,8 @@ export function AdminSidebar({ collapsed, setCollapsed, mobileOpen, onMobileClos
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="w-full flex items-center justify-center gap-2 p-2 rounded-lg border border-white/10 bg-white/5 text-on-surface-variant transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary active:scale-95"
-          aria-label={collapsed ? "M? r?ng b?ng ?i?u khi?n" : "Thu g?n b?ng ?i?u khi?n"}
-          title={collapsed ? "M? r?ng b?ng ?i?u khi?n" : "Thu g?n b?ng ?i?u khi?n"}
+          aria-label={collapsed ? "Mở rộng bảng điều khiển" : "Thu gọn bảng điều khiển"}
+          title={collapsed ? "Mở rộng bảng điều khiển" : "Thu gọn bảng điều khiển"}
         >
           <span
             className="material-symbols-outlined text-sm"
@@ -122,7 +122,7 @@ export function AdminSidebar({ collapsed, setCollapsed, mobileOpen, onMobileClos
           >
             {collapsed ? "left_panel_open" : "left_panel_close"}
           </span>
-          {!collapsed && <span className="text-xs font-semibold">Thu g?n</span>}
+          {!collapsed && <span className="text-xs font-semibold">Thu gọn</span>}
         </button>
 
       </div>

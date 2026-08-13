@@ -246,7 +246,7 @@ export default function MenuManagementPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-white font-bold text-xl">{editingItem ? t("menu.editMenuItem") : t("menu.addNewItem")}</h2>
               <button onClick={() => setShowForm(false)} className="text-on-surface-variant hover:text-white transition-colors">
-                <span className="material-symbols-outlined">{t("common.close")}</span>
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
