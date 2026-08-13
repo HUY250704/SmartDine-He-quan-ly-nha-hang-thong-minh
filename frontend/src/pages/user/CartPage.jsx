@@ -123,11 +123,11 @@ export default function CartPage() {
 
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center gap-1 rounded-lg" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                        <button onClick={() => updateQty(item._id, -1)} className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center text-on-surface-variant/60 hover:text-white transition-colors">
+                        <button onClick={() => updateQty(item._id, -1)} className="w-9 h-9 md:w-8 md:h-8 flex items-center justify-center text-on-surface-variant/60 hover:text-white transition-colors rounded-lg">
                           <span className="material-symbols-outlined text-sm">remove</span>
                         </button>
                         <span className="text-white text-sm font-mono w-7 text-center">{item.qty}</span>
-                        <button onClick={() => updateQty(item._id, 1)} className="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center text-on-surface-variant/60 hover:text-white transition-colors">
+                        <button onClick={() => updateQty(item._id, 1)} className="w-9 h-9 md:w-8 md:h-8 flex items-center justify-center text-on-surface-variant/60 hover:text-white transition-colors rounded-lg">
                           <span className="material-symbols-outlined text-sm">add</span>
                         </button>
                       </div>

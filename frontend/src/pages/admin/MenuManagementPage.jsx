@@ -219,10 +219,10 @@ export default function MenuManagementPage() {
                   <div className="flex items-center justify-between">
                     <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatVND(item.price)}</span>
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => toggleAvailable(item)} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isAvailable ? "bg-primary/20 text-primary" : "bg-error/20 text-error"}`}>
+                      <button onClick={() => toggleAvailable(item)} className={`w-11 h-11 md:w-9 md:h-9 rounded-full flex items-center justify-center transition-all ${isAvailable ? "bg-primary/20 text-primary" : "bg-error/20 text-error"}`}>
                         <span className="material-symbols-outlined text-sm">{isAvailable ? "visibility" : "visibility_off"}</span>
                       </button>
-                      <button onClick={() => handleDelete(item._id)} className="w-8 h-8 rounded-full flex items-center justify-center bg-error/10 text-error hover:bg-error/20 transition-all">
+                      <button onClick={() => handleDelete(item._id)} className="w-11 h-11 md:w-9 md:h-9 rounded-full flex items-center justify-center bg-error/10 text-error hover:bg-error/20 transition-all">
                         <span className="material-symbols-outlined text-sm">delete</span>
                       </button>
                     </div>

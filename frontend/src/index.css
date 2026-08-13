@@ -55,10 +55,21 @@
     font-size: 16px;
   }
 
-  /* Scale down UI on mobile for easier one-hand operation */
+  /* Keep UI readable and touch-friendly on mobile */
   @media (max-width: 640px) {
     html {
-      font-size: 13px;
+      font-size: 15px;
+    }
+
+    body {
+      padding-right: env(safe-area-inset-right);
+      padding-left: env(safe-area-inset-left);
+    }
+
+    button,
+    select,
+    input {
+      touch-action: manipulation;
     }
   }
 

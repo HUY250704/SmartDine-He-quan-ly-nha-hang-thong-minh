@@ -111,14 +111,14 @@ export default function MenuPage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setDetailQty((q) => Math.max(1, q - 1))}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-white/10 transition-all"
+                  className="w-11 h-11 rounded-xl flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-white/10 transition-all"
                 >
                   <span className="material-symbols-outlined text-sm">remove</span>
                 </button>
                 <span className="text-white font-bold text-lg w-6 text-center">{detailQty}</span>
                 <button
                   onClick={() => setDetailQty((q) => Math.min(99, q + 1))}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-white/10 transition-all"
+                  className="w-11 h-11 rounded-xl flex items-center justify-center text-on-surface-variant hover:text-white hover:bg-white/10 transition-all"
                 >
                   <span className="material-symbols-outlined text-sm">add</span>
                 </button>
@@ -266,14 +266,14 @@ export default function MenuPage() {
                     <button
                       onClick={(e) => addItem(item, e)}
                       disabled={item.isAvailable === false}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                      className="w-11 h-11 rounded-xl flex items-center justify-center transition-all active:scale-90"
                       style={{
                         background: item.isAvailable !== false ? "rgba(255,193,116,0.15)" : "rgba(255,255,255,0.05)",
                         border: item.isAvailable !== false ? "1px solid rgba(255,193,116,0.3)" : "1px solid rgba(255,255,255,0.05)",
                         color: item.isAvailable !== false ? "#ffc174" : "rgba(216,195,173,0.3)",
                       }}
                     >
-                      <span className="material-symbols-outlined text-lg">add</span>
+                      <span className="material-symbols-outlined text-2xl">add</span>
                     </button>
                   </div>
                 </div>
@@ -294,7 +294,7 @@ export default function MenuPage() {
       {cartCount > 0 && (
         <button
           onClick={() => navigate(`/customer/${tableId}/cart`)}
-          className="fixed bottom-6 right-4 md:bottom-8 md:right-8 z-50 w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-xl"
+          className="fixed bottom-24 right-4 md:bottom-8 md:right-8 z-50 w-14 h-14 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-xl"
           style={{ background: "#ffc174", boxShadow: "0 0 30px rgba(255,193,116,0.3)" }}
         >
           <span className="material-symbols-outlined text-2xl" style={{ color: "#472a00", fontVariationSettings: "'FILL' 1" }}>shopping_cart</span>

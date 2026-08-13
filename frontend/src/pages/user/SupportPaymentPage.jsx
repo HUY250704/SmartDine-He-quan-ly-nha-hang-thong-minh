@@ -265,7 +265,7 @@ export default function SupportPaymentPage() {
                   key={i}
                   onClick={() => callStaff(chip.label)}
                   disabled={sending}
-                  className="flex items-center justify-center md:justify-start gap-1.5 px-2 py-2.5 md:px-4 md:py-2.5 rounded-xl transition-all active:scale-95 disabled:opacity-30"
+                  className="flex items-center justify-center md:justify-start gap-1.5 px-2.5 py-3 md:px-4 md:py-2.5 rounded-xl transition-all active:scale-95 disabled:opacity-30"
                   style={{ background: chip.color + "15", border: "1px solid " + chip.color + "30", color: chip.color }}
                 >
                   <span className="material-symbols-outlined text-base">{chip.icon}</span>
@@ -284,7 +284,7 @@ export default function SupportPaymentPage() {
               <button
                 onClick={() => customMsg.trim() && callStaff(customMsg)}
                 disabled={sending || !customMsg.trim()}
-                className="px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all active:scale-95 disabled:opacity-30"
+                className="px-4 py-3 rounded-xl text-xs md:text-xs font-bold transition-all active:scale-95 disabled:opacity-30"
                 style={{ background: "#ffc174", color: "#472a00" }}
               >
                 Send
@@ -356,7 +356,7 @@ export default function SupportPaymentPage() {
                 <button
                   key={m.id}
                   onClick={() => setSelectedMethod(m.id === selectedMethod ? null : m.id)}
-                  className="w-full flex items-center gap-3 p-3 md:p-4 rounded-2xl transition-all duration-300"
+                  className="w-full flex items-center gap-3 p-3.5 md:p-4 rounded-2xl transition-all duration-300"
                   style={{
                     background: selectedMethod === m.id ? m.color + "10" : "rgba(255,255,255,0.03)",
                     border: selectedMethod === m.id ? "1px solid " + m.color + "50" : "1px solid rgba(255,255,255,0.06)",
@@ -364,7 +364,7 @@ export default function SupportPaymentPage() {
                   }}
                 >
                   <div
-                    className="w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0"
+                    className="w-11 h-11 md:w-10 md:h-10 rounded-xl flex items-center justify-center shrink-0"
                     style={{ background: m.color + "20" }}
                   >
                     <span

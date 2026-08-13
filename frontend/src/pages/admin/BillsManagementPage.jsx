@@ -265,10 +265,10 @@ export default function BillsManagementPage() {
                       </td>
                       <td className="px-4 py-3 md:px-6 md:py-4">
                         <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => setSelectedBill(bill)} className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-primary transition-colors" title={t("bills.printBill")}> 
+                          <button onClick={() => setSelectedBill(bill)} className="p-2.5 rounded-lg bg-white/10 text-on-surface hover:text-primary transition-colors" title={t("bills.printBill")}> 
                             <span className="material-symbols-outlined">print</span>
                           </button>
-                          <button onClick={() => handleExportPDF(bill)} className="p-2 rounded-lg bg-white/10 text-on-surface hover:text-secondary transition-colors" title={t("bills.exportPDF")}>
+                          <button onClick={() => handleExportPDF(bill)} className="p-2.5 rounded-lg bg-white/10 text-on-surface hover:text-secondary transition-colors" title={t("bills.exportPDF")}>
                             <span className="material-symbols-outlined">picture_as_pdf</span>
                           </button>
                         </div>

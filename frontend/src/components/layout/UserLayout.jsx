@@ -176,25 +176,25 @@ export function UserTopBar({ onMenuClick }) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 h-14 md:h-16 flex items-center justify-between px-3 md:px-6"
+      <header className="sticky top-0 z-40 h-16 md:h-16 flex items-center justify-between px-4 md:px-6"
         style={{ background: "rgba(12,19,34,0.85)", backdropFilter: "blur(16px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         {/* Hamburger - mobile only */}
-        <button onClick={onMenuClick} className="md:hidden mr-3 w-10 h-10 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-colors shrink-0">
+        <button onClick={onMenuClick} className="md:hidden mr-2 w-11 h-11 flex items-center justify-center rounded-xl text-white hover:bg-white/10 transition-colors shrink-0">
           <span className="material-symbols-outlined text-2xl">menu</span>
         </button>
         <div className="flex items-center gap-3 md:gap-4">
-          <div className="flex items-center gap-1.5 px-2 py-1 md:px-3 md:py-1.5 rounded-lg bg-white/5 border border-white/10">
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 md:px-3 md:py-1.5 rounded-lg bg-white/5 border border-white/10">
             <span className="material-symbols-outlined text-primary text-sm">table_restaurant</span>
             <span className="text-white text-sm font-semibold">Bàn #{tableId}</span>
           </div>
           <button onClick={() => setShowSwitch(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+            className="flex items-center gap-1.5 px-3 py-2 md:px-3 md:py-1.5 rounded-lg text-xs font-medium transition-all"
             style={{ background: "rgba(255,193,116,0.1)", border: "1px solid rgba(255,193,116,0.2)", color: "#ffc174" }}>
             <span className="material-symbols-outlined text-sm">swap_horiz</span>
             Đổi bàn
           </button>
           <button onClick={() => { setAiOpen(true); setAiDish(""); setAiResult(""); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-2 md:px-3 md:py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg active:scale-95"
             style={{ background: "linear-gradient(135deg, #8b5cf6, #7c3aed)", color: "#fff" }}>
             <span className="material-symbols-outlined text-sm">auto_awesome</span>
             AI Mô tả
@@ -203,7 +203,7 @@ export function UserTopBar({ onMenuClick }) {
 
         <div className="flex items-center gap-1.5 md:gap-3">
           <button onClick={toggleLang}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-on-surface-variant text-xs font-medium hover:text-white hover:bg-white/10 transition-all">
+            className="flex items-center gap-1.5 px-3 py-2 md:px-3 md:py-1.5 rounded-lg bg-white/5 border border-white/10 text-on-surface-variant text-xs font-medium hover:text-white hover:bg-white/10 transition-all">
             <span className="material-symbols-outlined text-sm">translate</span>
             {lang === "vi" ? "EN" : "VI"}
           </button>
@@ -335,7 +335,7 @@ export default function UserLayout() {
       <UserSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} mobileOpen={mobileOpen} onMobileClose={closeMobile} />
       <div className={`transition-all duration-300 ml-0 ${collapsed ? "md:ml-[72px]" : "md:ml-[240px]"}`}>
         <UserTopBar onMenuClick={() => setMobileOpen(true)} />
-        <main className="p-3 md:p-6">
+        <main className="px-4 pb-28 pt-4 md:px-6 md:pb-8 md:pt-6">
           <Outlet />
         </main>
       </div>

@@ -352,7 +352,7 @@ export default function TablesManagementPage() {
                           key={k}
                           onClick={() => handleStatusChange(table._id, k)}
                           disabled={sessionActionLoading}
-                          className={`p-2 rounded-lg text-xs font-semibold transition-all disabled:opacity-40 ${table.status === k ? "scale-105 ring-2 ring-white/20" : ""}`}
+                          className={`px-3 py-2.5 rounded-lg text-xs font-semibold transition-all disabled:opacity-40 ${table.status === k ? "scale-105 ring-2 ring-white/20" : ""}`}
                           style={{ background: v.bg, border: `1px solid ${v.border}`, color: v.color }}
                         >
                           {t(v.label)}
