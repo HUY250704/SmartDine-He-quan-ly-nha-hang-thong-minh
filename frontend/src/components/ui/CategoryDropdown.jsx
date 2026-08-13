@@ -30,7 +30,7 @@ export default function CategoryDropdown({ value, onChange, disabled = false }) 
 
   const handleCreate = async () => {
     if (!newName.trim()) {
-      setCreateError("T?n danh m?c kh?ng ???c ?? tr?ng");
+      setCreateError("Tên danh mục không được để trống");
       return;
     }
 
@@ -62,7 +62,7 @@ export default function CategoryDropdown({ value, onChange, disabled = false }) 
           className="w-full px-4 py-2.5 rounded-xl text-sm text-on-surface outline-none bg-white/5 border border-white/10 focus:border-primary/50 transition-colors disabled:opacity-50"
         >
           <option value="" disabled>
-            {loading ? "Loading..." : categories.length === 0 ? "Ch?a c? danh m?c" : "Ch?n danh m?c"}
+            {loading ? "Loading..." : categories.length === 0 ? "Chưa có danh mục" : "Chọn danh mục"}
           </option>
           {categories.map((category) => (
             <option key={category._id} value={category._id} className="bg-[#1a2333]">
@@ -76,7 +76,7 @@ export default function CategoryDropdown({ value, onChange, disabled = false }) 
             onClick={() => setShowModal(true)}
             disabled={disabled}
             className="shrink-0 px-3 py-2.5 rounded-xl text-xs font-semibold bg-white/5 border border-white/10 text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors disabled:opacity-50"
-            title="T?o danh m?c m?i"
+            title="Tạo danh mục mới"
           >
             <span className="material-symbols-outlined text-base">add</span>
           </button>
@@ -89,7 +89,7 @@ export default function CategoryDropdown({ value, onChange, disabled = false }) 
           onClick={() => setShowModal(true)}
           className="mt-2 w-full py-2.5 rounded-xl text-sm font-bold bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-colors"
         >
-          T?o danh m?c m?i
+          Tạo danh mục mới
         </button>
       )}
 
@@ -105,7 +105,7 @@ export default function CategoryDropdown({ value, onChange, disabled = false }) 
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-white font-bold text-xl">T?o danh m?c m?i</h2>
+              <h2 className="text-white font-bold text-xl">Tạo danh mục mới</h2>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
@@ -118,7 +118,7 @@ export default function CategoryDropdown({ value, onChange, disabled = false }) 
             <div className="space-y-4">
               <div>
                 <label className="block text-on-surface-variant/60 text-[10px] font-bold uppercase tracking-wider mb-2">
-                  T?n danh m?c
+                  Tên danh mục
                 </label>
                 <input
                   autoFocus
@@ -130,7 +130,7 @@ export default function CategoryDropdown({ value, onChange, disabled = false }) 
                       handleCreate();
                     }
                   }}
-                  placeholder="Nh?p t?n danh m?c"
+                  placeholder="Nhập tên danh mục"
                   className="w-full px-4 py-2.5 rounded-xl text-sm text-on-surface placeholder-on-surface-variant/20 outline-none bg-white/5 border border-white/10 focus:border-primary/50 transition-colors"
                 />
                 {createError && <p className="mt-2 text-xs text-error">{createError}</p>}
@@ -142,7 +142,7 @@ export default function CategoryDropdown({ value, onChange, disabled = false }) 
                   onClick={() => setShowModal(false)}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold text-on-surface-variant border border-white/10 hover:bg-white/5 transition-colors"
                 >
-                  H?y
+                  Hủy
                 </button>
                 <button
                   type="button"
@@ -150,7 +150,7 @@ export default function CategoryDropdown({ value, onChange, disabled = false }) 
                   disabled={creating}
                   className="flex-1 py-3 rounded-xl text-sm font-bold bg-primary text-on-primary active:scale-95 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
                 >
-                  {creating ? "?ang t?o..." : "T?o danh m?c"}
+                  {creating ? "Đang tạo..." : "Tạo danh mục"}
                 </button>
               </div>
             </div>

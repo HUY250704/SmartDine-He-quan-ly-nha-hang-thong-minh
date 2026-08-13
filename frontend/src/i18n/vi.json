@@ -234,17 +234,17 @@
     "en": "English"
   },
   "categories": {
-    "title": "Qu?n l? Danh m?c",
-    "subtitle": "S?p x?p danh m?c cho m?n ?n v? ?? u?ng",
-    "addCategory": "Th?m danh m?c",
-    "addNewCategory": "Th?m danh m?c m?i",
-    "editCategory": "S?a danh m?c",
-    "name": "T?n danh m?c",
-    "description": "M? t?",
-    "itemCount": "m?n",
-    "noCategories": "Ch?a c? danh m?c",
-    "noCategoriesDesc": "T?o danh m?c ?? s?p x?p th?c ??n.",
-    "nameRequired": "T?n danh m?c l? b?t bu?c",
-    "deleteConfirm": "X?a danh m?c n?y?"
+    "title": "Quản lý Danh mục",
+    "subtitle": "Sắp xếp danh mục cho món ăn và đồ uống",
+    "addCategory": "Thêm danh mục",
+    "addNewCategory": "Thêm danh mục mới",
+    "editCategory": "Sửa danh mục",
+    "name": "Tên danh mục",
+    "description": "Mô tả",
+    "itemCount": "món",
+    "noCategories": "Chưa có danh mục",
+    "noCategoriesDesc": "Tạo danh mục để sắp xếp thực đơn.",
+    "nameRequired": "Tên danh mục là bắt buộc",
+    "deleteConfirm": "Xóa danh mục này?"
   }
 }

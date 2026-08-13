@@ -39,9 +39,22 @@ const nextActions = {
   CANCELLED: [],
 };
 
-function getElapsedMinutes(dateStr) {
+function formatElapsed(dateStr, t) {
   if (!dateStr) return null;
-  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+  const totalMinutes = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+  if (totalMinutes < 1) return null;
+
+  if (totalMinutes >= 60 * 24) {
+    const days = Math.floor(totalMinutes / (60 * 24));
+    return `${days}d ${t("orders.elapsed")}`;
+  }
+
+  if (totalMinutes >= 60) {
+    const hours = Math.floor(totalMinutes / 60);
+    return `${hours}h ${t("orders.elapsed")}`;
+  }
+
+  return `${totalMinutes}m ${t("orders.elapsed")}`;
 }
 
 export default function OrdersManagementPage() {
@@ -220,7 +233,7 @@ export default function OrdersManagementPage() {
           {filtered.map((order) => {
             const orderSc = statusConfig[order.status] || statusConfig["PENDING"];
             const actions = nextActions[order.status] || [];
-            const elapsed = getElapsedMinutes(order.createdAt);
+            const elapsed = formatElapsed(order.createdAt, t);
 
             const total = order.items
               ? toVND(order.items.reduce((s, it) => s + ((it.menuItemId?.price || it.menuItem?.price || 0) * it.quantity), 0))
@@ -244,7 +257,7 @@ export default function OrdersManagementPage() {
                     </div>
                     <div className={`flex items-center text-xs mt-1 ${orderSc.timeUrgent ? "text-error" : "text-on-surface-variant"}`}>
                       <span className="material-symbols-outlined text-[14px] mr-1">schedule</span>
-                      <span className="font-mono text-xs">{elapsed != null ? `${elapsed}m ${t("orders.elapsed")}` : t("orders.justNow")}</span>
+                      <span className="font-mono text-xs">{elapsed || t("orders.justNow")}</span>
                     </div>
                   </div>
                   <span

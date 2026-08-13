@@ -237,7 +237,7 @@ export default function CategoriesManagementPage() {
                 onClick={() => setShowForm(false)}
                 className="text-on-surface-variant hover:text-white transition-colors"
               >
-                <span className="material-symbols-outlined">{t("common.close")}</span>
+                <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
