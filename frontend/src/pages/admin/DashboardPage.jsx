@@ -169,13 +169,13 @@ export default function DashboardPage() {  const { t } = useLang();
   return (
     <div className="space-y-4 md:space-y-8">
       {/* Stats Bento Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {/* Total Revenue */}
         <GlassCard className="rounded-xl p-4 md:p-6 flex flex-col justify-between group overflow-hidden relative">
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#56e5a9" }}><span className="material-symbols-outlined text-8xl">payments</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.totalRevenue")}</p>
-            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#56e5a9" }}>{formatVND(stats?.totalRevenue || 0)}</h3>
+            <h3 className="text-2xl md:text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#56e5a9" }}>{formatVND(stats?.totalRevenue || 0)}</h3>
             <div className="flex items-center mt-2 text-on-surface-variant text-xs">
               <span className="material-symbols-outlined text-sm mr-1">today</span>
               <span>{formatVND(stats?.todayRevenue || 0)} {t("dashboard.todayRevenue")}</span>
@@ -188,7 +188,7 @@ export default function DashboardPage() {  const { t } = useLang();
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#ffc174" }}><span className="material-symbols-outlined text-8xl">list_alt</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.pendingOrders")}</p>
-            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#ffc174" }}>{stats?.totalOrders || 0}</h3>
+            <h3 className="text-2xl md:text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#ffc174" }}>{stats?.totalOrders || 0}</h3>
             <div className="flex items-center mt-2 text-on-surface-variant text-xs">
               <span className="material-symbols-outlined text-sm mr-1">schedule</span>
               <span>{t("dashboard.awaitingConfirmation")}</span>
@@ -201,7 +201,7 @@ export default function DashboardPage() {  const { t } = useLang();
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#ffb690" }}><span className="material-symbols-outlined text-8xl">table_restaurant</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.activeTables")}</p>
-            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#ffb690" }}>{stats?.activeTables || 0}<span className="text-[14px] font-normal opacity-60">/{stats?.totalTables || 0}</span></h3>
+            <h3 className="text-2xl md:text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#ffb690" }}>{stats?.activeTables || 0}<span className="text-[14px] font-normal opacity-60">/{stats?.totalTables || 0}</span></h3>
             <div className="flex items-center mt-2 text-on-surface-variant text-xs">
               <span className="material-symbols-outlined text-sm mr-1">group</span>
               <span>{occupancyPct}% {t("dashboard.occupancy")}</span>
@@ -214,7 +214,7 @@ export default function DashboardPage() {  const { t } = useLang();
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#a78bfa" }}><span className="material-symbols-outlined text-8xl">analytics</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.avgBill")}</p>
-            <h3 className="text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#a78bfa" }}>{formatVND(stats?.avgBill || 0)}</h3>
+            <h3 className="text-2xl md:text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#a78bfa" }}>{formatVND(stats?.avgBill || 0)}</h3>
             <div className="flex items-center mt-2 text-on-surface-variant text-xs">
               <span className="material-symbols-outlined text-sm mr-1">receipt_long</span>
               <span>{stats?.todaySessions || 0} {t("dashboard.sessionsToday")}</span>
