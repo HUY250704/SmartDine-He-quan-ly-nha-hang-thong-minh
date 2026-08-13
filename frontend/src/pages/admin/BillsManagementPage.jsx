@@ -98,6 +98,92 @@ export default function BillsManagementPage() {
     window.print();
   };
 
+  const handleExportPDF = (bill) => {
+    const win = window.open("", "_blank");
+    if (!win) {
+      alert("Popup blocked. Please allow popups for this site.");
+      return;
+    }
+
+    const pm = paymentMethods[bill.paymentMethod] || { label: bill.paymentMethod || "Cash" };
+    const tableNumber = bill.sessionId?.tableId?.number || bill.tableNumber || "-";
+    const billId = bill._id ? bill._id.toString().slice(-8).toUpperCase() : "-";
+    const date = bill.paidAt ? new Date(bill.paidAt).toLocaleDateString("en-US") : "-";
+    const time = bill.paidAt ? new Date(bill.paidAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "-";
+
+    const itemsHtml = (bill.items && bill.items.length > 0)
+      ? bill.items.map((item) => {
+          const name = String(item.name || "Mon an").replace(/[<>&]/g, "");
+          const qty = item.quantity || 1;
+          const amount = (item.price || 0) * qty;
+          return `
+            <tr>
+              <td class="qty">${qty}x</td>
+              <td>${name}</td>
+              <td class="money">${amount.toLocaleString("vi-VN")}đ</td>
+            </tr>`;
+        }).join("")
+      : `<tr><td colspan="3" class="empty">Khong co du lieu mon an</td></tr>`;
+
+    const html = `<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <title>SmartDine_Invoice_${billId}</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; color: #111; margin: 32px; }
+      h1 { font-size: 24px; margin: 0 0 4px; }
+      h2 { font-size: 16px; margin: 0 0 20px; font-weight: 600; }
+      .meta { width: 100%; font-size: 13px; margin-bottom: 16px; border-collapse: collapse; }
+      .meta td { padding: 4px 0; }
+      .items { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+      .items th, .items td { border: 1px solid #222; padding: 7px; font-size: 13px; }
+      .items th { background: #f3f3f3; text-align: left; }
+      .items td.qty { width: 45px; white-space: nowrap; }
+      .items td.money, .items th.money { text-align: right; }
+      .items .empty { text-align: center; color: #666; padding: 16px; }
+      .totals { width: 100%; font-size: 14px; border-collapse: collapse; margin-bottom: 20px; }
+      .totals td { padding: 4px 0; }
+      .totals .grand { font-size: 18px; font-weight: bold; padding-top: 10px; border-top: 2px solid #111; }
+      .footer { margin-top: 32px; text-align: center; color: #555; font-size: 11px; }
+      @media print { body { margin: 12mm; } .no-print { display: none; } }
+    </style>
+  </head>
+  <body>
+    <h1>SmartDine</h1>
+    <h2>Invoice #${billId}</h2>
+
+    <table class="meta">
+      <tr><td><strong>Table:</strong> ${tableNumber}</td><td><strong>Date:</strong> ${date} ${time}</td></tr>
+      <tr><td><strong>Payment:</strong> ${pm.label}</td><td><strong>Status:</strong> ${bill.paymentStatus || "PAID"}</td></tr>
+    </table>
+
+    <table class="items">
+      <thead>
+        <tr><th>Qty</th><th>Item</th><th class="money">Amount</th></tr>
+      </thead>
+      <tbody>${itemsHtml}</tbody>
+    </table>
+
+    <table class="totals">
+      ${bill.subtotal != null ? `<tr><td>Subtotal</td><td class="money">${(bill.subtotal || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
+      ${bill.tax != null && bill.tax > 0 ? `<tr><td>Tax (8%)</td><td class="money">${(bill.tax || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
+      ${bill.serviceCharge != null && bill.serviceCharge > 0 ? `<tr><td>Service (5%)</td><td class="money">${(bill.serviceCharge || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
+      <tr class="grand"><td>Total</td><td class="money">${(bill.total || 0).toLocaleString("vi-VN")}đ</td></tr>
+    </table>
+
+    <div class="no-print"><button onclick="window.print()">Save as PDF / Print</button></div>
+    <div class="footer">Thank you for dining with us! - www.smartdine.vn</div>
+    <script>window.onload = () => window.print();</script>
+  </body>
+</html>`;
+
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

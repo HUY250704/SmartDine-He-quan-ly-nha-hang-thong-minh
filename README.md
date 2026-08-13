@@ -29,10 +29,12 @@ SmartDine gồm **hai giao diện** phục vụ hai nhóm người dùng hoàn t
 | **Backend** | Node.js + Express |
 | **Database** | MongoDB + Mongoose ODM |
 | **Realtime** | Socket.IO |
-| **Thanh toán** | Stripe (PaymentIntent + Webhook) |
+| **Thanh toán** | Stripe (PaymentIntent + Webhook) + offline cash/e-wallet/bank |
 | **Auth (Admin)** | JWT (`jsonwebtoken`) |
+| **AI** | Google Gemini API |
+| **Upload ảnh** | Cloudinary |
 | **Icons** | Google Material Symbols Outlined |
-| **API Docs** | Swagger UI (tùy chọn, `/api-docs`) |
+| **API Docs** | Swagger UI (tùy chọn, /api-docs) |
 
 ---
 
@@ -45,29 +47,27 @@ SmartDine/
 │   │   ├── components/
 │   │   │   └── layout/          # AdminLayout, UserLayout, ProtectedRoute
 │   │   ├── context/             # AuthContext, CartContext, LanguageContext
-│   │   ├── lib/                 # api.js (axios), socket.js, price.js, dishImages.js
+│   │   ├── lib/                 # api.js (axios), socket.js, price.js, notify.js, dishImages.js
 │   │   ├── pages/
-│   │   │   ├── admin/           # 7 admin pages
-│   │   │   └── user/            # 6 customer pages
+│   │   │   ├── admin/           # Dashboard, Orders, Menu, Tables, Bills, Support
+│   │   │   └── user/            # Welcome, Menu, Cart, Tracking, Support/Payment, BillSuccess
 │   │   └── index.css            # Design tokens + glassmorphism utilities
 │   └── index.html
 ├── backend/
 │   ├── src/
-│   │   ├── config/              # stripe.js, swagger.js
-│   │   ├── controllers/         # Business logic (9 controllers)
-│   │   ├── middleware/           # auth.js (JWT verify)
-│   │   ├── models/              # Mongoose schemas (10 models)
-│   │   ├── routes/              # Express routers (9 route files)
+│   │   ├── config/              # stripe.js, swagger.js, cloudinary.js, upload.js
+│   │   ├── controllers/         # Business logic
+│   │   ├── middleware/          # auth.js (JWT verify)
+│   │   ├── models/              # Mongoose schemas
+│   │   ├── routes/              # Express routers
 │   │   ├── socket/              # Socket.IO init + event emitters
+│   │   ├── services/            # geminiService.js
 │   │   ├── utils/               # batchHelpers.js
 │   │   └── index.js             # Entry point
 │   └── .env
-├── package.json                 # Root scripts (concurrently)
+├── package.json                 # Root (chỉ khai báo stripe hiện tại)
 └── README.md
 ```
-
----
-
 ## 4. Cài đặt & Chạy
 
 ### Yêu cầu
@@ -77,42 +77,73 @@ SmartDine/
 
 ### Cài đặt
 
+Dự án gồm hai workspace riêng, cài dependency cho từng workspace:
+
 ```bash
+cd frontend
+npm install
+
+cd ../backend
 npm install
 ```
 
 ### Biến môi trường
 
-Tạo file `backend/.env`:
+Tạo file `backend/.env` (có thể tham khảo `backend/.env.example`):
 
 ```env
-PORT=5000
-MONGODB_URI=mongodb+srv://...
+PORT=4000
+MONGODB_URI=mongodb://127.0.0.1:27017/smartdine
 JWT_SECRET=your-jwt-secret
+
+# CORS
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+
+# Cloudinary (upload ảnh)
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Gemini AI (tạo mô tả/upsell món)
+GEMINI_API_KEYS=your_key1,your_key2
+GEMINI_FALLBACK_API_KEYS=
+GEMINI_MODELS=gemini-2.5-flash,gemini-2.0-flash
+
+# Stripe
 STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-ALLOWED_ORIGINS=http://localhost:5173
-SWAGGER_ENABLED=true                # optional
+
+# Optional
+SWAGGER_ENABLED=true
 ```
 
-Frontend cần file `frontend/.env`:
+Tạo `frontend/.env` hoặc dùng `frontend/.env.development`:
 
 ```env
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:4000
+VITE_SOCKET_URL=http://localhost:4000
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
 
 ### Khởi chạy
 
+Backend mặc định chạy ở `http://localhost:4000`:
+
 ```bash
-npm run dev             # Chạy đồng thời frontend (5173) + backend (5000)
-npm run dev:backend     # Chỉ backend
-npm run dev:frontend    # Chỉ frontend
+cd backend
+npm run dev        # nodemon, port 4000
 ```
 
----
+Frontend Vite mặc định chạy ở `http://localhost:3000` (xem `frontend/vite.config.js`):
 
-## 5. Mô hình Dữ liệu (10 collections)
+```bash
+cd frontend
+npm run dev
+```
+
+> Ghi chú: thư mục gốc không còn dùng script `concurrently` như tài liệu cũ; chạy riêng hai workspace như trên để đúng cấu hình hiện tại.
+## 5. Mô hình Dữ liệu (9 collections)
 
 ### Table (Bàn)
 | Field | Type | Ghi chú |
@@ -156,7 +187,7 @@ npm run dev:frontend    # Chỉ frontend
 | `description` | String | Mô tả |
 | `image` | String | URL ảnh |
 | `categoryId` | ObjectId → Category | Danh mục |
-| `isAvailable` | Boolean | Còn món không |
+| `isAvailable` | Boolean | Còn hàng / hết hàng (hỗ trợ lọc trong Admin) |
 | `popular` | Boolean | Đánh dấu phổ biến |
 | `aiDescription` | String | Mô tả sinh bởi AI (tùy chọn) |
 
@@ -202,90 +233,84 @@ npm run dev:frontend    # Chỉ frontend
 ### A. Luồng Khách hàng (Customer Flow — không cần đăng nhập)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  1. KHÁCH QUÉT QR CODE TẠI BÀN                               │
-│     → Truy cập /customer/{tableNumber}                       │
-├─────────────────────────────────────────────────────────────┤
-│  2. WELCOMEPAGE TỰ ĐỘNG MỞ PHIÊN (SESSION)                   │
-│     GET /sessions/table/:tableId/active                      │
-│     ├─ Có session ACTIVE → dùng lại sessionId                │
-│     └─ Không có → POST /sessions/open → tạo mới              │
-│     → Lưu smartdine_sessionId vào localStorage               │
-│     → Trạng thái bàn chuyển thành OCCUPIED                   │
-│     → WebSocket emit table-updated đến admin                 │
-├─────────────────────────────────────────────────────────────┤
-│  3. KHÁCH XEM MENU → CHỌN MÓN → ĐẶT HÀNG                     │
-│     GET /menu, GET /categories                               │
-│     Chọn món → thêm vào CartContext (local state)            │
-│     CartPage: POST /orders { sessionId, items[] }            │
-│     → Tạo Order + OrderItems                                 │
-│     → WebSocket emit new-order → Admin nhận ngay             │
-├─────────────────────────────────────────────────────────────┤
-│  4. KHÁCH THEO DÕI ĐƠN HÀNG (OrderTrackingPage)             │
-│     GET /orders/session/:sessionId                           │
-│     WebSocket join-session → nhận real-time order-updated    │
-│     Timeline: PENDING → CONFIRMED → PREPARING → READY → SERVED│
-├─────────────────────────────────────────────────────────────┤
-│  5a. GỌI NHÂN VIÊN (SupportPaymentPage)                      │
-│     POST /support/call { tableId, message, type }            │
-│     → WebSocket emit support-request → Admin SupportPage     │
-│                                                                │
-│  5b. THANH TOÁN (4 phương thức)                               │
-│     ├─ CASH:         POST /support/payment → Admin xác nhận  │
-│     │                POST /bills/generate { method: CASH }   │
-│     ├─ CARD (Stripe): POST /bills/create-payment-intent      │
-│     │                → Stripe Elements → xác nhận thẻ        │
-│     │                POST /bills/confirm-stripe-payment      │
-│     ├─ E_WALLET:     POST /bills/generate { method: E_WALLET }│
-│     └─ BANK_TRANSFER: POST /bills/generate { method: BANK_TRANSFER }│
-│     → Tạo Bill → Session CLOSED → Bàn chuyển CLEANING        │
-│     → Redirect BillSuccessPage                                │
-└─────────────────────────────────────────────────────────────┘
+1. Khách quét QR tại bàn
+   → Truy cập /customer/:tableId
+
+2. WelcomePage tự mở/khôi phục phiên
+   GET /sessions/table/:tableId/active
+   ├─ Có session ACTIVE → dùng lại sessionId
+   └─ Không có → POST /sessions/open → tạo mới
+   → Lưu smartdine_sessionId vào localStorage
+   → Bàn chuyển OCCUPIED
+   → Socket emit table-updated đến admin
+
+3. Khách xem menu, chọn món và đặt hàng
+   GET /menu, GET /categories
+   → Modal chi tiết món cho phép chọn số lượng + ghi chú ngay
+   → CartContext lưu giỏ vào localStorage
+   → CartPage: POST /orders { sessionId, items[] }
+   → Backend tạo Order + OrderItems, cộng session.totalAmount
+   → Socket emit new-order → Admin nhận đơn và phát âm thanh
+
+4. Khách theo dõi đơn
+   GET /orders/session/:sessionId
+   Socket join-session → nhận order-updated
+   Timeline: PENDING → CONFIRMED → PREPARING → READY → SERVED
+
+5. Gọi nhân viên / yêu cầu hỗ trợ
+   POST /support/call { tableId, message, type }
+   → Socket emit support-request → Admin nhận và phát âm thanh
 ```
+
+#### Thanh toán theo phương thức (đúng luồng thực tế)
+
+| Phương thức | Luồng | Kết quả |
+|---|---|---|
+| **CASH** | `POST /support/payment` → nhân viên kiểm tra → `POST /bills/generate` chọn CASH | Tạo bill `PENDING`, giữ session mở. Bàn chỉ trống khi nhân viên tự đổi trạng thái tay. |
+| **E_WALLET** | Hiện QR ngân hàng tĩnh `/qr-bank.png` → khách bấm “Đã thanh toán” → `POST /support/payment` → nhân viên kiểm tra | Tạo bill `PENDING`, giữ session mở. Bàn chỉ trống khi nhân viên đổi trạng thái tay. |
+| **BANK_TRANSFER** | Giống E_WALLET: hiện QR tĩnh → gửi yêu cầu → nhân viên xác nhận | Tạo bill `PENDING`, giữ session mở. |
+| **CARD (Stripe)** | `POST /bills/create-payment-intent` → Stripe Elements → `POST /bills/confirm-stripe-payment` | Thanh toán thành công thì tự tạo bill `PAID`, đóng session, bàn chuyển `CLEANING`. |
+| **Webhook Stripe** | `POST /webhooks/stripe` | Fallback tạo bill `PAID` nếu client mất kết nối. |
+
+> Không còn luồng “E_WALLET/BANK_TRANSFER tạo bill + đóng session ngay”. Các phương thức offline đều chờ nhân viên xác nhận.
 
 ### B. Luồng Admin (cần đăng nhập JWT)
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│  1. ĐĂNG NHẬP                                                │
-│     POST /auth/login { username, password }                  │
-│     → JWT token + user → localStorage                        │
-│     → ProtectedRoute kiểm tra token → cho vào /admin/*       │
-├──────────────────────────────────────────────────────────────┤
-│  2. DASHBOARD (/admin/dashboard)                             │
-│     GET /dashboard/stats (revenue, orders, tables)           │
-│     GET /dashboard/revenue-chart (daily/weekly)              │
-│     GET /dashboard/top-items                                 │
-│     WebSocket join-admin → nhận real-time updates            │
-├──────────────────────────────────────────────────────────────┤
-│  3. QUẢN LÝ ĐƠN HÀNG (/admin/orders)                        │
-│     GET /orders (tất cả đơn)                                 │
-│     PUT /orders/:id/status → cập nhật trạng thái             │
-│     WebSocket: new-order, order-updated                      │
-├──────────────────────────────────────────────────────────────┤
-│  4. QUẢN LÝ BÀN (/admin/tables)                              │
-│     GET /tables, POST /tables, PUT /tables/:id,              │
-│     DELETE /tables/:id                                       │
-│     WebSocket: table-updated (real-time)                     │
-│     Hỗ trợ phân khu: All Floors / Main Hall / VIP Terrace    │
-├──────────────────────────────────────────────────────────────┤
-│  5. QUẢN LÝ MENU (/admin/menu)                               │
-│     CRUD MenuItem + Category                                 │
-│     POST /menu/public/ai-description (tạo mô tả AI)          │
-├──────────────────────────────────────────────────────────────┤
-│  6. HÓA ĐƠN (/admin/bills)                                   │
-│     GET /bills, GET /bills/:id, GET /bills/stats/revenue     │
-├──────────────────────────────────────────────────────────────┤
-│  7. HỖ TRỢ (/admin/support)                                  │
-│     GET /support (real-time requests từ khách)               │
-│     PUT /support/:id/resolve → đánh dấu đã xử lý             │
-│     WebSocket: support-request                               │
-└──────────────────────────────────────────────────────────────┘
-```
+1. Đăng nhập /login
+   → JWT lưu vào localStorage (smartdine_token)
 
----
+2. Dashboard /admin/dashboard
+   GET /dashboard/stats
+   GET /dashboard/recent-orders
+   GET /dashboard/top-items
+   GET /dashboard/revenue-chart?period=week|month
+   WebSocket join-admin → tự refresh khi new-order / order-updated / table-updated
 
-## 7. API Routes & Auth
+3. Quản lý Đơn hàng /admin/orders
+   GET /orders
+   PUT /orders/:id/status
+   Socket new-order → thêm đơn, banner + âm thanh cảnh báo
+
+4. Quản lý Bàn /admin/tables
+   GET /tables, POST /tables, PUT /tables/:id, DELETE /tables/:id
+   “Close & Generate Bill” → POST /bills/generate
+   → Với CASH/E_WALLET/BANK_TRANSFER: tạo bill PENDING, không tự đóng session/giải phóng bàn
+   → Nhân viên đổi trạng thái bàn thủ công để về trống
+
+5. Quản lý Thực đơn /admin/menu
+   CRUD MenuItem + upload ảnh + AI mô tả/upsell
+   Lọc theo danh mục và trạng thái Còn hàng / Hết hàng
+
+6. Hóa đơn /admin/bills
+   GET /bills, GET /bills/:id, GET /bills/stats/revenue
+   Xem chi tiết bill: danh sách món, số lượng, đơn giá, thành tiền
+   In hóa đơn (window.print) + Xuất PDF (cửa sổ in/save PDF)
+
+7. Hỗ trợ /admin/support
+   GET /support, PUT /support/:id/resolve
+   Socket support-request → phát âm thanh khi có yêu cầu mới
+```## 7. API Routes & Auth
 
 ### Route nào cần auth (Admin JWT)?
 
@@ -297,27 +322,25 @@ npm run dev:frontend    # Chỉ frontend
 | `POST /sessions/close` | ✅ |
 | `GET /support`, `PUT /support/:id/resolve` | ✅ |
 | `GET /dashboard/*` | ✅ |
+| `POST /menu`, `PUT /menu/:id`, `DELETE /menu/:id`, `POST /menu/upload` | ✅ |
 
 ### Route nào PUBLIC (Customer)?
 
 | Route | Ghi chú |
 |---|---|
+| `GET /tables/public` | Danh sách bàn (cho khách đổi bàn) |
 | `POST /sessions/open` | Mở phiên khi quét QR |
 | `POST /sessions/switch` | Khách đổi bàn |
 | `GET /sessions/table/:id/active` | Kiểm tra session hiện tại |
-| `GET /tables/public` | Danh sách bàn (cho đổi bàn) |
+| `GET /menu`, `GET /categories` | Xem thực đơn |
 | `POST /orders` | Khách đặt món |
 | `GET /orders/session/:id` | Khách theo dõi đơn |
-| `GET /menu`, `GET /categories` | Xem thực đơn |
-| `POST /bills/generate` | Tạo hóa đơn (Cash/E-Wallet/Bank) |
+| `POST /support/call`, `POST /support/payment` | Gọi nhân viên / yêu cầu thanh toán |
+| `POST /bills/generate` | Tạo hóa đơn offline (chờ nhân viên xác nhận) |
 | `POST /bills/create-payment-intent` | Stripe PaymentIntent |
 | `POST /bills/confirm-stripe-payment` | Xác nhận thanh toán Stripe |
-| `POST /support/call`, `POST /support/payment` | Gọi nhân viên / yêu cầu thanh toán |
 
-> **Cơ chế xác thực customer**: Không dùng JWT. Thay vào đó, controller validate bằng `sessionId` (phải tồn tại + status `ACTIVE`) và `tableId` (phải khớp với session). Token chỉ tồn tại trong localStorage của admin.
-
----
-
+> **Cơ chế xác thực customer**: Không dùng JWT. Controller validate bằng `sessionId`/`tableId` (session phải tồn tại và đang `ACTIVE`). Token JWT chỉ dành cho admin.
 ## 8. Hệ thống Thiết kế (Design System)
 
 **Phong cách: Premium Dark Mode + Glassmorphism**
@@ -342,31 +365,51 @@ npm run dev:frontend    # Chỉ frontend
 
 | Event | Hướng | Mô tả |
 |---|---|---|
-| `join-admin` | Client → Server | Admin dashboard join room "admin" |
+| `join-admin` | Client → Server | Admin join room "admin" |
 | `join-session` | Client → Server | Customer join room `session:{id}` |
 | `join-table` | Client → Server | Join room `table:{id}` |
-| `new-order` | Server → admin + session | Có đơn mới từ khách |
-| `order-updated` | Server → admin + session | Admin cập nhật trạng thái đơn |
-| `support-request` | Server → admin | Khách gọi nhân viên / yêu cầu thanh toán |
+| `new-order` | Server → admin + session | Có đơn mới từ khách (admin phát âm thanh) |
+| `order-updated` | Server → admin + session | Trạng thái đơn thay đổi |
+| `support-request` | Server → admin | Khách gọi nhân viên / yêu cầu thanh toán (admin phát âm thanh) |
 | `table-updated` | Server → admin + table | Trạng thái bàn thay đổi |
 
----
+> Dashboard cũng lắng nghe `new-order`, `order-updated`, `table-updated` để tự refresh mà không cần bấm làm mới.
+## 10. Thanh toán & Xuất hóa đơn
 
-## 10. Thanh toán Stripe
+### Thẻ tín dụng (Stripe)
 
 ```
-Khách chọn "Credit Card"
+Khách chọn Credit Card
   → POST /bills/create-payment-intent
-  → Backend tính total (subtotal + 8% tax + 5% service) → Stripe PaymentIntent
-  → Trả clientSecret về frontend
-  → Stripe Elements hiển thị form nhập thẻ
-  → Khách submit → Stripe xử lý → frontend gọi confirmStripePayment
-  → Backend verify PaymentIntent với Stripe → tạo Bill → đóng Session → giải phóng bàn
-  → (Dự phòng) Stripe Webhook → /webhooks/stripe → auto-tạo Bill nếu client disconnect
+  → Backend tính total = subtotal + 8% tax + 5% service
+  → Stripe PaymentIntent → trả clientSecret
+  → Stripe Elements hiển thị form thẻ
+  → Khách submit → frontend gọi confirmStripePayment
+  → Backend verify PaymentIntent → tạo Bill PAID → đóng Session → bàn CLEANING
+  → Fallback: Stripe Webhook /webhooks/stripe
 ```
 
----
+### Tiền mặt / Ví điện tử / Chuyển khoản
 
+```
+Khách chọn CASH → gửi yêu cầu thanh toán
+  → POST /support/payment
+  → Admin nhận yêu cầu tại /admin/support hoặc /admin/tables
+  → Nhân viên chọn Close & Generate Bill → POST /bills/generate
+  → Tạo Bill PENDING, session vẫn mở
+  → Bàn chỉ chuyển trạng thái khi nhân viên đổi trạng thái thủ công
+
+Khách chọn E_WALLET / BANK_TRANSFER
+  → Hiện QR ngân hàng tĩnh /qr-bank.png
+  → Khách bấm Đã thanh toán → POST /support/payment
+  → Nhân viên kiểm tra giao dịch → xác nhận tạo bill
+```
+
+### Hóa đơn (Admin)
+
+- Modal chi tiết hiển thị: tên món, số lượng, đơn giá, thành tiền, thuế, phí dịch vụ, tổng cộng.
+- Nút **In hóa đơn** gọi `window.print()`.
+- Nút **Xuất PDF** mở cửa sổ in chuẩn hoá đơn để người dùng chọn Save as PDF; không cần thư viện PDF bên thứ ba.
 ## 11. Yêu cầu Phi chức năng
 
 - **Routing:** Clean URL — `/admin/*` cho dashboard, `/customer/:tableId/*` cho khách.
@@ -377,10 +420,8 @@ Khách chọn "Credit Card"
   - `.env` chứa tất cả secret/key.
   - Stripe webhook signature verification.
 - **Real-time:** Socket.IO — admin nhận đơn mới, yêu cầu hỗ trợ ngay lập tức; customer thấy tiến độ món ăn.
+- **Cảnh báo:** Admin có âm thanh cho đơn mới và yêu cầu hỗ trợ; banner cho đơn mới.
 - **Error handling:** Response interceptor tự động logout admin khi token hết hạn (401).
-
----
-
 ## 12. License
 
 [Chưa xác định]
