@@ -100,17 +100,15 @@ export function BarChart({ data, height = 280, color = "#56e5a9" }) {
                   rx="8" fill={color} opacity="0.12" filter={`url(#barGlow-${gid})`} />
               )}
               {/* Pillar shadow */}
-              <rect x={barX + 2} y={barY + 3} width={barW} height={barH - 3}
+              <rect x={barX + 2} y={barY + 3} width={barW} height={Math.max(barH - 3, 0)}
                 rx="6" fill={color} opacity="0.08" />
               {/* Main bar */}
               <rect x={barX} y={barY} width={barW} height={barH}
                 rx="6" fill={isHovered ? `url(#barGradH-${gid})` : `url(#barGrad-${gid})`}>
                 <animate attributeName="height" from="0" to={barH}
-                  dur="0.7s" begin={`${i * 0.06}s`} fill="freeze"
-                  calcMode="spline" keySplines="0.34 1.56 0.64 1" />
+                  dur="0.7s" begin={`${i * 0.06}s`} fill="freeze" />
                 <animate attributeName="y" from={padTop + innerH} to={barY}
-                  dur="0.7s" begin={`${i * 0.06}s`} fill="freeze"
-                  calcMode="spline" keySplines="0.34 1.56 0.64 1" />
+                  dur="0.7s" begin={`${i * 0.06}s`} fill="freeze" />
               </rect>
               {/* Value label */}
               <text x={barX + barW / 2} y={barY - 8} textAnchor="middle"
