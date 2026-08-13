@@ -25,7 +25,7 @@ export function AdminSidebar({ collapsed, setCollapsed, mobileOpen, onMobileClos
 
   const sidebarInner = (
     <aside
-      className={`h-full bg-surface-container/60 backdrop-blur-xl border-r border-white/10 flex flex-col ${
+      className={`relative h-full bg-surface-container/60 backdrop-blur-xl border-r border-white/10 flex flex-col ${
         collapsed ? "w-20" : "w-64"
       }`}
     >
@@ -73,6 +73,21 @@ export function AdminSidebar({ collapsed, setCollapsed, mobileOpen, onMobileClos
         })}
       </nav>
 
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="flex items-center justify-center gap-2 mx-3 mb-3 p-2.5 rounded-lg border border-white/10 bg-white/5 text-on-surface-variant transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary active:scale-95"
+        aria-label={collapsed ? "Mở rộng bảng điều khiển" : "Thu gọn bảng điều khiển"}
+        title={collapsed ? "Mở rộng bảng điều khiển" : "Thu gọn bảng điều khiển"}
+      >
+        <span
+          className="material-symbols-outlined text-xl"
+          style={{ fontVariationSettings: "'FILL' 1" }}
+        >
+          {collapsed ? "left_panel_open" : "left_panel_close"}
+        </span>
+        {!collapsed && <span className="text-xs font-semibold">Thu gọn</span>}
+      </button>
+
       <div className="p-4 border-t border-white/10 space-y-3">
         {/* Language Toggle */}
         <button
@@ -109,14 +124,6 @@ export function AdminSidebar({ collapsed, setCollapsed, mobileOpen, onMobileClos
           {!collapsed && <span className="text-xs font-medium">{t("sidebar.signOut")}</span>}
         </button>
 
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-center p-2 rounded-lg text-on-surface-variant/50 hover:text-white hover:bg-white/5 transition-all"
-        >
-          <span className="material-symbols-outlined text-sm">
-            {collapsed ? "chevron_right" : "chevron_left"}
-          </span>
-        </button>
       </div>
     </aside>
   );
