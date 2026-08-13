@@ -7,6 +7,7 @@ import ProtectedRoute from "@/components/layout/ProtectedRoute.jsx";
 import AdminLoginPage from "@/pages/admin/AdminLoginPage";
 import DashboardPage from "@/pages/admin/DashboardPage";
 import MenuManagementPage from "@/pages/admin/MenuManagementPage";
+import CategoriesManagementPage from "@/pages/admin/CategoriesManagementPage";
 import OrdersManagementPage from "@/pages/admin/OrdersManagementPage";
 import TablesManagementPage from "@/pages/admin/TablesManagementPage";
 import BillsManagementPage from "@/pages/admin/BillsManagementPage";
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="orders" element={<OrdersManagementPage />} />
             <Route path="menu" element={<MenuManagementPage />} />
+            <Route path="categories" element={<CategoriesManagementPage />} />
             <Route path="tables" element={<TablesManagementPage />} />
             <Route path="bills" element={<BillsManagementPage />} />
             <Route path="support" element={<SupportPage />} />

@@ -7,6 +7,7 @@ const navItems = [
   { to: "/admin/dashboard", icon: "dashboard", label: "sidebar.dashboard" },
   { to: "/admin/orders", icon: "list_alt", label: "sidebar.orders" },
   { to: "/admin/menu", icon: "restaurant_menu", label: "sidebar.menu" },
+  { to: "/admin/categories", icon: "category", label: "sidebar.categories" },
   { to: "/admin/tables", icon: "table_restaurant", label: "sidebar.tables" },
   { to: "/admin/bills", icon: "receipt_long", label: "sidebar.bills" },
   { to: "/admin/support", icon: "support_agent", label: "sidebar.support" },

@@ -25,7 +25,8 @@
     "bills": "Bills",
     "support": "Support",
     "signOut": "Sign Out",
-    "administrator": "Administrator"
+    "administrator": "Administrator",
+    "categories": "Categories"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -147,7 +148,7 @@
     "averageBill": "Average Bill",
     "allTimeGross": "All time gross revenue",
     "totalTransactions": "Total transactions",
-    "todaysVolume": "Today\u2019s volume",
+    "todaysVolume": "Today’s volume",
     "perTableAvg": "Per table avg",
     "searchBillID": "Search Bill ID...",
     "allPaymentMethods": "All Payment Methods",
@@ -228,8 +229,22 @@
     "backToMenu": "Back to Menu"
   },
   "language": {
-    "switchTo": "Ti\u1ebfng Vi\u1ec7t",
-    "vi": "Ti\u1ebfng Vi\u1ec7t",
+    "switchTo": "Tiếng Việt",
+    "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "categories": {
+    "title": "Category Management",
+    "subtitle": "Organize menu categories for dishes and drinks",
+    "addCategory": "Add Category",
+    "addNewCategory": "Add New Category",
+    "editCategory": "Edit Category",
+    "name": "Category Name",
+    "description": "Description",
+    "itemCount": "items",
+    "noCategories": "No categories yet",
+    "noCategoriesDesc": "Create a category to organize your menu.",
+    "nameRequired": "Category name is required",
+    "deleteConfirm": "Delete this category?"
   }
 }

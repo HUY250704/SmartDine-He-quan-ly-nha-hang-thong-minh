@@ -38,8 +38,8 @@ export default function MenuPage() {
   useEffect(() => {
     Promise.all([api.get("/menu"), api.get("/categories")])
       .then(([menuRes, catRes]) => {
-        setMenuItems(menuRes.data);
-        const cats = catRes.data || [];
+        setMenuItems(menuRes.data?.data || menuRes.data);
+        const cats = catRes.data?.data || catRes.data || [];
         setCategories([
           { _id: "all", name: t("menu.allItems") || "All", icon: "apps" },
           ...cats.map((c) => ({ ...c, icon: CATEGORY_ICONS[c.name?.toLowerCase()] || "category" })),

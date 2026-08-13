@@ -19,6 +19,7 @@ import sessionRoutes from './routes/sessions.js';
 import billRoutes from './routes/bills.js';
 import orderRoutes from './routes/orders.js';
 import supportRoutes from './routes/support.js';
+import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { handleStripeWebhook } from './controllers/stripeController.js';
 import dashboardRoutes from './routes/dashboard.js';
 
@@ -76,6 +77,10 @@ app.use('/dashboard', dashboardRoutes);
 app.get('/ping', (req, res) => {
   res.json({ message: 'pong from backend' });
 });
+
+// 404 + global error handler
+app.use(notFound);
+app.use(errorHandler);
 
 const port = process.env.PORT || 4000;
 const mongoUri = process.env.MONGODB_URI;

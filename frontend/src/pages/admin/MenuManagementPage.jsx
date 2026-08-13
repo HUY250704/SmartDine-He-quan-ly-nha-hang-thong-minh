@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import api from "@/lib/api.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
+import CategoryDropdown from "@/components/ui/CategoryDropdown.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { getDishImage } from "@/lib/dishImages.js";
 import { formatVND } from "@/lib/price.js";
@@ -26,7 +27,7 @@ export default function MenuManagementPage() {
   const fetchData = () => {
     setLoading(true);
     Promise.all([api.get("/menu"), api.get("/categories")])
-      .then(([menuRes, catRes]) => { setItems(menuRes.data); setCategories(catRes.data); })
+      .then(([menuRes, catRes]) => { setItems(menuRes.data?.data || menuRes.data); setCategories(catRes.data?.data || catRes.data); })
       .catch((err) => setError(err.response?.data?.error || "Failed to load menu"))
       .finally(() => setLoading(false));
   };
@@ -109,7 +110,8 @@ export default function MenuManagementPage() {
     setAiGenerating(true);
     setAiError("");
     try {
-      const { data } = await api.post("/menu/ai-description", { name, category: categories.find(c=>c._id===form.categoryId)?.name, type: "description" });
+      const response = await api.post("/menu/ai-description", { name, category: categories.find(c=>c._id===form.categoryId)?.name, type: "description" });
+      const data = response.data?.data || response.data;
       setForm(prev => ({ ...prev, aiDescription: data.aiDescription }));
     } catch (err) {
       setAiError(err.response?.data?.error || err.message || "Failed to generate AI description");
@@ -124,7 +126,8 @@ export default function MenuManagementPage() {
     setUpsellGenerating(true);
     setAiError("");
     try {
-      const { data } = await api.post("/menu/ai-description", { name, category: categories.find(c=>c._id===form.categoryId)?.name, type: "upsell" });
+      const response = await api.post("/menu/ai-description", { name, category: categories.find(c=>c._id===form.categoryId)?.name, type: "upsell" });
+      const data = response.data?.data || response.data;
       setForm(prev => ({ ...prev, upsellSuggestion: data.upsellSuggestion }));
     } catch (err) {
       setAiError(err.response?.data?.error || err.message || "Failed to generate upsell suggestions");
@@ -264,10 +267,7 @@ export default function MenuManagementPage() {
                 </div>
                 <div>
                   <label className="block text-on-surface-variant/60 text-[10px] font-bold uppercase tracking-wider mb-2">{t("menu.category")}</label>
-                  <select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl text-sm text-on-surface outline-none bg-white/5 border border-white/10 focus:border-primary/50 transition-colors">
-                    {categories.map((c) => (<option key={c._id} value={c._id} className="bg-[#1a2333]">{c.name}</option>))}
-                  </select>
+                  <CategoryDropdown value={form.categoryId} onChange={(categoryId) => setForm({ ...form, categoryId })} />
                 </div>
               </div>
 
