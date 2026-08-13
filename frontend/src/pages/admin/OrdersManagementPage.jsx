@@ -4,6 +4,7 @@ import { getSocket } from "@/lib/socket.js";
 import { playNotification } from "@/lib/notify.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
+import { formatPrice, formatVND, toVND } from "@/lib/price.js";
 
 const STATUS_TABS = [
   { key: "PENDING", label: "orders.pending" },
@@ -222,7 +223,7 @@ export default function OrdersManagementPage() {
             const elapsed = getElapsedMinutes(order.createdAt);
 
             const total = order.items
-              ? order.items.reduce((s, it) => s + ((it.menuItemId?.price || it.menuItem?.price || 0) * it.quantity), 0)
+              ? toVND(order.items.reduce((s, it) => s + ((it.menuItemId?.price || it.menuItem?.price || 0) * it.quantity), 0))
               : 0;
 
             const orderIdShort = order._id ? "#ORD-" + order._id.toString().slice(-4).toUpperCase() : "-";
@@ -268,7 +269,7 @@ export default function OrdersManagementPage() {
                           )}
                         </div>
                         <span className="text-on-surface font-mono text-xs ml-2">
-                          ${((item.menuItemId?.price || item.price || 0) * item.quantity).toFixed(0)}
+                          {formatVND((item.menuItemId?.price || item.price || 0) * item.quantity)}
                         </span>
                       </div>
                     );
@@ -278,7 +279,7 @@ export default function OrdersManagementPage() {
                 <div className="p-5 mt-auto" style={{ background: "rgba(255,255,255,0.02)" }}>
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-on-surface-variant text-xs font-bold uppercase tracking-wider">{t("orders.totalAmount")}</span>
-                    <span className="font-bold text-xl md:text-2xl" style={{ color: orderSc.color }}>${total.toFixed(0)}</span>
+                    <span className="font-bold text-xl md:text-2xl" style={{ color: orderSc.color }}>{formatPrice(total)}</span>
                   </div>
                   {actions.length > 0 && (
                     actions.length === 1 ? (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
-import { formatVND } from "@/lib/price.js";
+import { formatVND, toVND } from "@/lib/price.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
 
@@ -115,7 +115,7 @@ export default function BillsManagementPage() {
       ? bill.items.map((item) => {
           const name = String(item.name || "Mon an").replace(/[<>&]/g, "");
           const qty = item.quantity || 1;
-          const amount = (item.price || 0) * qty;
+          const amount = toVND((item.price || 0) * qty);
           return `
             <tr>
               <td class="qty">${qty}x</td>
@@ -167,10 +167,10 @@ export default function BillsManagementPage() {
     </table>
 
     <table class="totals">
-      ${bill.subtotal != null ? `<tr><td>Subtotal</td><td class="money">${(bill.subtotal || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
-      ${bill.tax != null && bill.tax > 0 ? `<tr><td>Tax (8%)</td><td class="money">${(bill.tax || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
-      ${bill.serviceCharge != null && bill.serviceCharge > 0 ? `<tr><td>Service (5%)</td><td class="money">${(bill.serviceCharge || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
-      <tr class="grand"><td>Total</td><td class="money">${(bill.total || 0).toLocaleString("vi-VN")}đ</td></tr>
+      ${bill.subtotal != null ? `<tr><td>Subtotal</td><td class="money">${toVND(bill.subtotal || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
+      ${bill.tax != null && bill.tax > 0 ? `<tr><td>Tax (8%)</td><td class="money">${toVND(bill.tax || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
+      ${bill.serviceCharge != null && bill.serviceCharge > 0 ? `<tr><td>Service (5%)</td><td class="money">${toVND(bill.serviceCharge || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
+      <tr class="grand"><td>Total</td><td class="money">${toVND(bill.total || 0).toLocaleString("vi-VN")}đ</td></tr>
     </table>
 
     <div class="no-print"><button onclick="window.print()">Save as PDF / Print</button></div>

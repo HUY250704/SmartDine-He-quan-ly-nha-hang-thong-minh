@@ -1,8 +1,8 @@
 import React from "react";
-import { formatPrice } from "@/lib/price.js";
+import { formatPrice, toVND } from "@/lib/price.js";
 
 export default function QRCodeModal({ total, onConfirm, onCancel, sending }) {
-  const amountVND = Math.round((total || 0) * 25000);
+  const amountVND = toVND(total || 0);
   const [imgError, setImgError] = React.useState(false);
 
   return (
@@ -53,7 +53,7 @@ export default function QRCodeModal({ total, onConfirm, onCancel, sending }) {
         {/* Amount */}
         <div className="text-center px-5 pb-2">
           <p className="text-on-surface-variant/40 text-[10px] uppercase tracking-wider mb-1">Tong tien</p>
-          <p className="font-mono font-bold text-3xl" style={{ color: "#ffc174" }}>${(total || 0).toFixed(2)}</p>
+          <p className="font-mono font-bold text-3xl" style={{ color: "#ffc174" }}>{formatPrice(amountVND)}</p>
           <p className="text-on-surface-variant/50 text-xs mt-1">&asymp; {amountVND.toLocaleString("vi-VN")} VND</p>
         </div>
 
