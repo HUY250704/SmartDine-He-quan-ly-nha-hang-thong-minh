@@ -70,6 +70,7 @@ export default function SupportPaymentPage() {
       .then((res) => {
         const items = [];
         res.data.forEach((order) => {
+          if (order.status === "CANCELLED") return;
           order.items?.forEach((it) => {
             const existing = items.find((bi) => bi.name === (it.menuItemId?.name || "Item"));
             if (existing) {

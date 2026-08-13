@@ -111,7 +111,7 @@ export default function BillSuccessPage() {
                 <span className="text-white">{item.name}</span>
                 <span className="text-on-surface-variant/40 ml-1">x{item.quantity}</span>
               </div>
-              <span className="text-on-surface font-mono text-xs ml-2 shrink-0">{formatPrice(toVND(item.price))}</span>
+              <span className="text-on-surface font-mono text-xs ml-2 shrink-0">{formatPrice(toVND(item.price) * (item.quantity || 1))}</span>
             </div>
           ))}
         </div>
