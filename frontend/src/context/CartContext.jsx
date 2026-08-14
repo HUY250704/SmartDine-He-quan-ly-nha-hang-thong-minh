@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { normalizeVND } from "@/lib/price.js";
 import { useLocation, matchPath } from "react-router-dom";
 
 const CartContext = createContext();
@@ -48,7 +49,7 @@ export function CartProvider({ children }) {
         const found = prev.find((i) => i._id === item._id);
         const next = found
           ? prev.map((i) => (i._id === item._id ? { ...i, qty: i.qty + 1 } : i))
-          : [...prev, { ...item, qty: 1, note: "" }];
+          : [...prev, { ...item, price: normalizeVND(item.price), qty: 1, note: "" }];
         localStorage.setItem(key, JSON.stringify(next));
         return next;
       });
@@ -65,7 +66,7 @@ export function CartProvider({ children }) {
         const found = prev.find((i) => i._id === item._id && i.note === itemNote);
         const next = found
           ? prev.map((i) => (i._id === item._id && i.note === itemNote ? { ...i, qty: i.qty + quantity } : i))
-          : [...prev, { ...item, qty: quantity, note: itemNote }];
+          : [...prev, { ...item, price: normalizeVND(item.price), qty: quantity, note: itemNote }];
         localStorage.setItem(key, JSON.stringify(next));
         return next;
       });

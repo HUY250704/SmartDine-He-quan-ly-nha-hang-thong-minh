@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
-import { formatPrice } from "@/lib/price.js";
+import { formatPrice, normalizeVND } from "@/lib/price.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
 
 const formatPriceForPDF = (price) => {
-  return Number(price || 0).toLocaleString("vi-VN") + "đ";
+  return normalizeVND(price).toLocaleString("vi-VN") + "đ";
 };
 
 const paymentMethods = {
@@ -56,11 +56,11 @@ export default function BillsManagementPage() {
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-  const totalRevenue = bills.reduce((s, b) => s + (b.total || 0), 0);
+  const totalRevenue = bills.reduce((s, b) => s + normalizeVND(b.total), 0);
   const avgBill = bills.length ? totalRevenue / bills.length : 0;
   const todayRevenue = bills
     .filter((b) => b.paidAt && new Date(b.paidAt).toDateString() === new Date().toDateString())
-    .reduce((s, b) => s + (b.total || 0), 0);
+    .reduce((s, b) => s + normalizeVND(b.total), 0);
 
   const statCards = [
     { label: t("bills.totalRevenue"), value: formatPrice(totalRevenue), icon: "payments", color: "#ffb690", sub: t("bills.allTimeGross") },
@@ -85,7 +85,7 @@ export default function BillsManagementPage() {
       const date = b.paidAt ? new Date(b.paidAt).toLocaleDateString("en-US") : "-";
       const time = b.paidAt ? new Date(b.paidAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "-";
       const method = b.paymentMethod || "Cash";
-      const total = (b.total || 0).toLocaleString("vi-VN");
+      const total = normalizeVND(b.total).toLocaleString("vi-VN");
       return [id, table, date, time, method, total].map(v => `"${v}"`).join(",");
     });
     const csv = [headers.join(","), ...rows].join("\n");
@@ -119,7 +119,7 @@ export default function BillsManagementPage() {
       ? bill.items.map((item) => {
           const name = String(item.name || "Mon an").replace(/[<>&]/g, "");
           const qty = item.quantity || 1;
-          const amount = Number(item.price || 0) * qty;
+          const amount = normalizeVND(item.price) * qty;
           return `
             <tr>
               <td class="qty">${qty}x</td>
@@ -259,7 +259,7 @@ export default function BillsManagementPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 md:px-6 md:py-4 text-right">
-                        <span className="font-mono text-lg font-medium" style={{ color: "#ffc174" }}>{formatPrice(bill.total || 0)}</span>
+                        <span className="font-mono text-lg font-medium" style={{ color: "#ffc174" }}>{formatPrice(normalizeVND(bill.total))}</span>
                       </td>
                       <td className="px-4 py-3 md:px-6 md:py-4">
                         <div className="flex items-center gap-2">
@@ -329,7 +329,7 @@ export default function BillsManagementPage() {
                         <span className="text-on-surface-variant/40 text-xs w-5 text-right">{item.quantity || 1}x</span>
                         <span className="text-white text-xs truncate">{item.name || "Mon an"}</span>
                       </div>
-                      <span className="font-mono text-xs text-on-surface-variant ml-2 shrink-0">{formatPrice((item.price || 0) * (item.quantity || 1))}</span>
+                      <span className="font-mono text-xs text-on-surface-variant ml-2 shrink-0">{formatPrice(normalizeVND(item.price) * (item.quantity || 1))}</span>
                     </div>
                   ))}
                 </div>
@@ -341,19 +341,19 @@ export default function BillsManagementPage() {
             {/* Totals */}
             <div className="space-y-2 text-sm mb-4 pb-3 border-b border-white/5">
               {selectedBill.subtotal != null && (
-                <div className="flex justify-between"><span className="text-on-surface-variant/50">Tam tinh</span><span className="text-on-surface-variant font-mono">{formatPrice(selectedBill.subtotal)}</span></div>
+                <div className="flex justify-between"><span className="text-on-surface-variant/50">Tam tinh</span><span className="text-on-surface-variant font-mono">{formatPrice(normalizeVND(selectedBill.subtotal))}</span></div>
               )}
               {selectedBill.tax != null && selectedBill.tax > 0 && (
-                <div className="flex justify-between"><span className="text-on-surface-variant/50">Thue (8%)</span><span className="text-on-surface-variant font-mono">{formatPrice(selectedBill.tax)}</span></div>
+                <div className="flex justify-between"><span className="text-on-surface-variant/50">Thue (8%)</span><span className="text-on-surface-variant font-mono">{formatPrice(normalizeVND(selectedBill.tax))}</span></div>
               )}
               {selectedBill.serviceCharge != null && selectedBill.serviceCharge > 0 && (
-                <div className="flex justify-between"><span className="text-on-surface-variant/50">Phi dich vu (5%)</span><span className="text-on-surface-variant font-mono">{formatPrice(selectedBill.serviceCharge)}</span></div>
+                <div className="flex justify-between"><span className="text-on-surface-variant/50">Phi dich vu (5%)</span><span className="text-on-surface-variant font-mono">{formatPrice(normalizeVND(selectedBill.serviceCharge))}</span></div>
               )}
             </div>
 
             <div className="flex justify-between pt-1">
               <span className="text-white font-bold text-lg">Tong cong</span>
-              <span className="font-mono font-bold text-lg" style={{ color: "#ffc174" }}>{formatPrice(selectedBill.total || 0)}</span>
+              <span className="font-mono font-bold text-lg" style={{ color: "#ffc174" }}>{formatPrice(normalizeVND(selectedBill.total))}</span>
             </div>
             <div className="flex gap-2 mt-6">
               <button onClick={() => setSelectedBill(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold border border-white/10 text-on-surface hover:bg-white/5 transition-colors">Dong</button>

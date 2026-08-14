@@ -4,6 +4,7 @@ import Session from '../models/Session.js';
 import MenuItem from '../models/MenuItem.js';
 import { emitNewOrder, emitOrderUpdated } from '../socket/index.js';
 import { batchOrderItems } from '../utils/batchHelpers.js';
+import { normalizeVND } from '../utils/price.js';
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -50,10 +51,10 @@ export const createOrder = async (req, res) => {
 
       const orderItem = await OrderItem.create({ orderId: order._id, menuItemId, quantity: quantity || 1, note: note || '', status: 'PENDING' });
       orderItems.push(orderItem);
-      orderTotal += menuItem.price * (quantity || 1);
+      orderTotal += normalizeVND(menuItem.price) * (quantity || 1);
     }
 
-    session.totalAmount = (session.totalAmount || 0) + orderTotal;
+    session.totalAmount = normalizeVND(session.totalAmount) + orderTotal;
     await session.save();
 
     const responseData = { order, items: orderItems, total: orderTotal };

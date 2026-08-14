@@ -3,7 +3,7 @@ import api from "@/lib/api.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { getSocket } from "@/lib/socket.js";
-import { formatVND } from "@/lib/price.js";
+import { formatVND, normalizeVND } from "@/lib/price.js";
 
 const statusConfig = {
   AVAILABLE: { label: "tables.available", color: "#56e5a9", bg: "rgba(86,229,169,0.1)", border: "rgba(86,229,169,0.2)", icon: "check_circle" },
@@ -265,7 +265,7 @@ export default function TablesManagementPage() {
                 </span>
                 <div className="flex items-center gap-3">
                   {sessionAmount != null && sessionAmount > 0 && (
-                    <span className="font-mono text-xs" style={{ color: "#ffc174" }}>{formatVND(sessionAmount)}</span>
+                    <span className="font-mono text-xs" style={{ color: "#ffc174" }}>{formatVND(normalizeVND(sessionAmount))}</span>
                   )}
                   {elapsed != null && (
                     <span className="font-mono text-xs" style={{ color: sc.color }}>{formatTimer(elapsed)}</span>
@@ -305,7 +305,7 @@ export default function TablesManagementPage() {
                         <p className="text-on-surface-variant/50 text-xs">#{table.currentSessionId._id?.toString().slice(-6)}</p>
                       </div>
                       <span className="font-mono font-bold text-lg" style={{ color: "#ffc174" }}>
-                        {formatVND(sessionAmount || 0)}
+                        {formatVND(normalizeVND(sessionAmount))}
                       </span>
                     </div>
                   )}
@@ -387,7 +387,7 @@ export default function TablesManagementPage() {
             </div>
 
             <p className="text-on-surface-variant/50 text-xs mb-4">
-              Table #{selectedTable.number} · {formatVND(selectedTable.currentSessionId?.totalAmount || 0)}
+              Table #{selectedTable.number} · {formatVND(normalizeVND(selectedTable.currentSessionId?.totalAmount))}
             </p>
 
             <div className="space-y-2 mb-5">

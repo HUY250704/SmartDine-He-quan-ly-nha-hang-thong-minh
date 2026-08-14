@@ -4,6 +4,7 @@ import OrderItem from "../models/OrderItem.js";
 import Table from "../models/Table.js";
 import Bill from "../models/Bill.js";
 import { batchOrderItems } from "../utils/batchHelpers.js";
+import { normalizeVND, calcTotals } from "../utils/price.js";
 
 // Shared data fetching � used by both overview and getStats
 async function getStatsData() {
@@ -251,10 +252,8 @@ export const recentOrders = async (req, res) => {
     const enriched = orders.map(order => {
       const items = itemsMap.get(order._id.toString()) || [];
       const tableNumber = order.sessionId?.tableId?.number || null;
-      const subtotal = items.reduce((sum, it) => sum + (it.menuItemId?.price || 0) * (it.quantity || 1), 0);
-      const tax = Math.round(subtotal * 0.08);
-      const serviceCharge = Math.round(subtotal * 0.05);
-      const total = Math.round(subtotal + tax + serviceCharge);
+      const subtotal = items.reduce((sum, it) => sum + normalizeVND(it.menuItemId?.price) * (it.quantity || 1), 0);
+      const { tax, serviceCharge, total } = calcTotals(subtotal);
       return {
         ...order.toObject(),
         items,

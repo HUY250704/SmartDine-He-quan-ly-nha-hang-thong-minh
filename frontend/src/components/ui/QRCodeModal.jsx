@@ -1,8 +1,8 @@
 import React from "react";
-import { formatPrice } from "@/lib/price.js";
+import { formatPrice, normalizeVND } from "@/lib/price.js";
 
 export default function QRCodeModal({ total, onConfirm, onCancel, sending }) {
-  const amountVND = Number(total || 0);
+  const amountVND = normalizeVND(total);
   const [imgError, setImgError] = React.useState(false);
 
   return (

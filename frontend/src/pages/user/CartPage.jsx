@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
 import api from "@/lib/api.js";
-import { formatPrice } from "@/lib/price.js";
+import { formatPrice, normalizeVND } from "@/lib/price.js";
 
 const glassCard = {
   background: "rgba(255,255,255,0.03)",
@@ -21,7 +21,7 @@ export default function CartPage() {
   const [orderError, setOrderError] = useState("");
   const [editingNote, setEditingNote] = useState(null);
 
-  const subtotal = cart.reduce((s, i) => s + Number(i.price) * i.qty, 0);
+  const subtotal = cart.reduce((s, i) => s + normalizeVND(i.price) * i.qty, 0);
   const tax = Math.round(subtotal * 0.08);
   const serviceCharge = Math.round(subtotal * 0.05);
   const total = subtotal + tax + serviceCharge;
@@ -87,7 +87,7 @@ export default function CartPage() {
         ) : (
           <div className="space-y-3">
             {cart.map((item) => {
-              const itemTotal = Number(item.price) * item.qty;
+              const itemTotal = normalizeVND(item.price) * item.qty;
               return (
                 <div key={item._id} className="flex gap-3 p-3 md:p-4 rounded-2xl group" style={glassCard}>
                   <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl bg-white/5 overflow-hidden shrink-0">

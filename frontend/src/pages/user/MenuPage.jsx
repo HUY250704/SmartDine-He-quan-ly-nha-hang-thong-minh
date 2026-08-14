@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { useCart } from "@/context/CartContext.jsx";
 import api from "@/lib/api.js";
-import { formatVND } from "@/lib/price.js";
+import { formatVND, normalizeVND } from "@/lib/price.js";
 import { getDishImage } from "@/lib/dishImages.js";
 
 const CATEGORY_ICONS = {
@@ -102,7 +102,7 @@ export default function MenuPage() {
           <div className="p-6">
             <div className="flex items-start justify-between mb-3">
               <h3 className="text-white font-bold text-lg md:text-xl">{selectedItem.name}</h3>
-              <span className="font-mono font-bold text-lg md:text-xl" style={{ color: "#ffc174" }}>{formatVND(selectedItem.price)}</span>
+              <span className="font-mono font-bold text-lg md:text-xl" style={{ color: "#ffc174" }}>{formatVND(normalizeVND(selectedItem.price))}</span>
             </div>
             <p className="text-on-surface-variant/50 text-sm leading-relaxed mb-6">{selectedItem.description || selectedItem.aiDescription || "A delicious dish from our kitchen."}</p>
             {/* Quantity selector */}
@@ -143,7 +143,7 @@ export default function MenuPage() {
             {/* Line total */}
             <div className="flex items-center justify-between mb-5 px-3 py-2 rounded-xl" style={{ background: "rgba(255,193,116,0.08)", border: "1px solid rgba(255,193,116,0.15)" }}>
               <span className="text-on-surface-variant/70 text-xs">Thanh tien</span>
-              <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatVND((selectedItem.price || 0) * detailQty)}</span>
+              <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatVND(normalizeVND(selectedItem.price) * detailQty)}</span>
             </div>
 
             <button
@@ -160,7 +160,7 @@ export default function MenuPage() {
               style={{ background: "#ffc174", color: "#472a00", boxShadow: "0 0 20px rgba(255,193,116,0.2)" }}
             >
               <span className="material-symbols-outlined text-lg">add_shopping_cart</span>
-              Them vao gio - {formatVND((selectedItem.price || 0) * detailQty)}
+              Them vao gio - {formatVND(normalizeVND(selectedItem.price) * detailQty)}
             </button>
           </div>
         </div>
@@ -262,7 +262,7 @@ export default function MenuPage() {
                   <h3 className="text-white font-semibold text-xs md:text-sm leading-tight mb-1">{item.name}</h3>
                   <p className="text-on-surface-variant/50 text-[10px] md:text-xs leading-relaxed line-clamp-2 mb-3">{item.description || item.aiDescription || ""}</p>
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-xs md:text-sm" style={{ color: "#ffc174" }}>{formatVND(item.price)}</span>
+                    <span className="font-mono font-bold text-xs md:text-sm" style={{ color: "#ffc174" }}>{formatVND(normalizeVND(item.price))}</span>
                     <button
                       onClick={(e) => addItem(item, e)}
                       disabled={item.isAvailable === false}

@@ -5,6 +5,7 @@ import OrderItem from '../models/OrderItem.js';
 import Table from '../models/Table.js';
 import { emitTableUpdated } from '../socket/index.js';
 import { batchOrderItems } from '../utils/batchHelpers.js';
+import { normalizeVND, calcTotals } from '../utils/price.js';
 
 export const getBills = async (req, res) => {
   try {
@@ -74,7 +75,7 @@ export const generateBill = async (req, res) => {
     for (const order of orders) {
       const items = itemsMap.get(order._id.toString()) || [];
       for (const it of items) {
-        const price = (it.menuItemId?.price || 0);
+        const price = normalizeVND(it.menuItemId?.price);
         const qty = it.quantity || 1;
         billItems.push({
           name: it.menuItemId?.name || 'Item',
@@ -97,9 +98,7 @@ export const generateBill = async (req, res) => {
       }
     });
 
-    const tax = Math.round(subtotal * 0.08);
-    const serviceCharge = Math.round(subtotal * 0.05);
-    const total = Math.round(subtotal + tax + serviceCharge);
+    const { tax, serviceCharge, total } = calcTotals(subtotal);
 
     const table = await Table.findById(session.tableId);
     const tableNumber = table ? table.number : null;

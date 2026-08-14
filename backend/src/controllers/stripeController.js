@@ -6,6 +6,7 @@ import Bill from '../models/Bill.js';
 import Table from '../models/Table.js';
 import { emitTableUpdated } from '../socket/index.js';
 import { batchOrderItems } from '../utils/batchHelpers.js';
+import { normalizeVND, calcTotals } from '../utils/price.js';
 
 // Tạo PaymentIntent để khách nhập thẻ
 export const createPaymentIntent = async (req, res) => {
@@ -29,13 +30,11 @@ export const createPaymentIntent = async (req, res) => {
     let subtotal = 0;
     for (const order of orders) {
       for (const it of (itemsMap.get(order._id.toString()) || [])) {
-        subtotal += (it.menuItemId?.price || 0) * (it.quantity || 1);
+        subtotal += normalizeVND(it.menuItemId?.price) * (it.quantity || 1);
       }
     }
 
-    const tax = Math.round(subtotal * 0.08);
-    const serviceCharge = Math.round(subtotal * 0.05);
-    const total = Math.round(subtotal + tax + serviceCharge);
+    const { tax, serviceCharge, total } = calcTotals(subtotal);
 
     if (total <= 0) {
       return res.status(400).json({ error: 'No items to charge' });
@@ -101,7 +100,7 @@ export const confirmStripePayment = async (req, res) => {
     for (const order of orders) {
       const items = itemsMap.get(order._id.toString()) || [];
       for (const it of items) {
-        const price = (it.menuItemId?.price || 0);
+        const price = normalizeVND(it.menuItemId?.price);
         const qty = it.quantity || 1;
         billItems.push({
           name: it.menuItemId?.name || 'Item',
@@ -124,9 +123,7 @@ export const confirmStripePayment = async (req, res) => {
       }
     });
 
-    const tax = Math.round(subtotal * 0.08);
-    const serviceCharge = Math.round(subtotal * 0.05);
-    const total = Math.round(subtotal + tax + serviceCharge);
+    const { tax, serviceCharge, total } = calcTotals(subtotal);
 
     const table = await Table.findById(session.tableId);
     const tableNumber = table ? table.number : null;
@@ -212,7 +209,7 @@ export const handleStripeWebhook = async (req, res) => {
             for (const order of orders) {
               const items = itemsMap.get(order._id.toString()) || [];
               for (const it of items) {
-                const price = (it.menuItemId?.price || 0);
+                const price = normalizeVND(it.menuItemId?.price);
                 const qty = it.quantity || 1;
                 billItems.push({ name: it.menuItemId?.name || 'Item', quantity: qty, price, image: it.menuItemId?.image || '' });
                 subtotal += price * qty;
@@ -229,9 +226,7 @@ export const handleStripeWebhook = async (req, res) => {
               }
             });
 
-            const tax = Math.round(subtotal * 0.08);
-            const serviceCharge = Math.round(subtotal * 0.05);
-            const total = Math.round(subtotal + tax + serviceCharge);
+            const { tax, serviceCharge, total } = calcTotals(subtotal);
 
             const table = await Table.findById(session.tableId);
 

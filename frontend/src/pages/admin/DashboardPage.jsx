@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
 import { BarChart } from "@/components/ui/Charts.jsx";
-import { formatVND } from "@/lib/price.js";
+import { formatVND, normalizeVND } from "@/lib/price.js";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { getSocket } from "@/lib/socket.js";
@@ -175,10 +175,10 @@ export default function DashboardPage() {  const { t } = useLang();
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#56e5a9" }}><span className="material-symbols-outlined text-8xl">payments</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.totalRevenue")}</p>
-            <h3 className="text-2xl md:text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#56e5a9" }}>{formatVND(stats?.totalRevenue || 0)}</h3>
+            <h3 className="text-2xl md:text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#56e5a9" }}>{formatVND(normalizeVND(stats?.totalRevenue))}</h3>
             <div className="flex items-center mt-2 text-on-surface-variant text-xs">
               <span className="material-symbols-outlined text-sm mr-1">today</span>
-              <span>{formatVND(stats?.todayRevenue || 0)} {t("dashboard.todayRevenue")}</span>
+              <span>{formatVND(normalizeVND(stats?.todayRevenue))} {t("dashboard.todayRevenue")}</span>
             </div>
           </div>
         </GlassCard>
@@ -214,7 +214,7 @@ export default function DashboardPage() {  const { t } = useLang();
           <div className="absolute -right-4 -top-4 opacity-10 transition-transform group-hover:scale-110" style={{ color: "#a78bfa" }}><span className="material-symbols-outlined text-8xl">analytics</span></div>
           <div className="relative z-10">
             <p className="text-on-surface-variant text-xs uppercase tracking-widest mb-1">{t("dashboard.avgBill")}</p>
-            <h3 className="text-2xl md:text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#a78bfa" }}>{formatVND(stats?.avgBill || 0)}</h3>
+            <h3 className="text-2xl md:text-[32px] font-bold tracking-[-0.01em]" style={{ color: "#a78bfa" }}>{formatVND(normalizeVND(stats?.avgBill))}</h3>
             <div className="flex items-center mt-2 text-on-surface-variant text-xs">
               <span className="material-symbols-outlined text-sm mr-1">receipt_long</span>
               <span>{stats?.todaySessions || 0} {t("dashboard.sessionsToday")}</span>
@@ -279,7 +279,7 @@ export default function DashboardPage() {  const { t } = useLang();
                             {order.status}
                           </span>
                         </td>
-                        <td className="p-2 md:p-4 text-right font-bold text-xs md:text-sm" style={{ color: "#ffc174" }}>{formatVND(order.totalAmount || 0)}</td>
+                        <td className="p-2 md:p-4 text-right font-bold text-xs md:text-sm" style={{ color: "#ffc174" }}>{formatVND(normalizeVND(order.totalAmount))}</td>
                       </tr>
                     );
                   })}
@@ -312,7 +312,7 @@ export default function DashboardPage() {  const { t } = useLang();
                     <p className="text-xs text-on-surface-variant">{item.totalQuantity || 0} {t("dashboard.ordersThisWeek")}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-primary font-bold">{formatVND(item.menuItem?.price || 0)}</p>
+                    <p className="text-primary font-bold">{formatVND(normalizeVND(item.menuItem?.price))}</p>
                     <p className="text-[10px] text-tertiary">{item.orderCount ? `x${item.orderCount}` : "+0%"}</p>
                   </div>
                 </div>

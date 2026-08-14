@@ -4,7 +4,7 @@ import { GlassCard } from "@/components/ui/glass-card.jsx";
 import CategoryDropdown from "@/components/ui/CategoryDropdown.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { getDishImage } from "@/lib/dishImages.js";
-import { formatVND } from "@/lib/price.js";
+import { formatVND, normalizeVND } from "@/lib/price.js";
 export default function MenuManagementPage() {
   const { t } = useLang();
   const [items, setItems] = useState([]);
@@ -220,7 +220,7 @@ export default function MenuManagementPage() {
                   <h3 className="text-white font-semibold text-lg mb-1">{item.name}</h3>
                   <p className="text-on-surface-variant/50 text-xs mb-3">{item.categoryId?.name || t("menu.uncategorized")}</p>
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatVND(item.price)}</span>
+                    <span className="font-mono font-bold text-sm" style={{ color: "#ffc174" }}>{formatVND(normalizeVND(item.price))}</span>
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       <button onClick={() => toggleAvailable(item)} className={`w-11 h-11 md:w-9 md:h-9 rounded-full flex items-center justify-center transition-all ${isAvailable ? "bg-primary/20 text-primary" : "bg-error/20 text-error"}`}>
                         <span className="material-symbols-outlined text-sm">{isAvailable ? "visibility" : "visibility_off"}</span>
