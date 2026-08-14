@@ -1,11 +1,25 @@
 ﻿import { withRetry } from "../utils/retry.js";
 
 // ─── Cấu hình (đọc lazy để dotenv kịp load) ─────────────────
+const DEFAULT_MODELS = [
+  "gemini-2.0-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.5-flash",
+];
+
 function parseKeys(envVar) {
   if (!envVar) return [];
   return envVar
     .split(",")
     .map((k) => k.trim())
+    .filter(Boolean);
+}
+
+function parseModels(envVar) {
+  if (!envVar) return [];
+  return envVar
+    .split(",")
+    .map((m) => m.trim())
     .filter(Boolean);
 }
 
@@ -28,14 +42,49 @@ function getAllKeys() {
 
 function getModels() {
   if (_modelsCache) return _modelsCache;
-  const raw = process.env.GEMINI_MODELS || process.env.GEMINI_MODEL || "gemini-2.0-flash";
-  _modelsCache = raw.split(",").map((m) => m.trim()).filter(Boolean);
+
+  const explicitModels = parseModels(process.env.GEMINI_MODELS);
+  if (explicitModels.length > 0) {
+    _modelsCache = explicitModels;
+    return _modelsCache;
+  }
+
+  const preferred = parseModels(process.env.GEMINI_MODEL);
+  _modelsCache = [...new Set([...preferred, ...DEFAULT_MODELS])];
   return _modelsCache;
 }
 
-function getDefaultModel() {
-  const models = getModels();
-  return models[0] || "gemini-2.5-flash";
+function _orderedModels(preferred, allModels) {
+  const ordered = [];
+  const addModel = (model) => {
+    if (model && !ordered.includes(model)) ordered.push(model);
+  };
+
+  addModel(preferred);
+  for (const model of allModels) addModel(model);
+  return ordered;
+}
+
+/** Chọn model đầu tiên chưa thử trong thứ tự ưu tiên. */
+function _pickUntried(preferred, triedSet, allModels) {
+  const ordered = _orderedModels(preferred, allModels);
+  return ordered.find((model) => !triedSet.has(model)) || null;
+}
+
+/** Nhận diện lỗi quota/rate-limit chung cho Gemini. */
+function _isQuotaError(error) {
+  const msg = String(error?.message || error?.status || "").toLowerCase();
+  return (
+    msg.includes("quota") ||
+    msg.includes("rate limit") ||
+    msg.includes("rate_limit") ||
+    msg.includes("resource_exhausted") ||
+    msg.includes("too many requests") ||
+    msg.includes("429") ||
+    msg.includes("503") ||
+    msg.includes("overloaded") ||
+    msg.includes("unavailable")
+  );
 }
 
 // ─── Trạng thái xoay vòng ───────────────────────────────────
@@ -77,22 +126,12 @@ class KeyRing {
 
   /** Đánh dấu key vào cooldown nếu lỗi quota */
   markCooldown(key, error) {
-    const msg = (error?.message || "").toLowerCase();
-    const isQuota =
-      msg.includes("quota") ||
-      msg.includes("rate") ||
-      msg.includes("resource_exhausted") ||
-      msg.includes("429") ||
-      msg.includes("503") ||
-      msg.includes("overloaded") ||
-      msg.includes("unavailable");
+    if (!_isQuotaError(error)) return;
 
-    if (isQuota) {
-      this.cooldowns.set(key, Date.now() + this.cooldownMs);
-      console.warn(
-        `[geminiService] Key ${key.slice(0, 8)}... bị quota → cooldown ${this.cooldownMs / 1000}s`
-      );
-    }
+    this.cooldowns.set(key, Date.now() + this.cooldownMs);
+    console.warn(
+      `[geminiService] Key ${key.slice(0, 8)}... bị quota → cooldown ${this.cooldownMs / 1000}s`
+    );
   }
 
   /** Reset cooldown của một key */
@@ -101,7 +140,58 @@ class KeyRing {
   }
 }
 
+class ModelRing {
+  constructor(models) {
+    this.models = models;
+    this.cooldowns = new Map(); // model → timestamp hết hạn cooldown
+    this.cooldownMs = 60_000;   // 60 giây cooldown khi model bị quota exceeded
+  }
+
+  isOnCooldown(model) {
+    const until = this.cooldowns.get(model);
+    return Boolean(until && Date.now() < until);
+  }
+
+  /**
+   * Lấy model kế tiếp chưa thử và không nằm trong cooldown.
+   * Những model đang cooldown sẽ được đưa vào triedSet để tránh thử lại.
+   */
+  getNext(preferred, triedSet = new Set()) {
+    let model = _pickUntried(preferred, triedSet, this.models);
+
+    while (model && this.isOnCooldown(model)) {
+      triedSet.add(model);
+      model = _pickUntried(preferred, triedSet, this.models);
+    }
+
+    return model;
+  }
+
+  /** Đánh dấu model vào cooldown nếu lỗi quota */
+  markCooldown(model, error) {
+    if (!_isQuotaError(error)) return;
+
+    this.cooldowns.set(model, Date.now() + this.cooldownMs);
+    console.warn(
+      `[geminiService] Model ${model} bị quota → cooldown ${this.cooldownMs / 1000}s`
+    );
+  }
+
+  /** Reset cooldown của một model */
+  clearCooldown(model) {
+    this.cooldowns.delete(model);
+  }
+
+  allOnCooldown() {
+    return (
+      this.models.length > 0 &&
+      this.models.every((model) => this.isOnCooldown(model))
+    );
+  }
+}
+
 let _keyRing = null;
+let _modelRing = null;
 
 function getKeyRing() {
   if (!_keyRing) {
@@ -110,101 +200,139 @@ function getKeyRing() {
   return _keyRing;
 }
 
+function getModelRing() {
+  if (!_modelRing) {
+    _modelRing = new ModelRing(getModels());
+  }
+  return _modelRing;
+}
+
 // ─── Public API ──────────────────────────────────────────────
 
 /**
- * Gửi prompt đến Gemini, tự động xoay key & model khi gặp lỗi quota.
+ * Gửi prompt đến Gemini, tự động xoay model trên từng key.
+ *
+ * Với mỗi key, thử lần lượt các model chưa dùng cho key đó.
+ * Khi một model báo quota, model đó vào cooldown và thử model kế tiếp.
+ * Khi hết model cho key hiện tại, key đó vào cooldown và chuyển key kế tiếp.
  *
  * @param {string} prompt      - nội dung prompt
  * @param {object} [options]
- * @param {string} [options.model]   - model cụ thể (mặc định getDefaultModel())
- * @param {number} [options.maxKeySwitches] - số lần đổi key tối đa (mặc định: số key)
+ * @param {string} [options.model]   - model ưu tiên (mặc định theo GEMINI_MODELS)
+ * @param {number} [options.maxKeySwitches] - số key tối đa được thử (mặc định: số key)
  */
 export async function generateContent(prompt, options = {}) {
   if (getAllKeys().length === 0) {
     throw new Error("Không có GEMINI_API_KEY nào được cấu hình.");
   }
 
+  const models = getModels();
+  const modelCandidates = _orderedModels(options.model, models);
   const maxSwitches = options.maxKeySwitches ?? getAllKeys().length;
   let switches = 0;
-  const triedModels = new Set();
 
-  while (switches <= maxSwitches) {
+  while (switches < maxSwitches) {
     const apiKey = getKeyRing().getNext();
     if (!apiKey) throw new Error("Không có API key khả dụng.");
 
-    // Chọn model: ưu tiên model chỉ định, sau đó luân phiên các model trong danh sách
-    const modelAttempt = chooseModel(options.model, triedModels);
+    const triedModels = new Set();
+    let exhaustedModelsOnKey = false;
 
-    try {
-      const result = await withRetry(async () => {
-        const { GoogleGenerativeAI } = await import("@google/generative-ai");
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const genModel = genAI.getGenerativeModel({ model: modelAttempt });
-        const res = await genModel.generateContent(prompt);
-        return res.response.text().trim();
-      });
-
-      // Thành công → xóa cooldown của key vừa dùng
-      getKeyRing().clearCooldown(apiKey);
-      return result;
-
-    } catch (error) {
-      const msg = (error?.message || "").toLowerCase();
-      const isQuota =
-        msg.includes("quota") ||
-        msg.includes("rate") ||
-        msg.includes("resource_exhausted") ||
-        msg.includes("429") ||
-        msg.includes("503") ||
-        msg.includes("overloaded") ||
-        msg.includes("unavailable");
-
-      if (isQuota) {
-        getKeyRing().markCooldown(apiKey, error);
-        switches++;
-        console.warn(
-          `[geminiService] Chuyển key/model (lần ${switches}/${maxSwitches}): ${error.message}`
-        );
-        // Nếu đã thử tất cả model ở key hiện tại → reset triedModels để thử lại model khác
-        if (triedModels.size >= getModels().length) triedModels.clear();
-        continue;
+    while (!exhaustedModelsOnKey) {
+      const model = getModelRing().getNext(options.model, triedModels);
+      if (!model) {
+        exhaustedModelsOnKey = true;
+        break;
       }
 
-      // Lỗi khác (network, auth, …) — vẫn thử key khác
-      switches++;
-      if (switches > maxSwitches) throw error;
-      if (triedModels.size >= getModels().length) triedModels.clear();
+      console.log(`[geminiService] Thử key=${apiKey.slice(0, 8)}... model=${model}`);
+      triedModels.add(model);
+
+      try {
+        const result = await withRetry(async () => {
+          const { GoogleGenerativeAI } = await import("@google/generative-ai");
+          const genAI = new GoogleGenerativeAI(apiKey);
+          const genModel = genAI.getGenerativeModel({ model });
+          const res = await genModel.generateContent(prompt);
+          return res.response.text().trim();
+        });
+
+        // Thành công → xóa cooldown của cả key lẫn model vừa dùng
+        getKeyRing().clearCooldown(apiKey);
+        getModelRing().clearCooldown(model);
+        return result;
+      } catch (error) {
+        if (_isQuotaError(error)) {
+          getModelRing().markCooldown(model, error);
+
+          const allModelsTried = triedModels.size >= modelCandidates.length;
+          if (allModelsTried || getModelRing().allOnCooldown()) {
+            getKeyRing().markCooldown(apiKey, error);
+            exhaustedModelsOnKey = true;
+          }
+
+          console.warn(
+            `[geminiService] Quota ở model ${model}. Đã thử ${triedModels.size}/${modelCandidates.length} model cho key ${apiKey.slice(0, 8)}...`
+          );
+          continue;
+        }
+
+        // Lỗi auth/network không phải quota → không fallback model/key vô nghĩa.
+        throw error;
+      }
     }
+
+    switches++;
   }
 
   throw new Error("Đã thử tất cả API key & model nhưng vẫn thất bại.");
 }
 
-function chooseModel(preferred, triedModels) {
-  const candidate = preferred || getDefaultModel();
-  if (!triedModels.has(candidate)) {
-    triedModels.add(candidate);
-    return candidate;
-  }
-  // Fallback qua các model khác
-  for (const m of getModels()) {
-    if (!triedModels.has(m)) {
-      triedModels.add(m);
-      return m;
-    }
-  }
-  // Tất cả model đã thử → reset và thử lại
-  triedModels.clear();
-  triedModels.add(getModels()[0]);
-  return getModels()[0];
-}
-
 /** Trả về số key đang khả dụng (không bị cooldown) */
 export function availableKeyCount() {
   const now = Date.now();
-  return getAllKeys().filter((k) => {
-    const until = getKeyRing().cooldowns.get(k);
+  return getAllKeys().filter((key) => {
+    const until = getKeyRing().cooldowns.get(key);
     return !until || now >= until;
   }).length;
+}
+
+/** Trả về số model đang khả dụng (không bị cooldown) */
+export function availableModelCount() {
+  return getModelRing().models.filter((model) => !getModelRing().isOnCooldown(model)).length;
+}
+
+/** Trạng thái key/model phục vụ debug và monitor */
+export function getServiceStatus() {
+  const now = Date.now();
+  const keys = getAllKeys().map((key) => {
+    const until = getKeyRing().cooldowns.get(key);
+    return {
+      key: `${key.slice(0, 8)}...${key.slice(-4)}`,
+      onCooldown: Boolean(until && now < until),
+      cooldownRemainingMs: until && now < until ? until - now : 0,
+    };
+  });
+
+  const models = getModelRing().models.map((model) => {
+    const until = getModelRing().cooldowns.get(model);
+    return {
+      model,
+      onCooldown: Boolean(until && now < until),
+      cooldownRemainingMs: until && now < until ? until - now : 0,
+    };
+  });
+
+  return {
+    keys: {
+      total: keys.length,
+      available: availableKeyCount(),
+      items: keys,
+    },
+    models: {
+      total: models.length,
+      available: availableModelCount(),
+      items: models,
+    },
+  };
 }

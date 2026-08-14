@@ -19,6 +19,7 @@ import sessionRoutes from './routes/sessions.js';
 import billRoutes from './routes/bills.js';
 import orderRoutes from './routes/orders.js';
 import supportRoutes from './routes/support.js';
+import adminRoutes from './routes/admin.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import { handleStripeWebhook } from './controllers/stripeController.js';
 import dashboardRoutes from './routes/dashboard.js';
@@ -68,11 +69,13 @@ app.use('/auth', authRoutes);
 app.use('/tables', tableRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/menu', menuRoutes);
+app.use('/api/menu', menuRoutes);
 app.use('/sessions', sessionRoutes);
 app.use('/orders', orderRoutes);
 app.use('/bills', billRoutes);
 app.use('/support', supportRoutes);
 app.use('/dashboard', dashboardRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/ping', (req, res) => {
   res.json({ message: 'pong from backend' });
