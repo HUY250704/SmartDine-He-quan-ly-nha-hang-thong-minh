@@ -54,7 +54,6 @@ export default function QRCodeModal({ total, onConfirm, onCancel, sending }) {
         <div className="text-center px-5 pb-2">
           <p className="text-on-surface-variant/40 text-[10px] uppercase tracking-wider mb-1">Tong tien</p>
           <p className="font-mono font-bold text-3xl" style={{ color: "#ffc174" }}>{formatPrice(amountVND)}</p>
-          <p className="text-on-surface-variant/50 text-xs mt-1">&asymp; {amountVND.toLocaleString("vi-VN")} VND</p>
         </div>
 
         {/* Confirm */}

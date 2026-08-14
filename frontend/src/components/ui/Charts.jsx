@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from "react";
+import { formatVND } from "@/lib/price.js";
 
 // ─── Bar Chart ───────────────────────────────────────────────
 export function BarChart({ data, height = 280, color = "#56e5a9" }) {
@@ -44,7 +45,7 @@ export function BarChart({ data, height = 280, color = "#56e5a9" }) {
       ? `${(v / 1e6).toFixed(1)} tr`
       : v >= 1e3
       ? `${(v / 1e3).toFixed(1)}K`
-      : `${Math.round(v).toLocaleString("vi-VN")}đ`;
+      : formatVND(v);
 
   // Unique gradient IDs per instance
   const gid = useRef(Math.random().toString(36).slice(2)).current;
@@ -187,7 +188,7 @@ export function LineChart({ data, height = 260, color = "#56e5a9" }) {
       ? `${(v / 1e6).toFixed(1)} tr`
       : v >= 1e3
       ? `${(v / 1e3).toFixed(1)}K`
-      : `${Math.round(v).toLocaleString("vi-VN")}đ`;
+      : formatVND(v);
 
   const gid = useRef(Math.random().toString(36).slice(2)).current;
 

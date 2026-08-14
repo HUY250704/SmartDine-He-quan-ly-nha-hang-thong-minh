@@ -4,6 +4,10 @@ import { formatPrice } from "@/lib/price.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
 
+const formatPriceForPDF = (price) => {
+  return Number(price || 0).toLocaleString("vi-VN") + "đ";
+};
+
 const paymentMethods = {
   CASH: { label: "bills.cash", icon: "payments", color: "#f59e0b" },
   CARD: { label: "bills.card", icon: "credit_card", color: "#60a5fa" },
@@ -81,7 +85,7 @@ export default function BillsManagementPage() {
       const date = b.paidAt ? new Date(b.paidAt).toLocaleDateString("en-US") : "-";
       const time = b.paidAt ? new Date(b.paidAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "-";
       const method = b.paymentMethod || "Cash";
-      const total = (b.total || 0).toFixed(2);
+      const total = (b.total || 0).toLocaleString("vi-VN");
       return [id, table, date, time, method, total].map(v => `"${v}"`).join(",");
     });
     const csv = [headers.join(","), ...rows].join("\n");
@@ -120,7 +124,7 @@ export default function BillsManagementPage() {
             <tr>
               <td class="qty">${qty}x</td>
               <td>${name}</td>
-              <td class="money">${amount.toLocaleString("vi-VN")}đ</td>
+              <td class="money">${formatPriceForPDF(amount)}</td>
             </tr>`;
         }).join("")
       : `<tr><td colspan="3" class="empty">Khong co du lieu mon an</td></tr>`;
@@ -167,10 +171,10 @@ export default function BillsManagementPage() {
     </table>
 
     <table class="totals">
-      ${bill.subtotal != null ? `<tr><td>Subtotal</td><td class="money">${Number(bill.subtotal || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
-      ${bill.tax != null && bill.tax > 0 ? `<tr><td>Tax (8%)</td><td class="money">${Number(bill.tax || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
-      ${bill.serviceCharge != null && bill.serviceCharge > 0 ? `<tr><td>Service (5%)</td><td class="money">${Number(bill.serviceCharge || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
-      <tr class="grand"><td>Total</td><td class="money">${Number(bill.total || 0).toLocaleString("vi-VN")}đ</td></tr>
+      ${bill.subtotal != null ? `<tr><td>Subtotal</td><td class="money">${formatPriceForPDF(bill.subtotal)}</td></tr>` : ""}
+      ${bill.tax != null && bill.tax > 0 ? `<tr><td>Tax (8%)</td><td class="money">${formatPriceForPDF(bill.tax)}</td></tr>` : ""}
+      ${bill.serviceCharge != null && bill.serviceCharge > 0 ? `<tr><td>Service (5%)</td><td class="money">${formatPriceForPDF(bill.serviceCharge)}</td></tr>` : ""}
+      <tr class="grand"><td>Total</td><td class="money">${formatPriceForPDF(bill.total)}</td></tr>
     </table>
 
     <div class="no-print"><button onclick="window.print()">Save as PDF / Print</button></div>
