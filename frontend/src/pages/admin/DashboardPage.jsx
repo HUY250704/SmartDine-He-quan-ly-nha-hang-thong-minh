@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
 import { BarChart } from "@/components/ui/Charts.jsx";
-import { formatVND, toVND } from "@/lib/price.js";
+import { formatVND } from "@/lib/price.js";
 import { useLang } from "@/context/LanguageContext.jsx";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { getSocket } from "@/lib/socket.js";
@@ -114,7 +114,7 @@ export default function DashboardPage() {  const { t } = useLang();
       .then((res) => {
         const cd = res.data;
         if (cd && cd.length > 0) {
-          setChartData(cd.map((point) => ({ ...point, value: toVND(point.value) })));
+          setChartData(cd.map((point) => ({ ...point, value: Number(point.value) })));
         } else {
           setChartData(getFallbackData(chartPeriod));
         }

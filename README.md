@@ -183,7 +183,7 @@ npm run dev
 | Field | Type | Ghi chú |
 |---|---|---|
 | `name` | String | Tên món |
-| `price` | Number | Giá (USD) |
+| `price` | Number | Giá (VND) |
 | `description` | String | Mô tả |
 | `image` | String | URL ảnh |
 | `categoryId` | ObjectId → Category | Danh mục |

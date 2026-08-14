@@ -5,7 +5,7 @@ import Table from "../models/Table.js";
 import Bill from "../models/Bill.js";
 import { batchOrderItems } from "../utils/batchHelpers.js";
 
-// Shared data fetching — used by both overview and getStats
+// Shared data fetching ï¿½ used by both overview and getStats
 async function getStatsData() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
@@ -119,7 +119,7 @@ export const revenueChart = async (req, res) => {
       }
       weeks.reverse(); // oldest first
 
-      // Single query using $facet — 4 pipelines, one DB round-trip
+      // Single query using $facet ï¿½ 4 pipelines, one DB round-trip
       const [result] = await Bill.aggregate([
         { "$facet": Object.fromEntries(weeks.map((w, i) => [
           `wk${i}`,
@@ -138,7 +138,7 @@ export const revenueChart = async (req, res) => {
       return res.json(data);
     }
 
-    // period === "week" — single aggregate grouped by day
+    // period === "week" ï¿½ single aggregate grouped by day
     const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
     const sixDaysAgo = new Date(now);
@@ -252,9 +252,9 @@ export const recentOrders = async (req, res) => {
       const items = itemsMap.get(order._id.toString()) || [];
       const tableNumber = order.sessionId?.tableId?.number || null;
       const subtotal = items.reduce((sum, it) => sum + (it.menuItemId?.price || 0) * (it.quantity || 1), 0);
-      const tax = Math.round(subtotal * 0.08 * 100) / 100;
-      const serviceCharge = Math.round(subtotal * 0.05 * 100) / 100;
-      const total = Math.round((subtotal + tax + serviceCharge) * 100) / 100;
+      const tax = Math.round(subtotal * 0.08);
+      const serviceCharge = Math.round(subtotal * 0.05);
+      const total = Math.round(subtotal + tax + serviceCharge);
       return {
         ...order.toObject(),
         items,

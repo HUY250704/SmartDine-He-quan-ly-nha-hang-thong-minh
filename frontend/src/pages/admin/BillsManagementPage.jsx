@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "@/lib/api.js";
-import { formatVND, toVND } from "@/lib/price.js";
+import { formatPrice } from "@/lib/price.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
 
@@ -59,10 +59,10 @@ export default function BillsManagementPage() {
     .reduce((s, b) => s + (b.total || 0), 0);
 
   const statCards = [
-    { label: t("bills.totalRevenue"), value: formatVND(totalRevenue), icon: "payments", color: "#ffb690", sub: t("bills.allTimeGross") },
+    { label: t("bills.totalRevenue"), value: formatPrice(totalRevenue), icon: "payments", color: "#ffb690", sub: t("bills.allTimeGross") },
     { label: t("bills.billsIssued"), value: bills.length, icon: "receipt_long", color: "#56e5a9", sub: t("bills.totalTransactions") },
-    { label: t("bills.todayRevenue"), value: formatVND(todayRevenue), icon: "today", color: "#ffc174", sub: t("bills.todaysVolume") },
-    { label: t("bills.averageBill"), value: formatVND(avgBill), icon: "analytics", color: "#56e5a9", sub: t("bills.perTableAvg") },
+    { label: t("bills.todayRevenue"), value: formatPrice(todayRevenue), icon: "today", color: "#ffc174", sub: t("bills.todaysVolume") },
+    { label: t("bills.averageBill"), value: formatPrice(avgBill), icon: "analytics", color: "#56e5a9", sub: t("bills.perTableAvg") },
   ];
 
   if (loading) {
@@ -115,7 +115,7 @@ export default function BillsManagementPage() {
       ? bill.items.map((item) => {
           const name = String(item.name || "Mon an").replace(/[<>&]/g, "");
           const qty = item.quantity || 1;
-          const amount = toVND((item.price || 0) * qty);
+          const amount = Number(item.price || 0) * qty;
           return `
             <tr>
               <td class="qty">${qty}x</td>
@@ -167,10 +167,10 @@ export default function BillsManagementPage() {
     </table>
 
     <table class="totals">
-      ${bill.subtotal != null ? `<tr><td>Subtotal</td><td class="money">${toVND(bill.subtotal || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
-      ${bill.tax != null && bill.tax > 0 ? `<tr><td>Tax (8%)</td><td class="money">${toVND(bill.tax || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
-      ${bill.serviceCharge != null && bill.serviceCharge > 0 ? `<tr><td>Service (5%)</td><td class="money">${toVND(bill.serviceCharge || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
-      <tr class="grand"><td>Total</td><td class="money">${toVND(bill.total || 0).toLocaleString("vi-VN")}đ</td></tr>
+      ${bill.subtotal != null ? `<tr><td>Subtotal</td><td class="money">${Number(bill.subtotal || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
+      ${bill.tax != null && bill.tax > 0 ? `<tr><td>Tax (8%)</td><td class="money">${Number(bill.tax || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
+      ${bill.serviceCharge != null && bill.serviceCharge > 0 ? `<tr><td>Service (5%)</td><td class="money">${Number(bill.serviceCharge || 0).toLocaleString("vi-VN")}đ</td></tr>` : ""}
+      <tr class="grand"><td>Total</td><td class="money">${Number(bill.total || 0).toLocaleString("vi-VN")}đ</td></tr>
     </table>
 
     <div class="no-print"><button onclick="window.print()">Save as PDF / Print</button></div>
@@ -255,7 +255,7 @@ export default function BillsManagementPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3 md:px-6 md:py-4 text-right">
-                        <span className="font-mono text-lg font-medium" style={{ color: "#ffc174" }}>{formatVND(bill.total || 0)}</span>
+                        <span className="font-mono text-lg font-medium" style={{ color: "#ffc174" }}>{formatPrice(bill.total || 0)}</span>
                       </td>
                       <td className="px-4 py-3 md:px-6 md:py-4">
                         <div className="flex items-center gap-2">
@@ -325,7 +325,7 @@ export default function BillsManagementPage() {
                         <span className="text-on-surface-variant/40 text-xs w-5 text-right">{item.quantity || 1}x</span>
                         <span className="text-white text-xs truncate">{item.name || "Mon an"}</span>
                       </div>
-                      <span className="font-mono text-xs text-on-surface-variant ml-2 shrink-0">{formatVND((item.price || 0) * (item.quantity || 1))}</span>
+                      <span className="font-mono text-xs text-on-surface-variant ml-2 shrink-0">{formatPrice((item.price || 0) * (item.quantity || 1))}</span>
                     </div>
                   ))}
                 </div>
@@ -337,19 +337,19 @@ export default function BillsManagementPage() {
             {/* Totals */}
             <div className="space-y-2 text-sm mb-4 pb-3 border-b border-white/5">
               {selectedBill.subtotal != null && (
-                <div className="flex justify-between"><span className="text-on-surface-variant/50">Tam tinh</span><span className="text-on-surface-variant font-mono">{formatVND(selectedBill.subtotal)}</span></div>
+                <div className="flex justify-between"><span className="text-on-surface-variant/50">Tam tinh</span><span className="text-on-surface-variant font-mono">{formatPrice(selectedBill.subtotal)}</span></div>
               )}
               {selectedBill.tax != null && selectedBill.tax > 0 && (
-                <div className="flex justify-between"><span className="text-on-surface-variant/50">Thue (8%)</span><span className="text-on-surface-variant font-mono">{formatVND(selectedBill.tax)}</span></div>
+                <div className="flex justify-between"><span className="text-on-surface-variant/50">Thue (8%)</span><span className="text-on-surface-variant font-mono">{formatPrice(selectedBill.tax)}</span></div>
               )}
               {selectedBill.serviceCharge != null && selectedBill.serviceCharge > 0 && (
-                <div className="flex justify-between"><span className="text-on-surface-variant/50">Phi dich vu (5%)</span><span className="text-on-surface-variant font-mono">{formatVND(selectedBill.serviceCharge)}</span></div>
+                <div className="flex justify-between"><span className="text-on-surface-variant/50">Phi dich vu (5%)</span><span className="text-on-surface-variant font-mono">{formatPrice(selectedBill.serviceCharge)}</span></div>
               )}
             </div>
 
             <div className="flex justify-between pt-1">
               <span className="text-white font-bold text-lg">Tong cong</span>
-              <span className="font-mono font-bold text-lg" style={{ color: "#ffc174" }}>{formatVND(selectedBill.total || 0)}</span>
+              <span className="font-mono font-bold text-lg" style={{ color: "#ffc174" }}>{formatPrice(selectedBill.total || 0)}</span>
             </div>
             <div className="flex gap-2 mt-6">
               <button onClick={() => setSelectedBill(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold border border-white/10 text-on-surface hover:bg-white/5 transition-colors">Dong</button>

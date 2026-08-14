@@ -134,37 +134,37 @@ async function seed() {
   // Create Menu Items
   console.log("Creating menu items...");
   const menuItems = await MenuItem.insertMany([
-    { name: "Wagyu Beef Tartare", price: 58, description: "Hand-cut wagyu, quail egg, caper berries", categoryId: appetizers._id, isAvailable: true },
-    { name: "Omakase Sushi Platter", price: 45, description: "12 seasonal nigiri, chef's selection", categoryId: appetizers._id, isAvailable: true },
-    { name: "Crispy Calamari", price: 18, description: "Lightly battered, sriracha aioli", categoryId: appetizers._id, isAvailable: true },
-    { name: "Bruschetta Trio", price: 16, description: "Tomato basil, mushroom, olive tapenade", categoryId: appetizers._id, isAvailable: true },
-    { name: "Ribeye Steak 300g", price: 95, description: "Dry-aged USDA Prime, truffle mash", categoryId: mainCourse._id, isAvailable: true },
-    { name: "Duck Confit", price: 72, description: "Slow-cooked duck leg, cherry gastrique", categoryId: mainCourse._id, isAvailable: true },
-    { name: "Pan-Seared Salmon", price: 38, description: "Atlantic salmon, lemon butter, asparagus", categoryId: mainCourse._id, isAvailable: true },
-    { name: "Truffle Pasta", price: 42, description: "House-made fettuccine, black truffle cream", categoryId: mainCourse._id, isAvailable: true },
-    { name: "Lobster Bisque", price: 28, description: "Creamy bisque, cognac, chives", categoryId: mainCourse._id, isAvailable: false },
-    { name: "Midnight Lava Cake", price: 12, description: "Molten Belgian chocolate, vanilla ice cream", categoryId: desserts._id, isAvailable: true },
-    { name: "Cr�me Br�l�e", price: 14, description: "Madagascar vanilla, caramelized sugar", categoryId: desserts._id, isAvailable: true },
-    { name: "Tiramisu", price: 15, description: "Espresso-soaked ladyfingers, mascarpone", categoryId: desserts._id, isAvailable: true },
-    { name: "Solaris Cocktail", price: 19, description: "House-blended smoked bourbon", categoryId: beverages._id, isAvailable: true },
-    { name: "Espresso Martini", price: 18, description: "Vodka, Kahlua, fresh espresso", categoryId: beverages._id, isAvailable: true },
-    { name: "Sparkling Yuzu", price: 14, description: "Yuzu, sparkling water, fresh mint", categoryId: beverages._id, isAvailable: true },
-    { name: "Pinot Noir Glass", price: 12, description: "Willamette Valley, 2022", categoryId: beverages._id, isAvailable: true },
+    { name: "Wagyu Beef Tartare", price: 1450000, description: "Hand-cut wagyu, quail egg, caper berries", categoryId: appetizers._id, isAvailable: true },
+    { name: "Omakase Sushi Platter", price: 1125000, description: "12 seasonal nigiri, chef's selection", categoryId: appetizers._id, isAvailable: true },
+    { name: "Crispy Calamari", price: 450000, description: "Lightly battered, sriracha aioli", categoryId: appetizers._id, isAvailable: true },
+    { name: "Bruschetta Trio", price: 400000, description: "Tomato basil, mushroom, olive tapenade", categoryId: appetizers._id, isAvailable: true },
+    { name: "Ribeye Steak 300g", price: 2375000, description: "Dry-aged USDA Prime, truffle mash", categoryId: mainCourse._id, isAvailable: true },
+    { name: "Duck Confit", price: 1800000, description: "Slow-cooked duck leg, cherry gastrique", categoryId: mainCourse._id, isAvailable: true },
+    { name: "Pan-Seared Salmon", price: 950000, description: "Atlantic salmon, lemon butter, asparagus", categoryId: mainCourse._id, isAvailable: true },
+    { name: "Truffle Pasta", price: 1050000, description: "House-made fettuccine, black truffle cream", categoryId: mainCourse._id, isAvailable: true },
+    { name: "Lobster Bisque", price: 700000, description: "Creamy bisque, cognac, chives", categoryId: mainCourse._id, isAvailable: false },
+    { name: "Midnight Lava Cake", price: 300000, description: "Molten Belgian chocolate, vanilla ice cream", categoryId: desserts._id, isAvailable: true },
+    { name: "Cr�me Br�l�e", price: 350000, description: "Madagascar vanilla, caramelized sugar", categoryId: desserts._id, isAvailable: true },
+    { name: "Tiramisu", price: 375000, description: "Espresso-soaked ladyfingers, mascarpone", categoryId: desserts._id, isAvailable: true },
+    { name: "Solaris Cocktail", price: 475000, description: "House-blended smoked bourbon", categoryId: beverages._id, isAvailable: true },
+    { name: "Espresso Martini", price: 450000, description: "Vodka, Kahlua, fresh espresso", categoryId: beverages._id, isAvailable: true },
+    { name: "Sparkling Yuzu", price: 350000, description: "Yuzu, sparkling water, fresh mint", categoryId: beverages._id, isAvailable: true },
+    { name: "Pinot Noir Glass", price: 300000, description: "Willamette Valley, 2022", categoryId: beverages._id, isAvailable: true },
   ]);
 
   // Create 2 recent Sessions with Bills (for dashboard revenue)
   console.log("Creating sessions and orders...");
 
-  const session1 = await Session.create({ tableId: tables[0]._id, status: "CLOSED", totalAmount: 385, startTime: new Date(Date.now() - 3*86400000), endTime: new Date(Date.now() - 3*86400000 + 7200000) });
-  const session2 = await Session.create({ tableId: tables[6]._id, status: "CLOSED", totalAmount: 210, startTime: new Date(Date.now() - 2*86400000), endTime: new Date(Date.now() - 2*86400000 + 5400000) });
-  const session3 = await Session.create({ tableId: tables[14]._id, status: "CLOSED", totalAmount: 152, startTime: new Date(Date.now() - 86400000), endTime: new Date(Date.now() - 86400000 + 3600000) });
-  const session4 = await Session.create({ tableId: tables[2]._id, status: "CLOSED", totalAmount: 672, startTime: new Date(Date.now() - 86400000), endTime: new Date(Date.now() - 86400000 + 5400000) });
+  const session1 = await Session.create({ tableId: tables[0]._id, status: "CLOSED", totalAmount: 7525000, startTime: new Date(Date.now() - 3*86400000), endTime: new Date(Date.now() - 3*86400000 + 7200000) });
+  const session2 = await Session.create({ tableId: tables[6]._id, status: "CLOSED", totalAmount: 1650000, startTime: new Date(Date.now() - 2*86400000), endTime: new Date(Date.now() - 2*86400000 + 5400000) });
+  const session3 = await Session.create({ tableId: tables[14]._id, status: "CLOSED", totalAmount: 2250000, startTime: new Date(Date.now() - 86400000), endTime: new Date(Date.now() - 86400000 + 3600000) });
+  const session4 = await Session.create({ tableId: tables[2]._id, status: "CLOSED", totalAmount: 8900000, startTime: new Date(Date.now() - 86400000), endTime: new Date(Date.now() - 86400000 + 5400000) });
 
   // Create active sessions
-  const session5 = await Session.create({ tableId: tables[0]._id, status: "ACTIVE", totalAmount: 132, startTime: new Date(Date.now() - 3600000) });
-  const session6 = await Session.create({ tableId: tables[13]._id, status: "ACTIVE", totalAmount: 95, startTime: new Date(Date.now() - 7200000) });
-  const session7 = await Session.create({ tableId: tables[16]._id, status: "ACTIVE", totalAmount: 245, startTime: new Date(Date.now() - 1800000) });
-  const session8 = await Session.create({ tableId: tables[19]._id, status: "ACTIVE", totalAmount: 58, startTime: new Date(Date.now() - 900000) });
+  const session5 = await Session.create({ tableId: tables[0]._id, status: "ACTIVE", totalAmount: 4425000, startTime: new Date(Date.now() - 3600000) });
+  const session6 = await Session.create({ tableId: tables[13]._id, status: "ACTIVE", totalAmount: 2375000, startTime: new Date(Date.now() - 7200000) });
+  const session7 = await Session.create({ tableId: tables[16]._id, status: "ACTIVE", totalAmount: 2400000, startTime: new Date(Date.now() - 1800000) });
+  const session8 = await Session.create({ tableId: tables[19]._id, status: "ACTIVE", totalAmount: 1050000, startTime: new Date(Date.now() - 900000) });
 
   // Create orders
   const order1 = await Order.create({ sessionId: session5._id, status: "READY", createdAt: new Date(Date.now() - 3600000) });
@@ -215,10 +215,10 @@ async function seed() {
   console.log("Creating default admin user...");
   await User.create({ username: "admin", password: await bcrypt.hash("admin123", 10), role: "ADMIN" });
   await Bill.insertMany([
-    { sessionId: session1._id, total: 385, paymentMethod: "CARD", paidAt: new Date(now - 3*86400000) },
-    { sessionId: session2._id, total: 210, paymentMethod: "CASH", paidAt: new Date(now - 2*86400000) },
-    { sessionId: session3._id, total: 152, paymentMethod: "E_WALLET", paidAt: new Date(now - 86400000) },
-    { sessionId: session4._id, total: 672, paymentMethod: "CARD", paidAt: new Date(now - 86400000) },
+    { sessionId: session1._id, total: 7525000, paymentMethod: "CARD", paidAt: new Date(now - 3*86400000) },
+    { sessionId: session2._id, total: 1650000, paymentMethod: "CASH", paidAt: new Date(now - 2*86400000) },
+    { sessionId: session3._id, total: 2250000, paymentMethod: "E_WALLET", paidAt: new Date(now - 86400000) },
+    { sessionId: session4._id, total: 8900000, paymentMethod: "CARD", paidAt: new Date(now - 86400000) },
   ]);
 
   console.log("Done! Created:");
@@ -228,7 +228,7 @@ async function seed() {
   console.log("  - 8 sessions (4 closed, 4 active)");
   console.log("  - 12 orders");
   console.log("  - 22 order items");
-  console.log("  - 4 bills ($1,419 total revenue)");
+  console.log("  - 4 bills (20.325.000 VND total revenue)");
 
   await mongoose.disconnect();
 }

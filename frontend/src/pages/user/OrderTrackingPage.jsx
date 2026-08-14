@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import api from "@/lib/api.js";
 import { getSocket } from "@/lib/socket.js";
-import { formatPrice, toVND } from "@/lib/price.js";
+import { formatPrice } from "@/lib/price.js";
 
 const STATUS_STEPS = [
   { key: "received", label: "Received", icon: "receipt", color: "#ffc174" },
@@ -37,8 +37,7 @@ export default function OrderTrackingPage() {
     api.get(`/orders/session/${sessionId}`)
       .then((res) => {
         setOrders(res.data.map((order) => {
-          const totalUSD = order.items?.reduce((s, it) => s + (it.menuItemId?.price || 0) * it.quantity, 0);
-          const subtotal = toVND(totalUSD);
+          const subtotal = order.items?.reduce((s, it) => s + Number(it.menuItemId?.price || 0) * it.quantity, 0);
           const tax = Math.round(subtotal * 0.08);
           const serviceCharge = Math.round(subtotal * 0.05);
           return {
@@ -49,7 +48,7 @@ export default function OrderTrackingPage() {
             itemCount: order.items?.length || 0,
             items: order.items?.map((it) => ({
               name: it.menuItemId?.name || "Item",
-              price: toVND(it.menuItemId?.price || 0),
+              price: Number(it.menuItemId?.price || 0),
               qty: it.quantity,
               image: it.menuItemId?.image || "",
             })) || [],

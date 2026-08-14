@@ -1,20 +1,14 @@
-// Centralized price conversion — seed data stores USD, display as VND
-const USD_TO_VND = 25000;
-
-export function toVND(usdPrice) {
-  if (usdPrice == null) return 0;
-  return Math.round(usdPrice * USD_TO_VND);
+// Centralized VND price formatting. All backend price/amount fields are VND.
+export function toVND(price) {
+  if (price == null) return 0;
+  return Math.round(price);
 }
 
-export function formatVND(usdPrice) {
-  return toVND(usdPrice).toLocaleString("vi-VN") + "\u0111";
+export function formatVND(price) {
+  return toVND(price).toLocaleString("vi-VN") + "\u0111";
 }
 
-export function formatPrice(vndAmount) {
-  if (vndAmount == null) return "0\u0111";
-  return Math.round(vndAmount).toLocaleString("vi-VN") + "\u0111";
-}
-
-export function formatUSD(usdPrice) {
-  return "$" + (usdPrice || 0).toFixed(2);
+export function formatPrice(price) {
+  if (price == null) return "0\u0111";
+  return Math.round(price).toLocaleString("vi-VN") + "\u0111";
 }

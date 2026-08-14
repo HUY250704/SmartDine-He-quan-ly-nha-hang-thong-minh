@@ -18,7 +18,7 @@ for (let i = 0; i < bills.length; i++) {
   const newDate = new Date(now - daysAgo * dayMs);
   newDate.setHours(12, 0, 0, 0);
   await Bill.findByIdAndUpdate(bills[i]._id, { paidAt: newDate });
-  console.log("Bill " + bills[i]._id.toString().slice(-6) + " -> " + dayNames[newDate.getDay()] + " $" + bills[i].total);
+  console.log("Bill " + bills[i]._id.toString().slice(-6) + " -> " + dayNames[newDate.getDay()] + " " + bills[i].total.toLocaleString("vi-VN") + "\u0111");
 }
 
 console.log("\nDone! " + bills.length + " bills updated.");

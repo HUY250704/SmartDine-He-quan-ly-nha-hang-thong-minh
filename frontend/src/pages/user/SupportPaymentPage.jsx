@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import api from "@/lib/api.js";
-import { formatPrice, toVND } from "@/lib/price.js";
+import { formatPrice } from "@/lib/price.js";
 import QRCodeModal from "@/components/ui/QRCodeModal.jsx";
 
 const glassCard = {
@@ -75,12 +75,12 @@ export default function SupportPaymentPage() {
             const existing = items.find((bi) => bi.name === (it.menuItemId?.name || "Item"));
             if (existing) {
               existing.qty += it.quantity;
-              existing.price += toVND((it.menuItemId?.price || 0) * it.quantity);
+              existing.price += Number(it.menuItemId?.price || 0) * it.quantity;
             } else {
               items.push({
                 name: it.menuItemId?.name || "Item",
                 qty: it.quantity,
-                price: toVND((it.menuItemId?.price || 0) * it.quantity),
+                price: Number(it.menuItemId?.price || 0) * it.quantity,
                 image: it.menuItemId?.image || "",
               });
             }

@@ -33,23 +33,23 @@ export const createPaymentIntent = async (req, res) => {
       }
     }
 
-    const tax = Math.round(subtotal * 0.08 * 100) / 100;
-    const serviceCharge = Math.round(subtotal * 0.05 * 100) / 100;
-    const total = Math.round((subtotal + tax + serviceCharge) * 100); // Stripe dùng cents
+    const tax = Math.round(subtotal * 0.08);
+    const serviceCharge = Math.round(subtotal * 0.05);
+    const total = Math.round(subtotal + tax + serviceCharge);
 
     if (total <= 0) {
       return res.status(400).json({ error: 'No items to charge' });
     }
 
-    // Tạo PaymentIntent
+    // T?o PaymentIntent (VND, amount l? s? nguy?n ??ng)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: total,
-      currency: 'usd',
+      currency: 'vnd',
       metadata: {
         sessionId: sessionId,
-        subtotal: subtotal.toFixed(2),
-        tax: tax.toFixed(2),
-        serviceCharge: serviceCharge.toFixed(2),
+        subtotal: String(subtotal),
+        tax: String(tax),
+        serviceCharge: String(serviceCharge),
       },
       description: `SmartDine - Table session ${sessionId}`,
     });
@@ -57,7 +57,7 @@ export const createPaymentIntent = async (req, res) => {
     res.json({
       clientSecret: paymentIntent.client_secret,
       amount: total,
-      amountDisplay: (total / 100).toFixed(2),
+      amountDisplay: total.toLocaleString('vi-VN'),
     });
   } catch (error) {
     console.error('Stripe PaymentIntent error:', error.message);
@@ -124,9 +124,9 @@ export const confirmStripePayment = async (req, res) => {
       }
     });
 
-    const tax = Math.round(subtotal * 0.08 * 100) / 100;
-    const serviceCharge = Math.round(subtotal * 0.05 * 100) / 100;
-    const total = Math.round((subtotal + tax + serviceCharge) * 100) / 100;
+    const tax = Math.round(subtotal * 0.08);
+    const serviceCharge = Math.round(subtotal * 0.05);
+    const total = Math.round(subtotal + tax + serviceCharge);
 
     const table = await Table.findById(session.tableId);
     const tableNumber = table ? table.number : null;
@@ -229,9 +229,9 @@ export const handleStripeWebhook = async (req, res) => {
               }
             });
 
-            const tax = Math.round(subtotal * 0.08 * 100) / 100;
-            const serviceCharge = Math.round(subtotal * 0.05 * 100) / 100;
-            const total = Math.round((subtotal + tax + serviceCharge) * 100) / 100;
+            const tax = Math.round(subtotal * 0.08);
+            const serviceCharge = Math.round(subtotal * 0.05);
+            const total = Math.round(subtotal + tax + serviceCharge);
 
             const table = await Table.findById(session.tableId);
 

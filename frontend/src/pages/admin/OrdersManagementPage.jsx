@@ -4,7 +4,7 @@ import { getSocket } from "@/lib/socket.js";
 import { playNotification } from "@/lib/notify.js";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 import { useLang } from "@/context/LanguageContext.jsx";
-import { formatPrice, formatVND, toVND } from "@/lib/price.js";
+import { formatPrice } from "@/lib/price.js";
 
 const STATUS_TABS = [
   { key: "PENDING", label: "orders.pending" },
@@ -236,7 +236,7 @@ export default function OrdersManagementPage() {
             const elapsed = formatElapsed(order.createdAt, t);
 
             const total = order.items
-              ? toVND(order.items.reduce((s, it) => s + ((it.menuItemId?.price || it.menuItem?.price || 0) * it.quantity), 0))
+              ? order.items.reduce((s, it) => s + ((it.menuItemId?.price || it.menuItem?.price || 0) * it.quantity), 0)
               : 0;
 
             const orderIdShort = order._id ? "#ORD-" + order._id.toString().slice(-4).toUpperCase() : "-";
@@ -282,7 +282,7 @@ export default function OrdersManagementPage() {
                           )}
                         </div>
                         <span className="text-on-surface font-mono text-xs ml-2">
-                          {formatVND((item.menuItemId?.price || item.price || 0) * item.quantity)}
+                          {formatPrice((item.menuItemId?.price || item.price || 0) * item.quantity)}
                         </span>
                       </div>
                     );

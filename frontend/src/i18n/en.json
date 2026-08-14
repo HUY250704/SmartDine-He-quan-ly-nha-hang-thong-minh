@@ -101,7 +101,7 @@
     "publish": "Publish",
     "update": "Update",
     "itemName": "Item Name",
-    "price": "Price ($)",
+    "price": "Price (VND)",
     "category": "Category",
     "imageURL": "Image URL",
     "description": "Description",

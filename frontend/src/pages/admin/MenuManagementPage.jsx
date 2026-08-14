@@ -262,7 +262,7 @@ export default function MenuManagementPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-on-surface-variant/60 text-[10px] font-bold uppercase tracking-wider mb-2">{t("menu.price")}</label>
-                  <input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0.00"
+                  <input type="number" step="1" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0"
                     className="w-full px-4 py-2.5 rounded-xl text-sm text-on-surface placeholder-on-surface-variant/20 outline-none bg-white/5 border border-white/10 focus:border-primary/50 transition-colors" />
                 </div>
                 <div>

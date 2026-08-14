@@ -97,9 +97,9 @@ export const generateBill = async (req, res) => {
       }
     });
 
-    const tax = Math.round(subtotal * 0.08 * 100) / 100;
-    const serviceCharge = Math.round(subtotal * 0.05 * 100) / 100;
-    const total = Math.round((subtotal + tax + serviceCharge) * 100) / 100;
+    const tax = Math.round(subtotal * 0.08);
+    const serviceCharge = Math.round(subtotal * 0.05);
+    const total = Math.round(subtotal + tax + serviceCharge);
 
     const table = await Table.findById(session.tableId);
     const tableNumber = table ? table.number : null;
@@ -125,7 +125,7 @@ export const generateBill = async (req, res) => {
     }
 
     // Only CASH keeps session open for manual staff verification
-    // E_WALLET and BANK_TRANSFER also stay PENDING — staff must verify payment before closing
+    // E_WALLET and BANK_TRANSFER also stay PENDING ï¿½ staff must verify payment before closing
     // (Session is only auto-closed by Stripe confirmStripePayment)
 
     res.status(201).json(bill);

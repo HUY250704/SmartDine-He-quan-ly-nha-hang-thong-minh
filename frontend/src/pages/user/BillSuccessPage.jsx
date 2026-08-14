@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
-import { formatPrice, toVND } from "@/lib/price.js";
+import { formatPrice } from "@/lib/price.js";
 
 const glassCard = {
   background: "rgba(255,255,255,0.03)",
@@ -111,7 +111,7 @@ export default function BillSuccessPage() {
                 <span className="text-white">{item.name}</span>
                 <span className="text-on-surface-variant/40 ml-1">x{item.quantity}</span>
               </div>
-              <span className="text-on-surface font-mono text-xs ml-2 shrink-0">{formatPrice(toVND(item.price) * (item.quantity || 1))}</span>
+              <span className="text-on-surface font-mono text-xs ml-2 shrink-0">{formatPrice(Number(item.price) * (item.quantity || 1))}</span>
             </div>
           ))}
         </div>
@@ -120,20 +120,20 @@ export default function BillSuccessPage() {
         <div className="border-t border-white/10 pt-4 space-y-1.5 text-xs md:text-sm">
           <div className="flex justify-between">
             <span className="text-on-surface-variant/50">Subtotal</span>
-            <span className="text-on-surface font-mono">{formatPrice(toVND(bill.subtotal))}</span>
+            <span className="text-on-surface font-mono">{formatPrice(Number(bill.subtotal))}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-on-surface-variant/50">Tax (8%)</span>
-            <span className="text-on-surface font-mono">{formatPrice(toVND(bill.tax))}</span>
+            <span className="text-on-surface font-mono">{formatPrice(Number(bill.tax))}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-on-surface-variant/50">Service (5%)</span>
-            <span className="text-on-surface font-mono">{formatPrice(toVND(bill.serviceCharge))}</span>
+            <span className="text-on-surface font-mono">{formatPrice(Number(bill.serviceCharge))}</span>
           </div>
           <div className="flex justify-between pt-2 border-t border-white/10">
             <span className="text-white font-bold">Total</span>
             <span className="font-mono font-bold text-base md:text-lg" style={{ color: "#ffc174" }}>
-              {formatPrice(toVND(bill.total))}
+              {formatPrice(Number(bill.total))}
             </span>
           </div>
         </div>
