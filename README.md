@@ -31,7 +31,7 @@ SmartDine gồm **hai giao diện** phục vụ hai nhóm người dùng hoàn t
 | **Realtime** | Socket.IO |
 | **Thanh toán** | Stripe (PaymentIntent + Webhook) + offline cash/e-wallet/bank |
 | **Auth (Admin)** | JWT (`jsonwebtoken`) |
-| **AI** | Google Gemini API |
+| **AI** | Groq API |
 | **Upload ảnh** | Cloudinary |
 | **Icons** | Google Material Symbols Outlined |
 | **API Docs** | Swagger UI (tùy chọn, /api-docs) |
@@ -61,7 +61,7 @@ SmartDine/
 │   │   ├── models/              # Mongoose schemas
 │   │   ├── routes/              # Express routers
 │   │   ├── socket/              # Socket.IO init + event emitters
-│   │   ├── services/            # geminiService.js
+│   │   ├── services/            # groqService.js
 │   │   ├── utils/               # batchHelpers.js
 │   │   └── index.js             # Entry point
 │   └── .env
@@ -104,10 +104,10 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
-# Gemini AI (tạo mô tả/upsell món)
-GEMINI_API_KEYS=your_key1,your_key2
-GEMINI_FALLBACK_API_KEYS=
-GEMINI_MODELS=gemini-2.5-flash,gemini-2.0-flash
+# Groq AI (tạo mô tả/upsell món)
+GROQ_API_KEY=your_groq_api_key
+GROQ_FALLBACK_API_KEYS=
+GROQ_MODELS=llama-3.3-70b-versatile,llama-3.1-8b-instant,mixtral-8x7b-32768
 
 # Stripe
 STRIPE_SECRET_KEY=sk_test_...

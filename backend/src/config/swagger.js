@@ -294,7 +294,7 @@ const options = {
       "/menu/ai-description": {
         post: {
           tags: ["Menu"],
-          summary: "Sinh mô tả / upsell bằng Gemini AI",
+          summary: "Sinh mô tả / upsell bằng Groq AI",
           security: [{ bearerAuth: [] }],
           requestBody: {
             required: true,
@@ -318,7 +318,7 @@ const options = {
           },
           responses: {
             200: { description: "Nội dung AI đã sinh" },
-            500: { description: "Lỗi Gemini API" },
+            500: { description: "Lỗi Groq API" },
           },
         },
       },

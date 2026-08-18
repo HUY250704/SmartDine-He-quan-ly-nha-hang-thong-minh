@@ -1,6 +1,6 @@
-const RETRY_MAX = parseInt(process.env.GEMINI_RETRY_MAX, 10) || 3;
-const RETRY_DELAY = parseInt(process.env.GEMINI_RETRY_DELAY_MS, 10) || 1000;
-const RETRY_BACKOFF = process.env.GEMINI_RETRY_BACKOFF === "false" ? false : true;
+const RETRY_MAX = parseInt(process.env.GROQ_RETRY_MAX, 10) || 3;
+const RETRY_DELAY = parseInt(process.env.GROQ_RETRY_DELAY_MS, 10) || 1000;
+const RETRY_BACKOFF = process.env.GROQ_RETRY_BACKOFF === "false" ? false : true;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
