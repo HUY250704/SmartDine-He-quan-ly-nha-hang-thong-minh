@@ -1,6 +1,6 @@
 import express from "express";
 import { auth } from "../middleware/auth.js";
-import { getServiceStatus, availableKeyCount, availableModelCount } from "../services/geminiService.js";
+import { getServiceStatus } from "../services/aiService.js";
 
 const router = express.Router();
 
@@ -11,8 +11,6 @@ router.get("/ai-status", auth, (req, res) => {
   }
 
   res.json({
-    availableKeys: availableKeyCount(),
-    availableModels: availableModelCount(),
     detail: getServiceStatus(),
   });
 });

@@ -1,5 +1,5 @@
 ﻿import MenuItem from '../models/MenuItem.js';
-import { generateContent } from '../services/geminiService.js';
+import { generateContent } from '../services/aiService.js';
 import { uploadImage, deleteImage } from '../config/upload.js';
 
 export const getMenu = async (req, res) => {

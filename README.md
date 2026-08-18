@@ -61,7 +61,7 @@ SmartDine/
 │   │   ├── models/              # Mongoose schemas
 │   │   ├── routes/              # Express routers
 │   │   ├── socket/              # Socket.IO init + event emitters
-│   │   ├── services/            # geminiService.js
+│   │   ├── services/            # aiService.js (OpenRouter)
 │   │   ├── utils/               # batchHelpers.js
 │   │   └── index.js             # Entry point
 │   └── .env
@@ -104,10 +104,9 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
-# Gemini AI (tạo mô tả/upsell món)
-GEMINI_API_KEYS=your_key1,your_key2
-GEMINI_FALLBACK_API_KEYS=
-GEMINI_MODELS=gemini-2.5-flash,gemini-2.0-flash
+# OpenRouter AI (tạo mô tả/upsell món)
+OPENROUTER_API_KEY=sk-or-v1-your_openrouter_api_key_here
+OPENROUTER_MODEL=nvidia/nemotron-3.5-lightning:free
 
 # Stripe
 STRIPE_SECRET_KEY=sk_test_...
