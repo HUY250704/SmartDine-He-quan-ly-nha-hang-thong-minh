@@ -12,14 +12,14 @@ const API_URL =
   normalizeUrl(import.meta.env.VITE_API_URL) ||
   (import.meta.env.MODE === 'development'
     ? 'http://localhost:4000'
-    : 'https://smartdine-backend-production-87d1.up.railway.app');
+    : 'https://smartdine-backend-production-3dc2.up.railway.app');
 
 export default function HomePage() {
   const [status, setStatus] = useState('Checking backend...');
   const [socketStatus, setSocketStatus] = useState('Waiting for socket...');
 
   useEffect(() => {
-    axios.get(`${API_URL}/ping`)
+    axios.get(`${API_URL}/api/ping`)
       .then((res) => setStatus(res.data.message || 'Backend reachable'))
       .catch(() => setStatus('Backend unreachable'));
 
@@ -31,7 +31,7 @@ export default function HomePage() {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, []);s
 
   return (
     <div className="space-y-6 rounded-3xl p-6" style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.08)" }}>

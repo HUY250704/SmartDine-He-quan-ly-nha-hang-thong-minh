@@ -1,5 +1,5 @@
-import MenuItem from '../models/MenuItem.js';
-import { generateContent } from '../services/groqService.js';
+﻿import MenuItem from '../models/MenuItem.js';
+import { generateContent } from '../services/geminiService.js';
 import { uploadImage, deleteImage } from '../config/upload.js';
 
 export const getMenu = async (req, res) => {
@@ -112,7 +112,7 @@ export const generateAiDescription = async (req, res) => {
     const resultText = await generateContent(prompt);
     res.json({ [isUpsell ? "upsellSuggestion" : "aiDescription"]: resultText });
   } catch (error) {
-    console.error("Groq API error:", error);
+    console.error("Gemini API error:", error);
     res.status(500).json({ error: error.message || "Failed to generate AI content" });
   }
 };

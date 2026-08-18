@@ -1,6 +1,6 @@
 import express from "express";
 import { auth } from "../middleware/auth.js";
-import { getServiceStatus, availableKeyCount, availableModelCount } from "../services/groqService.js";
+import { getServiceStatus, availableKeyCount, availableModelCount } from "../services/geminiService.js";
 
 const router = express.Router();
 
