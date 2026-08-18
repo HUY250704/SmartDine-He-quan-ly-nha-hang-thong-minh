@@ -36,11 +36,28 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : [/^http:\/\/localhost:\d+$/];
 
-app.use(cors({ origin: ALLOWED_ORIGINS, credentials: true }));
+// Auto-allow any Vercel URL for this project
+const vercelPattern = /^https:\/\/smart-dine-.*\.vercel\.app$/;
+function isOriginAllowed(origin) {
+  if (!origin) return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (vercelPattern.test(origin)) return true;
+  return false;
+}
+app.use(cors({
+  origin: (origin, cb) => {
+    if (isOriginAllowed(origin)) return cb(null, true);
+    cb(new Error('Not allowed by CORS: ' + origin));
+  },
+  credentials: true
+}));
 
 const io = new Server(server, {
   cors: {
-    origin: ALLOWED_ORIGINS,
+    origin: (origin, cb) => {
+      if (isOriginAllowed(origin)) return cb(null, true);
+      cb(new Error('Not allowed by CORS: ' + origin));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   }
 });
