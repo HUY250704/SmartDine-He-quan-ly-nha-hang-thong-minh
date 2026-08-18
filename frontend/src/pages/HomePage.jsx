@@ -19,7 +19,7 @@ export default function HomePage() {
   const [socketStatus, setSocketStatus] = useState('Waiting for socket...');
 
   useEffect(() => {
-    axios.get(`${API_URL}/api/ping`)
+    axios.get(`${API_URL}/ping`)
       .then((res) => setStatus(res.data.message || 'Backend reachable'))
       .catch(() => setStatus('Backend unreachable'));
 
@@ -31,7 +31,7 @@ export default function HomePage() {
     return () => {
       socket.disconnect();
     };
-  }, []);s
+  }, []);
 
   return (
     <div className="space-y-6 rounded-3xl p-6" style={{ background: "rgba(255,255,255,0.03)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.08)" }}>
