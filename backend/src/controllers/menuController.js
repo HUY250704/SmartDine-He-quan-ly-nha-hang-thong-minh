@@ -1,4 +1,4 @@
-﻿import MenuItem from '../models/MenuItem.js';
+import MenuItem from '../models/MenuItem.js';
 import { generateContent } from '../services/groqService.js';
 import { uploadImage, deleteImage } from '../config/upload.js';
 
