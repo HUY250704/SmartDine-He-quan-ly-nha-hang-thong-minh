@@ -10,7 +10,7 @@ router.get('/', auth, getBills);
 router.get('/stats/revenue', auth, getRevenueStats);
 router.get('/:id', auth, getBillById);
 
-// Customer-facing routes (no auth — validated via sessionId)
+// Customer-facing routes (no auth â€” validated via sessionId)
 router.post('/generate', generateBill);
 router.post('/create-payment-intent', createPaymentIntent);
 router.post('/confirm-stripe-payment', confirmStripePayment);

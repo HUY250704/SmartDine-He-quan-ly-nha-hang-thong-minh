@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["apple-touch-icon.png", "mask-icon.svg"],
       manifest: {
-        name: "SmartDine - Há»‡ thá»‘ng Quáº£n lĂ½ NhĂ  hĂ ng ThĂ´ng minh",
+        name: "SmartDine - Hệ thống Quản lý Nhà hàng Thông minh",
         short_name: "SmartDine",
-        description: "Há»‡ thá»‘ng quáº£n lĂ½ nhĂ  hĂ ng thĂ´ng minh â€” Ä‘áº·t mĂ³n, theo dĂµi Ä‘Æ¡n, thanh toĂ¡n & quáº£n lĂ½ bĂ n",
+        description: "Hệ thống quản lý nhà hàng thông minh — đặt món, theo dõi đơn, thanh toán & quản lý bàn",
         theme_color: "#0c1322",
         background_color: "#0c1322",
         display: "standalone",
@@ -45,7 +45,7 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            urlPattern: /^https://fonts.googleapis.com/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "google-fonts-cache",
@@ -53,7 +53,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            urlPattern: /^https://fonts.gstatic.com/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "google-fonts-static-cache",

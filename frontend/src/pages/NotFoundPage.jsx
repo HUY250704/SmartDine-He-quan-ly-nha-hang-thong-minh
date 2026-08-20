@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { GlassCard } from "@/components/ui/glass-card.jsx";
 
 export default function NotFoundPage() {

@@ -4,7 +4,7 @@ import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Customer-facing routes (no auth — validated via sessionId/tableId)
+// Customer-facing routes (no auth â€” validated via sessionId/tableId)
 router.post("/open", openSession);
 router.post("/switch", switchTable);
 router.get("/table/:id/active", getActiveSessionByTable);

@@ -4,7 +4,7 @@ import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Public route for customer-facing "Ğ?i bàn" — no auth required
+// Public route for customer-facing "Ã?i bÃ n" â€” no auth required
 router.get("/public", getTables);
 
 // Admin-only routes

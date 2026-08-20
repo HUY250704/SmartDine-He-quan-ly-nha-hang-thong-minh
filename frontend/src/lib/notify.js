@@ -1,4 +1,4 @@
-// Notification sound using Web Audio API — no external file needed
+// Notification sound using Web Audio API â€” no external file needed
 let audioCtx = null;
 
 function getAudioContext() {
@@ -30,6 +30,6 @@ export function playNotification() {
     playTone(880, now, 0.12);       // A5 ding
     playTone(1100, now + 0.12, 0.15); // C#6 ding
   } catch {
-    // Audio not available — silently ignore
+    // Audio not available â€” silently ignore
   }
 }

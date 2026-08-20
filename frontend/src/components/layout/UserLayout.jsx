@@ -164,7 +164,8 @@ export function UserTopBar({ onMenuClick }) {
     } catch (err) {
       const errMsg = err.response?.data?.error || "Xin lỗi, không thể tạo mô tả. Vui lòng thử lại.";
       setAiResult(errMsg);
-      console.error("AI error:", errMsg);
+      // AI failures are expected (quota/auth). Only log truly unexpected 5xx.
+      if (err.response?.status >= 500) console.error("AI upstream error:", errMsg);
     } finally {
       setAiGenerating(false);
     }
