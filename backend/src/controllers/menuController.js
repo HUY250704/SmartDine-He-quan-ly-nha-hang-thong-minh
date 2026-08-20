@@ -122,7 +122,7 @@ export const generateAiDescription = async (req, res) => {
     const catSuffix = category ? ` thuộc danh mục "${category}"` : "";
     const prompt = isUpsell
       ? `Bạn là chuyên gia ẩm thực. Đề xuất 3 món ăn kèm hoặc đồ uống gợi ý upsell bằng tiếng Việt cho món "${name}"${catSuffix}. Trả lời ngắn gọn, mỗi gợi ý 1 dòng, cách nhau bằng dấu xuống dòng. Chỉ trả lời danh sách gợi ý, không thêm lời dẫn.`
-      : `Bạn là chuyên gia ẩm thực. Viết một mô tả hấp dẫn, ngắn gọn bằng tiếng Việt cho món "${name}"${catSuffix}. Giới hạn 2-3 câu, tập trung vào hương vị, nguyên liệu và trải nghiệm. Chỉ trả lời mô tả, không thêm lời dẫn.`;
+      : `B\u1ea1n l\u00e0 chuyên gia ẩm thực. Viết một mô tả chi tiết, hấp dẫn và cuốn hút bằng tiếng Việt cho món "${name}"${catSuffix}. Giới hạn khoảng 4-5 câu, tập trung giới thiệu chi tiết về hương vị đặc trưng, nguyên liệu chính, kết cấu món ăn, phương pháp chế biến và trải nghiệm ẩm thực độc đáo mà món ăn mang lại. Chỉ trả lời mô tả, không thêm bất kỳ lời dẫn hay ghi chú nào khác.`;
 
     const resultText = await generateContent(prompt);
     res.json({ [isUpsell ? "upsellSuggestion" : "aiDescription"]: resultText });
