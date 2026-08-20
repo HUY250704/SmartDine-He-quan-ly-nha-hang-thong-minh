@@ -40,6 +40,8 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
 const vercelPattern = /^https:\/\/smart-dine-.*\.vercel\.app$/;
 function isOriginAllowed(origin) {
   if (!origin) return true;
+  // Always allow localhost and 127.0.0.1 on any port in development/local testing
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
   if (ALLOWED_ORIGINS.includes(origin)) return true;
   if (vercelPattern.test(origin)) return true;
   return false;
