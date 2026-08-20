@@ -102,14 +102,18 @@ const AI_ERROR_MESSAGES = {
   ai_not_configured: "AI service chưa được cấu hình trên máy chủ. Vui lòng liên hệ quản trị viên.",
   invalid_input: "Yêu cầu không hợp lệ.",
   prompt_too_long: "Nội dung quá dài, vui lòng rút ngắn.",
-};\n\nconst AI_ERROR_STATUS = {
+};
+
+const AI_ERROR_STATUS = {
   ai_quota_exceeded: 429,
   ai_unauthorized: 502,
   ai_upstream_error: 502,
   ai_not_configured: 503,
   invalid_input: 400,
   prompt_too_long: 400,
-};\n\nexport const generateAiDescription = async (req, res) => {
+};
+
+export const generateAiDescription = async (req, res) => {
   const { name, category, type } = req.body;
   if (!name) return res.status(400).json({ error: "Menu item name is required" });
   const isUpsell = type === "upsell";
@@ -132,11 +136,11 @@ const AI_ERROR_MESSAGES = {
         "Khăn lạnh và trà sâm dứa",
         "Khoai tây chiên hoặc salad ăn kèm"
       ];
-      return res.json({ upsellSuggestion: defaultUpsells.join("\n") });
+      return res.json({ upsellSuggestion: defaultUpsells.join('\\n') });
     } else {
       const catText = category ? ` thuộc danh mục ${category}` : "";
       const defaultDesc = `Món được chế biến từ những nguyên liệu tươi ngon chọn lọc, mang hương vị đặc sắc, đậm đà khó quên và đảm bảo an toàn vệ sinh thực phẩm.`;
       return res.json({ aiDescription: `Món ${name}${catText}${defaultDesc}` });
     }
   }
-};\n
+};
