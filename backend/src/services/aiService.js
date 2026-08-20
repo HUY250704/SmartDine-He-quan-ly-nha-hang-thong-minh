@@ -116,7 +116,21 @@ export async function generateContent(prompt) {
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const text = useGemini ? await callGemini(prompt) : await callOpenRouter(prompt);
+      let text;
+      if (useGemini) {
+        try {
+          text = await callGemini(prompt);
+        } catch (error) {
+          const canFallback = useOpenRouter && (
+            error?.code === 'ai_quota_exceeded' || error?.code === 'ai_upstream_error'
+          );
+          if (!canFallback) throw error;
+          console.warn('[AI] Gemini unavailable, falling back to OpenRouter.');
+          text = await callOpenRouter(prompt);
+        }
+      } else {
+        text = await callOpenRouter(prompt);
+      }
       return text;
     } catch (error) {
       lastError = error;
