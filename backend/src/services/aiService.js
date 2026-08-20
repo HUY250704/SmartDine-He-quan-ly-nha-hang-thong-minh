@@ -32,7 +32,7 @@ function getGeminiKey() {
 }
 
 function getGeminiModels() {
-  return (process.env.GEMINI_MODELS || 'gemini-3.5-flash,gemini-3.6-flash,gemini-2.5-flash,gemini-2.5-flash-lite,gemini-2.0-flash')
+  return (process.env.GEMINI_MODELS || 'gemini-3.6-flash,gemini-3.5-flash-lite,gemini-3.5-flash-cyber,gemini-omni,gemini-2.5-flash,gemini-2.5-flash-lite,gemini-2.0-flash')
     .split(',')
     .map(m => m.trim())
     .filter(Boolean);
