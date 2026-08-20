@@ -61,3 +61,8 @@ export const emitTableUpdated = (table) => {
   io.to('admin').emit('table-updated', table);
   io.to(`table:${table._id || table.id}`).emit('table-updated', table);
 };
+
+export const emitBillCreated = (bill) => {
+  if (!io) return;
+  io.to("admin").emit("bill-created", bill);
+};

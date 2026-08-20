@@ -3,7 +3,7 @@ import Session from '../models/Session.js';
 import Order from '../models/Order.js';
 import OrderItem from '../models/OrderItem.js';
 import Table from '../models/Table.js';
-import { emitTableUpdated } from '../socket/index.js';
+import { emitTableUpdated, emitBillCreated } from '../socket/index.js';
 import { batchOrderItems } from '../utils/batchHelpers.js';
 import { normalizeVND, calcTotals } from '../utils/price.js';
 
@@ -50,24 +50,24 @@ export const generateBill = async (req, res) => {
   try {
     const { sessionId, paymentMethod, tableId } = req.body;
     if (!sessionId || !paymentMethod) {
-      return res.status(400).json({ error: 'sessionId and paymentMethod are required' });
+      return res.status(400).json({ error: "sessionId and paymentMethod are required" });
     }
 
     const session = await Session.findById(sessionId);
-    if (!session) return res.status(404).json({ error: 'Session not found' });
-    if (session.status !== 'ACTIVE') {
-      return res.status(400).json({ error: 'Session is not active' });
+    if (!session) return res.status(404).json({ error: "Session not found" });
+    if (session.status !== "ACTIVE") {
+      return res.status(400).json({ error: "Session is not active" });
     }
 
     const existingBill = await Bill.findOne({ sessionId });
     if (existingBill) {
-      return res.status(400).json({ error: 'Bill already exists for this session' });
+      return res.status(400).json({ error: "Bill already exists for this session" });
     }
 
     // Get all orders for this session
-    const orders = await Order.find({ sessionId, status: { '$ne': 'CANCELLED' } });
+    const orders = await Order.find({ sessionId, status: { "$ne": "CANCELLED" } });
     const orderIds = orders.map(o => o._id);
-    const itemsMap = await batchOrderItems(orderIds, 'name price image');
+    const itemsMap = await batchOrderItems(orderIds, "name price image");
 
     const billItems = [];
     let subtotal = 0;
@@ -78,16 +78,16 @@ export const generateBill = async (req, res) => {
         const price = normalizeVND(it.menuItemId?.price);
         const qty = it.quantity || 1;
         billItems.push({
-          name: it.menuItemId?.name || 'Item',
+          name: it.menuItemId?.name || "Item",
           quantity: qty,
           price: price,
-          image: it.menuItemId?.image || ''
+          image: it.menuItemId?.image || ""
         });
         subtotal += price * qty;
       }
     }
 
-    // Merge identical items (price is unit price, only add quantity)
+    // Merge identical items
     const merged = [];
     billItems.forEach((item) => {
       const existing = merged.find((m) => m.name === item.name);
@@ -114,24 +114,45 @@ export const generateBill = async (req, res) => {
         serviceCharge,
         total,
         paymentMethod,
-        paymentStatus: paymentMethod === 'CARD' ? 'PAID' : 'PENDING'
+        paymentStatus: "PAID",
+        paidAt: new Date()
       });
     } catch (createErr) {
       if (createErr.code === 11000) {
-        return res.status(409).json({ error: 'Bill already exists for this session (concurrent request)' });
+        return res.status(409).json({ error: "Bill already exists for this session (concurrent request)" });
       }
       throw createErr;
     }
 
-    // Only CASH keeps session open for manual staff verification
-    // E_WALLET and BANK_TRANSFER also stay PENDING � staff must verify payment before closing
-    // (Session is only auto-closed by Stripe confirmStripePayment)
+    // Close session
+    session.status = "CLOSED";
+    session.endTime = new Date();
+    await session.save();
+
+    // Free table
+    await Table.findByIdAndUpdate(session.tableId, {
+      status: "CLEANING",
+      currentSessionId: null,
+    }, { new: true }).then((t) => { if (t) emitTableUpdated(t); });
+
+    // Populate and emit to socket admins
+    Bill.findById(bill._id)
+      .populate({
+        path: "sessionId",
+        populate: { path: "tableId", select: "number" }
+      })
+      .then((popBill) => {
+        if (popBill) emitBillCreated(popBill);
+      })
+      .catch((err) => console.error("Error emitting bill:", err));
 
     res.status(201).json(bill);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 export const getRevenueStats = async (req, res) => {
   try {

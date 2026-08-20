@@ -4,7 +4,7 @@ import Order from '../models/Order.js';
 import OrderItem from '../models/OrderItem.js';
 import Bill from '../models/Bill.js';
 import Table from '../models/Table.js';
-import { emitTableUpdated } from '../socket/index.js';
+import { emitTableUpdated, emitBillCreated } from '../socket/index.js';
 import { batchOrderItems } from '../utils/batchHelpers.js';
 import { normalizeVND, calcTotals } from '../utils/price.js';
 
@@ -69,19 +69,19 @@ export const confirmStripePayment = async (req, res) => {
   try {
     const { sessionId, paymentIntentId } = req.body;
     if (!sessionId || !paymentIntentId) {
-      return res.status(400).json({ error: 'sessionId and paymentIntentId are required' });
+      return res.status(400).json({ error: "sessionId and paymentIntentId are required" });
     }
 
-    // Verify PaymentIntent với Stripe
+    // Verify PaymentIntent v?i Stripe
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    if (paymentIntent.status !== 'succeeded') {
-      return res.status(400).json({ error: 'Payment not completed. Current status: ' + paymentIntent.status });
+    if (paymentIntent.status !== "succeeded") {
+      return res.status(400).json({ error: "Payment not completed. Current status: " + paymentIntent.status });
     }
 
     const session = await Session.findById(sessionId);
-    if (!session) return res.status(404).json({ error: 'Session not found' });
-    if (session.status !== 'ACTIVE') {
-      return res.status(400).json({ error: 'Session is not active' });
+    if (!session) return res.status(404).json({ error: "Session not found" });
+    if (session.status !== "ACTIVE") {
+      return res.status(400).json({ error: "Session is not active" });
     }
 
     const existingBill = await Bill.findOne({ sessionId });
@@ -89,10 +89,10 @@ export const confirmStripePayment = async (req, res) => {
       return res.json(existingBill);
     }
 
-    // Lấy chi tiết items
-    const orders = await Order.find({ sessionId, status: { '$ne': 'CANCELLED' } });
+    // L?y chi ti?t items
+    const orders = await Order.find({ sessionId, status: { "$ne": "CANCELLED" } });
     const orderIds = orders.map(o => o._id);
-    const itemsMap = await batchOrderItems(orderIds, 'name price image');
+    const itemsMap = await batchOrderItems(orderIds, "name price image");
 
     const billItems = [];
     let subtotal = 0;
@@ -103,10 +103,10 @@ export const confirmStripePayment = async (req, res) => {
         const price = normalizeVND(it.menuItemId?.price);
         const qty = it.quantity || 1;
         billItems.push({
-          name: it.menuItemId?.name || 'Item',
+          name: it.menuItemId?.name || "Item",
           quantity: qty,
           price: price,
-          image: it.menuItemId?.image || '',
+          image: it.menuItemId?.image || "",
         });
         subtotal += price * qty;
       }
@@ -138,8 +138,8 @@ export const confirmStripePayment = async (req, res) => {
         tax,
         serviceCharge,
         total,
-        paymentMethod: 'CARD',
-        paymentStatus: 'PAID',
+        paymentMethod: "CARD",
+        paymentStatus: "PAID",
         stripePaymentIntentId: paymentIntentId,
         paidAt: new Date(),
       });
@@ -154,23 +154,36 @@ export const confirmStripePayment = async (req, res) => {
       throw createErr;
     }
 
-    // Đóng session
-    session.status = 'CLOSED';
+    // ��ng session
+    session.status = "CLOSED";
     session.endTime = new Date();
     await session.save();
 
-    // Giải phóng bàn
+    // Gi?i ph�ng b�n
     await Table.findByIdAndUpdate(session.tableId, {
-      status: 'CLEANING',
+      status: "CLEANING",
       currentSessionId: null,
     }, { new: true }).then((t) => { if (t) emitTableUpdated(t); });
 
+    // Populate and emit to socket admins
+    Bill.findById(bill._id)
+      .populate({
+        path: "sessionId",
+        populate: { path: "tableId", select: "number" }
+      })
+      .then((popBill) => {
+        if (popBill) emitBillCreated(popBill);
+      })
+      .catch((err) => console.error("Error emitting bill:", err));
+
     res.status(201).json(bill);
   } catch (error) {
-    console.error('Stripe confirm error:', error.message);
+    console.error("Stripe confirm error:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 // Webhook nhận callback từ Stripe (fallback)
 export const handleStripeWebhook = async (req, res) => {
@@ -231,7 +244,7 @@ export const handleStripeWebhook = async (req, res) => {
             const table = await Table.findById(session.tableId);
 
             try {
-              await Bill.create({
+              const hookBill = await Bill.create({
                 sessionId,
                 tableNumber: table?.number,
                 items: merged,
@@ -239,13 +252,35 @@ export const handleStripeWebhook = async (req, res) => {
                 tax,
                 serviceCharge,
                 total,
-                paymentMethod: 'CARD',
-                paymentStatus: 'PAID',
+                paymentMethod: "CARD",
+                paymentStatus: "PAID",
                 stripePaymentIntentId: paymentIntent.id,
                 paidAt: new Date(),
               });
+
+              // Populate and emit to socket admins
+              Bill.findById(hookBill._id)
+                .populate({
+                  path: "sessionId",
+                  populate: { path: "tableId", select: "number" }
+                })
+                .then((popBill) => {
+                  if (popBill) emitBillCreated(popBill);
+                })
+                .catch((err) => console.error("Error emitting webhook bill:", err));
+
             } catch (createErr) {
               if (createErr.code !== 11000) throw createErr;
+              // If it already exists, let's fetch and emit anyway in case it wasn't emitted
+              Bill.findOne({ sessionId })
+                .populate({
+                  path: "sessionId",
+                  populate: { path: "tableId", select: "number" }
+                })
+                .then((popBill) => {
+                  if (popBill) emitBillCreated(popBill);
+                })
+                .catch(() => {});
             }
 
             session.status = 'CLOSED';
