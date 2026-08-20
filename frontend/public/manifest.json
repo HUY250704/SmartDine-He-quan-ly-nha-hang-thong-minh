@@ -1,7 +1,7 @@
 {
-  "name": "SmartDine",
+  "name": "SmartDine - Hệ thống Quản lý Nhà hàng Thông minh",
   "short_name": "SmartDine",
-  "description": "Hệ thống quản lý nhà hàng thông minh",
+  "description": "Hệ thống quản lý nhà hàng thông minh — đặt món, theo dõi đơn, quản lý bàn & thanh toán",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
@@ -9,6 +9,10 @@
   "theme_color": "#0c1322",
   "icons": [
     { "src": "/pwa-192x192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/pwa-512x512.png", "sizes": "512x512", "type": "image/png" }
-  ]
+    { "src": "/pwa-512x512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/pwa-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["food", "lifestyle", "business"],
+  "lang": "vi",
+  "dir": "ltr"
 }
