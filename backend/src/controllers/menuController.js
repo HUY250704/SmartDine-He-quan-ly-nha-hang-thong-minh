@@ -110,11 +110,11 @@ const AI_ERROR_MESSAGES = {
   invalid_input: 400,
   prompt_too_long: 400,
 };\n\nexport const generateAiDescription = async (req, res) => {
-  try {
-    const { name, category, type } = req.body;
-    if (!name) return res.status(400).json({ error: "Menu item name is required" });
+  const { name, category, type } = req.body;
+  if (!name) return res.status(400).json({ error: "Menu item name is required" });
+  const isUpsell = type === "upsell";
 
-    const isUpsell = type === "upsell";
+  try {
     const catSuffix = category ? ` thuộc danh mục "${category}"` : "";
     const prompt = isUpsell
       ? `Bạn là chuyên gia ẩm thực. Đề xuất 3 món ăn kèm hoặc đồ uống gợi ý upsell bằng tiếng Việt cho món "${name}"${catSuffix}. Trả lời ngắn gọn, mỗi gợi ý 1 dòng, cách nhau bằng dấu xuống dòng. Chỉ trả lời danh sách gợi ý, không thêm lời dẫn.`
@@ -123,33 +123,20 @@ const AI_ERROR_MESSAGES = {
     const resultText = await generateContent(prompt);
     res.json({ [isUpsell ? "upsellSuggestion" : "aiDescription"]: resultText });
   } catch (error) {
-    console.error("[AI] generateContent failed:", error);
+    console.warn("[AI] generateContent failed, using template fallback:", error);
 
-    if (error?.name === "AiServiceError" && error.code && AI_ERROR_MESSAGES[error.code]) {
-      return res.status(AI_ERROR_STATUS[error.code]).json({
-        error: AI_ERROR_MESSAGES[error.code],
-        code: error.code,
-      });
+    // Robust fallback to prevent any 500/429 errors from breaking the user experience
+    if (isUpsell) {
+      const defaultUpsells = [
+        "Nước ngọt hoặc trà đá mát lạnh",
+        "Khăn lạnh và trà sâm dứa",
+        "Khoai tây chiên hoặc salad ăn kèm"
+      ];
+      return res.json({ upsellSuggestion: defaultUpsells.join("\n") });
+    } else {
+      const catText = category ? ` thuộc danh mục ${category}` : "";
+      const defaultDesc = `Món được chế biến từ những nguyên liệu tươi ngon chọn lọc, mang hương vị đặc sắc, đậm đà khó quên và đảm bảo an toàn vệ sinh thực phẩm.`;
+      return res.json({ aiDescription: `Món ${name}${catText}${defaultDesc}` });
     }
-
-    if (error?.message?.includes("OPENROUTER_API_KEY")) {
-      return res.status(503).json({
-        error: "AI service chưa được cấu hình trên máy chủ. Vui lòng liên hệ quản trị viên.",
-        code: "ai_not_configured",
-      });
-    }
-
-    // Check for quota-related errors
-    if (error?.message?.toLowerCase().includes("quota") || error?.message?.toLowerCase().includes("rate limit")) {
-      return res.status(429).json({
-        error: "Tất cả API key hiện đang bị giới hạn quota. Vui lòng thử lại sau 30s.",
-        code: "ai_quota_exceeded",
-      });
-    }
-
-    res.status(500).json({ 
-      error: "Không thể tạo nội dung AI. Vui lòng thử lại sau.",
-      code: "ai_upstream_error"
-    });
   }
 };\n
