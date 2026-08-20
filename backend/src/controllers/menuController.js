@@ -96,47 +96,60 @@ export const uploadMenuImage = async (req, res) => {
 
 // Friendly message mapping for known AI failure modes.
 const AI_ERROR_MESSAGES = {
-  ai_quota_exceeded: 'AI hiện đang bị giới hạn quota. Vui lòng thử lại sau khoảng 30 giây.',
-  ai_unauthorized: 'AI service chưa được cấu hình đúng trên máy chủ.',
-  ai_upstream_error: 'Nhà cung cấp AI đang tạm thời không khả dụng. Vui lòng thử lại sau.',
-};
-
-const AI_ERROR_STATUS = {
+  ai_quota_exceeded: "Tất cả API key hiện đang bị giới hạn quota. Vui lòng thử lại sau 30s.",
+  ai_unauthorized: "AI service chưa được cấu hình đúng trên máy chủ.",
+  ai_upstream_error: "Nhà cung cấp AI đang tạm thời không khả dụng. Vui lòng thử lại sau.",
+  ai_not_configured: "AI service chưa được cấu hình trên máy chủ. Vui lòng liên hệ quản trị viên.",
+  invalid_input: "Yêu cầu không hợp lệ.",
+  prompt_too_long: "Nội dung quá dài, vui lòng rút ngắn.",
+};\n\nconst AI_ERROR_STATUS = {
   ai_quota_exceeded: 429,
   ai_unauthorized: 502,
   ai_upstream_error: 502,
-};
-
-export const generateAiDescription = async (req, res) => {
+  ai_not_configured: 503,
+  invalid_input: 400,
+  prompt_too_long: 400,
+};\n\nexport const generateAiDescription = async (req, res) => {
   try {
     const { name, category, type } = req.body;
-    if (!name) return res.status(400).json({ error: 'Menu item name is required' });
+    if (!name) return res.status(400).json({ error: "Menu item name is required" });
 
-    const isUpsell = type === 'upsell';
-    const catSuffix = category ? ` thuộc danh mục "${category}"` : '';
+    const isUpsell = type === "upsell";
+    const catSuffix = category ? ` thuộc danh mục "${category}"` : "";
     const prompt = isUpsell
       ? `Bạn là chuyên gia ẩm thực. Đề xuất 3 món ăn kèm hoặc đồ uống gợi ý upsell bằng tiếng Việt cho món "${name}"${catSuffix}. Trả lời ngắn gọn, mỗi gợi ý 1 dòng, cách nhau bằng dấu xuống dòng. Chỉ trả lời danh sách gợi ý, không thêm lời dẫn.`
       : `Bạn là chuyên gia ẩm thực. Viết một mô tả hấp dẫn, ngắn gọn bằng tiếng Việt cho món "${name}"${catSuffix}. Giới hạn 2-3 câu, tập trung vào hương vị, nguyên liệu và trải nghiệm. Chỉ trả lời mô tả, không thêm lời dẫn.`;
 
     const resultText = await generateContent(prompt);
-    res.json({ [isUpsell ? 'upsellSuggestion' : 'aiDescription']: resultText });
+    res.json({ [isUpsell ? "upsellSuggestion" : "aiDescription"]: resultText });
   } catch (error) {
-    console.error('[AI] generateContent failed:', error);
+    console.error("[AI] generateContent failed:", error);
 
-    if (error?.name === 'AiServiceError' && error.code && AI_ERROR_MESSAGES[error.code]) {
+    if (error?.name === "AiServiceError" && error.code && AI_ERROR_MESSAGES[error.code]) {
       return res.status(AI_ERROR_STATUS[error.code]).json({
         error: AI_ERROR_MESSAGES[error.code],
         code: error.code,
       });
     }
 
-    if (error?.message?.includes('OPENROUTER_API_KEY')) {
+    if (error?.message?.includes("OPENROUTER_API_KEY")) {
       return res.status(503).json({
-        error: 'AI service chưa được cấu hình trên máy chủ. Vui lòng liên hệ quản trị viên.',
-        code: 'ai_not_configured',
+        error: "AI service chưa được cấu hình trên máy chủ. Vui lòng liên hệ quản trị viên.",
+        code: "ai_not_configured",
       });
     }
 
-    res.status(500).json({ error: 'Không thể tạo nội dung AI. Vui lòng thử lại sau.' });
+    // Check for quota-related errors
+    if (error?.message?.toLowerCase().includes("quota") || error?.message?.toLowerCase().includes("rate limit")) {
+      return res.status(429).json({
+        error: "Tất cả API key hiện đang bị giới hạn quota. Vui lòng thử lại sau 30s.",
+        code: "ai_quota_exceeded",
+      });
+    }
+
+    res.status(500).json({ 
+      error: "Không thể tạo nội dung AI. Vui lòng thử lại sau.",
+      code: "ai_upstream_error"
+    });
   }
-};
+};\n

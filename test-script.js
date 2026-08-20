@@ -1,0 +1,1 @@
+'const fs = require(\"fs\"); const content = String.raw\`import OpenAI from \"openai\";\` + \"\\n\\nconst sleep = (ms) => new Promise(r => setTimeout(r, ms));\\n\"; fs.writeFileSync(\"test-output.js\", content); console.log(\"Done\");'  

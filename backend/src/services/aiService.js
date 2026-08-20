@@ -1,19 +1,26 @@
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-/**
- * Custom error so the controller can distinguish quota / auth / network / config.
- * `expose = true` means the message is safe to return to the client.
- */
 class AiServiceError extends Error {
   constructor(code, message, { expose = true, status = 503 } = {}) {
     super(message);
-    this.name = 'AiServiceError';
+    this.name = "AiServiceError";
     this.code = code;
     this.expose = expose;
     this.status = status;
   }
+}
+
+function sanitizePrompt(prompt) {
+  if (typeof prompt !== "string") {
+    throw new AiServiceError("invalid_input", "Prompt must be a string", { status: 400 });
+  }
+  const MAX_PROMPT_LENGTH = 4000;
+  if (prompt.length > MAX_PROMPT_LENGTH) {
+    throw new AiServiceError("prompt_too_long", "Prompt exceeds maximum length", { status: 400 });
+  }
+  return prompt.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
 }
 
 function getOpenRouterKey() {
@@ -42,10 +49,18 @@ async function callOpenRouter(prompt) {
   const key = getOpenRouterKey();
   if (!key) throw new AiServiceError('ai_not_configured', 'OPENROUTER_API_KEY is not set.', { status: 503 });
   const client = new OpenAI({ baseURL: 'https://openrouter.ai/api/v1', apiKey: key });
-  const response = await client.chat.completions.create({
-    model: getOpenRouterModel(),
-    messages: [{ role: 'user', content: prompt }],
-  });
+  let response;
+  try {
+    response = await client.chat.completions.create({
+      model: getOpenRouterModel(),
+      messages: [{ role: 'user', content: prompt }],
+    });
+  } catch (apiError) {
+    if (apiError.status === 429 || apiError.status === 503) {
+      throw new AiServiceError('ai_quota_exceeded', 'OpenRouter rate limit exceeded', { status: 429 });
+    }
+    throw apiError;
+  }
   const text = response.choices?.[0]?.message?.content;
   if (!text) throw new Error('Empty response from OpenRouter.');
   return text.trim();
@@ -72,7 +87,11 @@ async function callGemini(prompt) {
         }),
       });
       if (res.status === 429 || res.status === 503) {
-        lastErr = new Error(`Gemini ${model} quota/rate-limit (${res.status})`);
+        const retryAfter = res.headers.get('Retry-After');
+        const delay = retryAfter ? parseInt(retryAfter) * 1000 : 5000;
+        lastErr = new AiServiceError('ai_quota_exceeded', `Gemini ${model} quota/rate-limit (${res.status})`, { status: 429 });
+        lastErr.retryDelay = delay;
+        if (model === models[models.length - 1]) break;
         continue;
       }
       if (!res.ok) {
@@ -94,7 +113,7 @@ async function callGemini(prompt) {
     }
   }
   if (lastErr?.message?.includes('quota')) {
-    throw new AiServiceError('ai_quota_exceeded', 'All Gemini models are rate-limited. Please retry in ~30s.', { status: 429 });
+    throw new AiServiceError('ai_quota_exceeded', 'Tất cả API key đang bị giới hạn quota. Vui lòng thử lại sau 30 giây.', { status: 429 });
   }
   throw new AiServiceError('ai_upstream_error', 'All Gemini models failed.', { status: 502, expose: false });
 }
@@ -105,6 +124,9 @@ async function callGemini(prompt) {
  * Retries on 429 with exponential backoff.
  */
 export async function generateContent(prompt) {
+  // Sanitize input
+  const sanitizedPrompt = sanitizePrompt(prompt);
+
   const useGemini = !!getGeminiKey();
   const useOpenRouter = !!getOpenRouterKey();
   if (!useGemini && !useOpenRouter) {
@@ -119,24 +141,25 @@ export async function generateContent(prompt) {
       let text;
       if (useGemini) {
         try {
-          text = await callGemini(prompt);
+          text = await callGemini(sanitizedPrompt);
         } catch (error) {
           const canFallback = useOpenRouter && (
             error?.code === 'ai_quota_exceeded' || error?.code === 'ai_upstream_error'
           );
           if (!canFallback) throw error;
           console.warn('[AI] Gemini unavailable, falling back to OpenRouter.');
-          text = await callOpenRouter(prompt);
+          text = await callOpenRouter(sanitizedPrompt);
         }
       } else {
-        text = await callOpenRouter(prompt);
+        text = await callOpenRouter(sanitizedPrompt);
       }
       return text;
     } catch (error) {
       lastError = error;
       if (error instanceof AiServiceError) {
         if (error.status === 429 && attempt < maxRetries) {
-          const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+          // Use retryDelay from the error if available, otherwise use exponential backoff
+          const delay = error.retryDelay || Math.min(1000 * Math.pow(2, attempt), 10000);
           console.warn(`[AI] Rate limited (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms...`);
           await sleep(delay);
           continue;
