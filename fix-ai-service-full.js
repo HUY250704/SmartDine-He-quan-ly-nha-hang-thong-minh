@@ -1,5 +1,0 @@
-'const content = ['  
-'\"import OpenAI from '\"'\"'openai'\"'\"';\"', '  
-'\"\"const sleep = (ms) = Promise(r =, ms));\"\",'  
-'\"\"], \"concat\"'  
-'fs.writeFileSync(\"test-write.js\", content.concat().join(\"\\n\"));'  

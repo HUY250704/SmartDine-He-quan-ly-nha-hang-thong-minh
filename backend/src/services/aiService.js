@@ -32,7 +32,7 @@ function getGeminiKey() {
 }
 
 function getGeminiModels() {
-  return (process.env.GEMINI_MODELS || 'gemini-2.0-flash,gemini-2.5-flash-lite,gemini-2.5-flash')
+  return (process.env.GEMINI_MODELS || 'gemini-3.5-flash,gemini-3.6-flash,gemini-2.5-flash,gemini-2.5-flash-lite,gemini-2.0-flash')
     .split(',')
     .map(m => m.trim())
     .filter(Boolean);
@@ -133,7 +133,7 @@ export async function generateContent(prompt) {
     throw new AiServiceError('ai_not_configured', 'AI service is not configured (set GEMINI_API_KEY or OPENROUTER_API_KEY).', { status: 503 });
   }
 
-  const maxRetries = 3;
+  const maxRetries = parseInt(process.env.GEMINI_RETRY_MAX, 10) || 3;
   let lastError = null;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -159,7 +159,9 @@ export async function generateContent(prompt) {
       if (error instanceof AiServiceError) {
         if (error.status === 429 && attempt < maxRetries) {
           // Use retryDelay from the error if available, otherwise use exponential backoff
-          const delay = error.retryDelay || Math.min(1000 * Math.pow(2, attempt), 10000);
+          const baseDelay = parseInt(process.env.GEMINI_RETRY_DELAY_MS, 10) || 1000;
+          const useBackoff = process.env.GEMINI_RETRY_BACKOFF !== "false";
+          const delay = error.retryDelay || (useBackoff ? Math.min(baseDelay * Math.pow(2, attempt), 10000) : baseDelay);
           console.warn(`[AI] Rate limited (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms...`);
           await sleep(delay);
           continue;
@@ -167,7 +169,9 @@ export async function generateContent(prompt) {
         throw error;
       }
       if (attempt < maxRetries) {
-        const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+        const baseDelay = parseInt(process.env.GEMINI_RETRY_DELAY_MS, 10) || 1000;
+        const useBackoff = process.env.GEMINI_RETRY_BACKOFF !== "false";
+        const delay = useBackoff ? Math.min(baseDelay * Math.pow(2, attempt), 10000) : baseDelay;
         console.warn(`[AI] Error (attempt ${attempt}/${maxRetries}): ${error.message}; retrying in ${delay}ms...`);
         await sleep(delay);
         continue;
