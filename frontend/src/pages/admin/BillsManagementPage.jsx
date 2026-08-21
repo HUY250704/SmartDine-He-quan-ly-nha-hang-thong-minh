@@ -343,7 +343,7 @@ export default function BillsManagementPage() {
         </div>
         {filtered.length > 0 && (
           <div className="px-4 py-3 md:px-6 md:py-4 bg-surface-container-highest/30 border-t border-white/5 flex items-center justify-between">
-            <p className="text-xs text-on-surface-variant">{t("bills.showing")} {(page - 1) * ITEMS_PER_PAGE + 1}-{Math.min(page * ITEMS_PER_PAGE, filtered.length)} {t("bills.entries")}</p>
+            
             <div className="flex gap-2">
               <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="glass-card p-2 rounded-lg flex items-center disabled:opacity-30"><span className="material-symbols-outlined text-sm">chevron_left</span></button>
               {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
