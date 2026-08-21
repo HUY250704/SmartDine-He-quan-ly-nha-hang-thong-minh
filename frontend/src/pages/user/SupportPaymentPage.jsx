@@ -51,6 +51,8 @@ export default function SupportPaymentPage() {
         res.data.forEach((order) => {
           if (order.status === "CANCELLED") return;
           order.items?.forEach((it) => {
+            if (it.status === "CANCELLED") return;
+            if (!it.menuItemId) return;
             const existing = items.find((bi) => bi.name === (it.menuItemId?.name || "Item"));
             if (existing) {
               existing.qty += it.quantity;

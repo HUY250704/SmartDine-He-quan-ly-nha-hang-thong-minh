@@ -78,6 +78,8 @@ export const generateBill = async (req, res) => {
     for (const order of orders) {
       const items = itemsMap.get(order._id.toString()) || [];
       for (const it of items) {
+        if (it.status === 'CANCELLED') continue;
+        if (!it.menuItemId) continue;
         const price = normalizeVND(it.menuItemId?.price);
         const qty = it.quantity || 1;
         billItems.push({

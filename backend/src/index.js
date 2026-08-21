@@ -116,16 +116,29 @@ server.on('error', (err) => {
 mongoose.set('bufferCommands', false);
 
 mongoose.connect(mongoUri, {
-  serverSelectionTimeoutMS: 10000,
-  connectTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 5000,
+  connectTimeoutMS: 5000,
 }).then(() => {
-  console.log('MongoDB connected');
+  console.log("MongoDB connected (Primary)");
   server.listen(port, () => {
-    console.log('Backend running on http://localhost:' + port + ' with DB');
+    console.log("Backend running on http://localhost:" + port + " with DB");
   });
 }).catch((error) => {
-  console.error('MongoDB connection error:', error.message);
-  console.error('Server will NOT start — database is required.');
-  process.exit(1);
+  console.warn("Primary MongoDB connection error:", error.message);
+  console.log("Attempting fallback to Local MongoDB...");
+  const localUri = "mongodb://127.0.0.1:27017/smartdine";
+  mongoose.connect(localUri, {
+    serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 5000,
+  }).then(() => {
+    console.log("MongoDB connected (Fallback to Local DB)");
+    server.listen(port, () => {
+      console.log("Backend running on http://localhost:" + port + " with Local DB");
+    });
+  }).catch((localErr) => {
+    console.error("Local MongoDB connection error:", localErr.message);
+    console.error("Server will NOT start - database is required.");
+    process.exit(1);
+  });
 });
 

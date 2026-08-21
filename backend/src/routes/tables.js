@@ -1,6 +1,6 @@
 import express from "express";
 import { getTables, createTable, updateTable, deleteTable } from "../controllers/tableController.js";
-import { auth } from "../middleware/auth.js";
+import { auth, isAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 

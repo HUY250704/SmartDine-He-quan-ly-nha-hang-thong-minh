@@ -1,6 +1,6 @@
 import express from "express";
 import { getMenu, createMenuItem, updateMenuItem, deleteMenuItem, uploadMenuImage, generateAiDescription } from "../controllers/menuController.js";
-import { auth } from "../middleware/auth.js";
+import { auth, isAdmin } from "../middleware/auth.js";
 import { upload } from "../config/upload.js";
 
 const router = express.Router();
