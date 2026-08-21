@@ -44,7 +44,7 @@ export default function BillsManagementPage() {
     socket.emit("join-admin");
 
     const handleNewBill = (newBill) => {
-      if (!newBill?.sessionId?.tableId) { fetchData(); return; }
+      if (!newBill?.tableNumber && !newBill?.sessionId?.tableId) { fetchData(); return; }
       setBills((prev) => {
         if (prev.some((b) => b._id === newBill._id)) return prev;
         return [newBill, ...prev];
@@ -264,7 +264,7 @@ export default function BillsManagementPage() {
               <tbody className="divide-y divide-white/5">
                 {paginated.map((bill) => {
                   const pm = paymentMethods[bill.paymentMethod] || { label: bill.paymentMethod || "Cash", icon: "payments", color: "#a08e7a" };
-                  const tableNum = bill.sessionId?.tableId?.number || "-";
+                  const tableNum = bill.tableNumber || bill.sessionId?.tableId?.number || "-";
                   const dateStr = bill.paidAt ? new Date(bill.paidAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "-";
                   const timeStr = bill.paidAt ? new Date(bill.paidAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "-";
                   const billId = bill._id ? "#SD-" + bill._id.toString().slice(-4).toUpperCase() : "-";

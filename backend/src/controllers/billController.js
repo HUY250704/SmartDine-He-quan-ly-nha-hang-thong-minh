@@ -144,6 +144,7 @@ export const generateBill = async (req, res) => {
         path: "sessionId",
         populate: { path: "tableId", select: "number" }
       })
+      .populate("resolvedBy", "username")
       .then((popBill) => {
         if (popBill) emitBillCreated(popBill);
       })
