@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext.jsx";
 import api from "@/lib/api.js";
@@ -19,28 +19,10 @@ const quickChips = [
 ];
 
 const paymentMethods = [
-  { id: "CARD", label: "Credit Card", desc: "Pay securely with Stripe", icon: "credit_card", color: "#ffc174" },
+  { id: "CASH", label: "Cash", desc: "Pay at the counter", icon: "payments", color: "#60a5fa" },
   { id: "E_WALLET", label: "E-Wallet", desc: "Momo, ZaloPay", icon: "wallet", color: "#56e5a9" },
   { id: "BANK_TRANSFER", label: "Bank Transfer", desc: "Direct bank to bank", icon: "account_balance", color: "#a78bfa" },
-  { id: "CASH", label: "Cash", desc: "Pay at the counter", icon: "payments", color: "#60a5fa" },
 ];
-
-let stripePromise = null;
-let elementsInstance = null;
-
-function getStripe() {
-  if (!stripePromise) {
-    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-    const script = document.createElement("script");
-    script.src = "https://js.stripe.com/v3/";
-    script.async = true;
-    stripePromise = new Promise((resolve) => {
-      script.onload = () => resolve(window.Stripe(key));
-    });
-    document.head.appendChild(script);
-  }
-  return stripePromise;
-}
 
 export default function SupportPaymentPage() {
   const { t } = useLang();
@@ -53,10 +35,7 @@ export default function SupportPaymentPage() {
   const [confirmMsg, setConfirmMsg] = useState(null);
   const [sending, setSending] = useState(false);
   const [customMsg, setCustomMsg] = useState("");
-  const [stripeReady, setStripeReady] = useState(false);
   const [showQR, setShowQR] = useState(false);
-  const cardRef = useRef(null);
-  const cardInstance = useRef(null);
 
   const subtotal = billItems.reduce((s, i) => s + i.price, 0);
   const tax = Math.round(subtotal * 0.08);
@@ -92,44 +71,6 @@ export default function SupportPaymentPage() {
       .finally(() => setBillLoading(false));
   }, []);
 
-  // Initialize Stripe Elements when CARD is selected
-  useEffect(() => {
-    if (selectedMethod === "CARD" && !stripeReady) {
-      let cancelled = false;
-      getStripe().then(async (stripe) => {
-        if (cancelled) return;
-        elementsInstance = stripe.elements({ appearance: { theme: "night", variables: { colorPrimary: "#ffc174" } } });
-        const card = elementsInstance.create("card", {
-          style: {
-            base: {
-              color: "#dce2f7",
-              fontFamily: "Inter, sans-serif",
-              fontSize: "14px",
-              "::placeholder": { color: "rgba(216,195,173,0.4)" },
-            },
-            invalid: { color: "#ffb4ab" },
-          },
-        });
-        if (cardRef.current) {
-          card.mount(cardRef.current);
-          cardInstance.current = card;
-          setStripeReady(true);
-        }
-      });
-      return () => { cancelled = true; };
-    }
-  }, [selectedMethod, stripeReady]);
-
-  // Cleanup card when switching away from CARD
-  useEffect(() => {
-    if (selectedMethod !== "CARD" && cardInstance.current) {
-      cardInstance.current.unmount();
-      cardInstance.current = null;
-      elementsInstance = null;
-      setStripeReady(false);
-    }
-  }, [selectedMethod]);
-
   const showToast = (msg, isError) => {
     setConfirmMsg({ text: msg, isError });
     setTimeout(() => setConfirmMsg(null), 3500);
@@ -148,43 +89,7 @@ export default function SupportPaymentPage() {
     }
   };
 
-  const handleStripePayment = async () => {
-    setSending(true);
-    try {
-      const sessionId = localStorage.getItem("smartdine_sessionId");
-      if (!sessionId) { showToast("Session not found", true); setSending(false); return; }
-
-      // 1. Create PaymentIntent
-      const { data: pi } = await api.post("/bills/create-payment-intent", { sessionId });
-
-      // 2. Confirm with Stripe
-      const stripe = await getStripe();
-      const { error: stripeError } = await stripe.confirmCardPayment(pi.clientSecret, {
-        payment_method: { card: cardInstance.current },
-      });
-
-      if (stripeError) {
-        showToast(stripeError.message, true);
-        setSending(false);
-        return;
-      }
-
-      // 3. Confirm with backend and create bill
-      const { data: bill } = await api.post("/bills/confirm-stripe-payment", {
-        sessionId,
-        paymentIntentId: pi.clientSecret.split("_secret_")[0],
-      });
-
-      localStorage.setItem("smartdine_lastBill", JSON.stringify(bill));
-      navigate("/customer/" + tableId + "/bill-success");
-    } catch (err) {
-      showToast(err.response?.data?.error || "Payment failed", true);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const handleNonCardPayment = async (method) => {
+  const handleManualPayment = async (method) => {
     setSending(true);
     try {
       if (method === "CASH") {
@@ -225,12 +130,10 @@ export default function SupportPaymentPage() {
 
   const handlePayment = async () => {
     if (!selectedMethod) return;
-    if (selectedMethod === "CARD") {
-      await handleStripePayment();
-    } else if (selectedMethod === "E_WALLET" || selectedMethod === "BANK_TRANSFER") {
+    if (selectedMethod === "E_WALLET" || selectedMethod === "BANK_TRANSFER") {
       setShowQR(true);
-    } else {
-      await handleNonCardPayment(selectedMethod);
+    } else if (selectedMethod === "CASH") {
+      await handleManualPayment("CASH");
     }
   };
 
@@ -394,20 +297,11 @@ export default function SupportPaymentPage() {
               ))}
             </div>
 
-            {/* Stripe Card Input */}
-            {selectedMethod === "CARD" && (
-              <div className="mb-3">
-                <div
-                  ref={cardRef}
-                  className="p-3 rounded-xl border transition-colors"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
-                />
-              </div>
-            )}
+            {/* Payment action */}
 
             <button
               onClick={handlePayment}
-              disabled={!selectedMethod || sending || (selectedMethod === "CARD" && !stripeReady) || billItems.length === 0}
+              disabled={!selectedMethod || sending || billItems.length === 0}
               className="w-full py-3 rounded-xl font-bold text-xs md:text-sm flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-40"
               style={{
                 background: "#ffc174",
@@ -423,13 +317,9 @@ export default function SupportPaymentPage() {
               ) : (
                 <>
                   <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    lock
+                    payments
                   </span>
-                  {selectedMethod === "CARD"
-                    ? "Pay Securely with Stripe"
-                    : selectedMethod === "CASH"
-                    ? "Request Cash Payment"
-                    : "Show QR & Request Payment"}
+                  {selectedMethod === "CASH" ? "Request Cash Payment" : "Show QR & Request Payment"}
                 </>
               )}
             </button>
