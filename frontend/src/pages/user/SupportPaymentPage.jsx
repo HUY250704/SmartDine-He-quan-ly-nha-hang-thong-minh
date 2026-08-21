@@ -37,7 +37,7 @@ export default function SupportPaymentPage() {
   const [customMsg, setCustomMsg] = useState("");
   const [showQR, setShowQR] = useState(false);
 
-  const subtotal = billItems.reduce((s, i) => s + i.price, 0);
+  const subtotal = billItems.reduce((s, i) => s + i.price * i.qty, 0);
   const tax = Math.round(subtotal * 0.08);
   const serviceCharge = Math.round(subtotal * 0.05);
   const total = subtotal + tax + serviceCharge;
@@ -56,12 +56,11 @@ export default function SupportPaymentPage() {
             const existing = items.find((bi) => bi.name === (it.menuItemId?.name || "Item"));
             if (existing) {
               existing.qty += it.quantity;
-              existing.price += normalizeVND(it.menuItemId?.price) * it.quantity;
             } else {
               items.push({
                 name: it.menuItemId?.name || "Item",
                 qty: it.quantity,
-                price: normalizeVND(it.menuItemId?.price) * it.quantity,
+                price: normalizeVND(it.menuItemId?.price),
                 image: it.menuItemId?.image || "",
               });
             }
@@ -225,7 +224,7 @@ export default function SupportPaymentPage() {
                         {item.name}{" "}
                         <span className="text-on-surface-variant/30 text-xs">x{item.qty}</span>
                       </span>
-                      <span className="text-on-surface font-mono text-xs">{formatPrice(item.price)}</span>
+                      <span className="text-on-surface font-mono text-xs">{formatPrice(item.price * item.qty)}</span>
                     </div>
                   ))}
                 </div>
