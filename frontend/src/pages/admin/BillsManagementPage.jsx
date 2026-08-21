@@ -181,6 +181,7 @@ export default function BillsManagementPage() {
     <table class="meta">
       <tr><td><strong>Table:</strong> ${tableNumber}</td><td><strong>Date:</strong> ${date} ${time}</td></tr>
       <tr><td><strong>Payment:</strong> ${pm.label}</td><td><strong>Status:</strong> ${bill.paymentStatus || "PAID"}</td></tr>
+      ${bill.resolvedBy ? `<tr><td colspan="2"><strong>Staff:</strong> ${bill.resolvedBy.username || "Staff"}</td></tr>` : ""}
     </table>
 
     <table class="items">
@@ -256,6 +257,7 @@ export default function BillsManagementPage() {
                   <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.dateTime")}</th>
                   <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold text-right">{t("bills.total")}</th>
                   <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.method")}</th>
+                  <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold">{t("bills.status")}</th>
                   <th className="px-4 py-3 md:px-6 md:py-4 text-xs uppercase tracking-widest text-on-surface-variant font-bold text-center">{t("bills.actions")}</th>
                 </tr>
               </thead>
@@ -286,6 +288,9 @@ export default function BillsManagementPage() {
                           <span className="material-symbols-outlined text-sm" style={{ color: pm.color }}>{pm.icon}</span>
                           <span className="text-sm text-on-surface">{t(pm.label)}</span>
                         </div>
+                      </td>
+                      <td className="px-4 py-3 md:px-6 md:py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${bill.paymentStatus === "PAID" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-amber-500/10 border-amber-500/20 text-amber-400"}`}>{bill.paymentStatus || "PAID"}</span>
                       </td>
                       <td className="px-4 py-3 md:px-6 md:py-4">
                         <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -336,6 +341,7 @@ export default function BillsManagementPage() {
               <div className="flex justify-between"><span>Phuong thuc</span><span className="text-white">{paymentMethods[selectedBill.paymentMethod]?.label || selectedBill.paymentMethod}</span></div>
               <div className="flex justify-between"><span>Ngay</span><span className="font-mono text-white text-xs">{selectedBill.paidAt ? new Date(selectedBill.paidAt).toLocaleString("vi-VN") : "-"}</span></div>
               <div className="flex justify-between"><span>Trang thai</span><span className="text-white">{selectedBill.paymentStatus || "PAID"}</span></div>
+              {selectedBill.resolvedBy && <div className="flex justify-between"><span>Nhan vien xac nhan</span><span className="text-white">{selectedBill.resolvedBy.username || "Staff"}</span></div>}
             </div>
 
             {/* Items list */}

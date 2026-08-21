@@ -1,4 +1,5 @@
 import Bill from '../models/Bill.js';
+import SupportRequest from '../models/SupportRequest.js';
 import Session from '../models/Session.js';
 import Order from '../models/Order.js';
 import OrderItem from '../models/OrderItem.js';
@@ -14,7 +15,8 @@ export const getBills = async (req, res) => {
       .populate({
         path: 'sessionId',
         populate: { path: 'tableId', select: 'number' }
-      });
+      })
+      .populate('resolvedBy', 'username');
     res.json(bills);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -27,7 +29,8 @@ export const getBillById = async (req, res) => {
       .populate({
         path: 'sessionId',
         populate: { path: 'tableId', select: 'number' }
-      });
+      })
+      .populate('resolvedBy', 'username');
 
     if (!bill) return res.status(404).json({ error: 'Bill not found' });
 
@@ -115,6 +118,7 @@ export const generateBill = async (req, res) => {
         total,
         paymentMethod,
         paymentStatus: "PAID",
+        resolvedBy: req.user._id,
         paidAt: new Date()
       });
     } catch (createErr) {
@@ -128,6 +132,8 @@ export const generateBill = async (req, res) => {
     session.status = "CLOSED";
     session.endTime = new Date();
     await session.save();
+
+    await SupportRequest.updateMany({ sessionId, status: "pending" }, { status: "confirmed", resolvedAt: new Date(), resolvedBy: req.user._id });
 
     // Close session and set table to CLEANING. Staff will manually set to AVAILABLE when ready.
     await Table.findByIdAndUpdate(session.tableId, { status: "CLEANING", currentSessionId: null }, { new: true }).then((t) => { if (t) emitTableUpdated(t); });

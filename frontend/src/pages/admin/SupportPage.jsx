@@ -65,14 +65,38 @@ export default function SupportPage() {
     if (!loading) fetchRequests();
   }, [filter, typeFilter]);
 
-  const resolve = async (id) => {
+  const resolve = async (id, status = "resolved") => {
     try {
-      await api.put('/support/' + id + '/resolve');
+      await api.put("/support/" + id + "/resolve", { status });
       setRequests((prev) =>
-        prev.map((r) => (r._id === id ? { ...r, status: 'resolved' } : r))
+        prev.map((r) => (r._id === id ? { ...r, status } : r))
       );
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to resolve request');
+      alert(err.response?.data?.error || "Failed to update request status");
+    }
+  };
+
+  const handleConfirmPayment = async (req) => {
+    const sessionId = req.sessionId;
+    if (!sessionId) {
+      alert("No active session found for this payment request");
+      return;
+    }
+    let paymentMethod = "BANK_TRANSFER";
+    if (req.message.includes("CASH") || req.message.toLowerCase().includes("cash") || req.message.toLowerCase().includes("tiền mặt")) {
+      paymentMethod = "CASH";
+    } else if (req.message.includes("E_WALLET") || req.message.toLowerCase().includes("momo") || req.message.toLowerCase().includes("ví")) {
+      paymentMethod = "E_WALLET";
+    }
+    if (!window.confirm("Xác nhận tạo hóa đơn bằng phương thức " + paymentMethod + " cho Bàn #" + (req.tableNumber || req.tableId?.number || "?") + "?")) {
+      return;
+    }
+    try {
+      await api.post("/bills/generate", { sessionId, paymentMethod });
+      await resolve(req._id, "confirmed");
+      alert("Hóa đơn đã được xác nhận tạo thành công!");
+    } catch (err) {
+      alert(err.response?.data?.error || "Failed to confirm payment and generate bill");
     }
   };
 
@@ -226,7 +250,7 @@ export default function SupportPage() {
         <div className="space-y-3">
           {filteredRequests.map((req) => {
             const tc = typeConfig[req.type] || typeConfig.assistance;
-            const isResolved = req.status === 'resolved';
+            const isResolved = req.status !== 'pending';
 
             return (
               <div
@@ -258,8 +282,17 @@ export default function SupportPage() {
                         style={{ background: tc.bg, borderColor: tc.border, color: tc.color }}
                       >
                         {tc.label}
-                      </span>
-                      {isResolved && (
+                      </span>                      {req.status === "confirmed" && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border bg-emerald-500/10 border-emerald-500/20 text-emerald-400">
+                          Confirmed
+                        </span>
+                      )}
+                      {req.status === "rejected" && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border bg-rose-500/10 border-rose-500/20 text-rose-400">
+                          Rejected
+                        </span>
+                      )}
+                      {req.status === "resolved" && (
                         <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border bg-white/5 border-white/10 text-on-surface-variant/50">
                           Resolved
                         </span>
@@ -270,15 +303,33 @@ export default function SupportPage() {
                       {new Date(req.createdAt).toLocaleString()}
                     </p>
                   </div>
-                </div>
-                {!isResolved && (
-                  <button
-                    onClick={() => resolve(req._id)}
-                    className="px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 active:scale-95 transition-all flex-shrink-0"
-                    style={{ background: tc.color + '20', border: `1px solid ${tc.color}40`, color: tc.color }}
-                  >
-                    <span className="material-symbols-outlined text-sm">check</span>Resolve
-                  </button>
+                </div>                {!isResolved && (
+                  <div className="flex gap-2 flex-shrink-0">
+                    {req.type === "payment" ? (
+                      <>
+                        <button
+                          onClick={() => handleConfirmPayment(req)}
+                          className="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all bg-emerald-500/20 border border-emerald-500/30 text-emerald-400"
+                        >
+                          <span className="material-symbols-outlined text-xs">check_circle</span>Confirm
+                        </button>
+                        <button
+                          onClick={() => resolve(req._id, "rejected")}
+                          className="px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all bg-rose-500/20 border border-rose-500/30 text-rose-400"
+                        >
+                          <span className="material-symbols-outlined text-xs">cancel</span>Reject
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => resolve(req._id, "resolved")}
+                        className="px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 active:scale-95 transition-all"
+                        style={{ background: tc.color + "20", border: "1px solid " + tc.color + "40", color: tc.color }}
+                      >
+                        <span className="material-symbols-outlined text-sm">check</span>Resolve
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             );

@@ -8,10 +8,10 @@ const router = express.Router();
 router.get("/", getMenu);
 
 // Admin-only routes
-router.post("/", auth, upload.single("image"), createMenuItem);
-router.put("/:id", auth, upload.single("image"), updateMenuItem);
-router.delete("/:id", auth, deleteMenuItem);
-router.post("/upload", auth, upload.single("image"), uploadMenuImage);
+router.post("/", auth, isAdmin, upload.single("image"), createMenuItem);
+router.put("/:id", auth, isAdmin, upload.single("image"), updateMenuItem);
+router.delete("/:id", auth, isAdmin, deleteMenuItem);
+router.post("/upload", auth, isAdmin, upload.single("image"), uploadMenuImage);
 router.post("/ai-description", auth, generateAiDescription);
 
 // Public: user-facing AI description (no auth)

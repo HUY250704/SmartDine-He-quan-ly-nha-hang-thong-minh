@@ -1,4 +1,4 @@
-﻿import mongoose from 'mongoose';
+import mongoose from 'mongoose';
 
 const SupportRequestSchema = new mongoose.Schema(
   {
@@ -6,8 +6,10 @@ const SupportRequestSchema = new mongoose.Schema(
     sessionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Session' },
     type: { type: String, enum: ['assistance', 'payment', 'question'], default: 'assistance' },
     message: { type: String, default: 'Customer needs assistance' },
-    status: { type: String, enum: ['pending', 'resolved'], default: 'pending' },
-    resolvedAt: { type: Date }
+    status: { type: String, enum: ['pending', 'confirmed', 'rejected', 'resolved'], default: 'pending' },
+    resolvedAt: { type: Date },
+    resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   },
   { timestamps: true }
 );

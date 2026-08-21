@@ -9,8 +9,8 @@ router.get("/public", getTables);
 
 // Admin-only routes
 router.get("/", auth, getTables);
-router.post("/", auth, createTable);
-router.put("/:id", auth, updateTable);
-router.delete("/:id", auth, deleteTable);
+router.post("/", auth, isAdmin, createTable);
+router.put("/:id", auth, isAdmin, updateTable);
+router.delete("/:id", auth, isAdmin, deleteTable);
 
 export default router;

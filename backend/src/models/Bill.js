@@ -49,6 +49,10 @@ const billSchema = new mongoose.Schema({
   paidAt: {
     type: Date,
     default: Date.now
+  },
+  resolvedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   }
 }, {
   timestamps: true

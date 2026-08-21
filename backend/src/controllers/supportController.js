@@ -1,4 +1,4 @@
-﻿import SupportRequest from '../models/SupportRequest.js';
+import SupportRequest from '../models/SupportRequest.js';
 import Table from '../models/Table.js';
 import { emitSupportRequest } from '../socket/index.js';
 
@@ -109,11 +109,12 @@ export const getRequests = async (req, res) => {
 
 export const resolveRequest = async (req, res) => {
   try {
+    const { status = "resolved" } = req.body;
     const request = await SupportRequest.findByIdAndUpdate(
       req.params.id,
-      { status: 'resolved', resolvedAt: new Date() },
+      { status, resolvedAt: new Date(), resolvedBy: req.user._id },
       { new: true }
-    ).populate('tableId', 'number');
+    ).populate("tableId", "number");
 
     if (!request) return res.status(404).json({ error: 'Support request not found' });
 
@@ -125,6 +126,7 @@ export const resolveRequest = async (req, res) => {
       status: request.status,
       createdAt: request.createdAt,
       resolvedAt: request.resolvedAt,
+      resolvedBy: request.resolvedBy,
       tableNumber: request.tableId?.number
     });
   } catch (error) {

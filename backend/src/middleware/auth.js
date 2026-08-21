@@ -1,4 +1,4 @@
-﻿import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -20,4 +20,10 @@ export const auth = async (req, res, next) => {
   } catch (error) {
     res.status(401).json({ error: 'Invalid token' });
   }
+};
+
+
+export const isAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== "ADMIN") return res.status(403).json({ error: "Access denied. Admin role required." });
+  next();
 };
