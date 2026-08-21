@@ -117,12 +117,15 @@ export default function SupportPaymentPage() {
     setSending(true);
     try {
       const sessionId = localStorage.getItem("smartdine_sessionId");
-      // Confirm QR payment and create the bill
-      const { data: bill } = await api.post("/bills/confirm-qr-payment", { sessionId, paymentMethod: selectedMethod });
-      localStorage.setItem("smartdine_lastBill", JSON.stringify(bill));
-      navigate("/customer/" + tableId + "/bill-success");
+      await api.post("/support/payment", {
+        sessionId,
+        tableId,
+        message: "Customer paid via QR (" + selectedMethod + ") for amount " + formatPrice(total)
+      });
+      showToast("Staff has been notified. Please wait for payment confirmation.");
+      setSelectedMethod(null);
     } catch (err) {
-      showToast(err.response?.data?.error || "Payment failed", true);
+      showToast(err.response?.data?.error || "Failed to notify staff", true);
     } finally {
       setSending(false);
     }

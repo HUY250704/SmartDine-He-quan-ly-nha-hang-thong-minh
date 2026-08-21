@@ -1,7 +1,7 @@
 import React from "react";
 import { formatPrice, normalizeVND } from "@/lib/price.js";
 
-export default function QRCodeModal({ total, onConfirm, onCancel, sending }) {
+export default function QRCodeModal({ total, tableId, onConfirm, onCancel, sending }) {
   const amountVND = normalizeVND(total);
   const [imgError, setImgError] = React.useState(false);
 
@@ -28,7 +28,7 @@ export default function QRCodeModal({ total, onConfirm, onCancel, sending }) {
           <div className="rounded-2xl p-4" style={{ background: "rgba(255,193,116,0.05)", border: "1px solid rgba(255,193,116,0.15)" }}>
             {!imgError ? (
               <img
-                src="/qr-bank.png"
+                src={`https://img.vietqr.io/image/MB-970422926710408-compact2.png?amount=${amountVND}&addInfo=Ban%20${tableId}%20Thanh%20Toan&accountName=SMARTDINE%20RESTAURANT`}
                 alt="QR ngan hang"
                 className="w-[220px] h-[220px] rounded-xl object-contain bg-white"
                 onError={() => setImgError(true)}
