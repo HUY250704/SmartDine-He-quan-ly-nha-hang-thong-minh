@@ -1,4 +1,4 @@
-import Bill from '../models/Bill.js';
+﻿import Bill from '../models/Bill.js';
 import Session from '../models/Session.js';
 import Order from '../models/Order.js';
 import OrderItem from '../models/OrderItem.js';
@@ -129,11 +129,8 @@ export const generateBill = async (req, res) => {
     session.endTime = new Date();
     await session.save();
 
-    // Free table
-    await Table.findByIdAndUpdate(session.tableId, {
-      status: "CLEANING",
-      currentSessionId: null,
-    }, { new: true }).then((t) => { if (t) emitTableUpdated(t); });
+    // Close session and set table to CLEANING. Staff will manually set to AVAILABLE when ready.
+    await Table.findByIdAndUpdate(session.tableId, { status: "CLEANING", currentSessionId: null }, { new: true }).then((t) => { if (t) emitTableUpdated(t); });
 
     // Populate and emit to socket admins
     Bill.findById(bill._id)
@@ -173,7 +170,8 @@ export const confirmQrPayment = async (req, res) => {
     const { tax, serviceCharge, total } = calcTotals(subtotal); const table = await Table.findById(session.tableId);
     const bill = await Bill.create({ sessionId, tableNumber: table?.number, items, subtotal, tax, serviceCharge, total, paymentMethod, paymentStatus: 'PAID', paidAt: new Date() });
     session.status = 'CLOSED'; session.endTime = new Date(); await session.save();
-    await Table.findByIdAndUpdate(session.tableId, { status: 'CLEANING', currentSessionId: null }).then((updated) => { if (updated) emitTableUpdated(updated); });
+    // Close session and set table to CLEANING. Staff will manually set to AVAILABLE when ready.
+    await Table.findByIdAndUpdate(session.tableId, { status: "CLEANING", currentSessionId: null }, { new: true }).then((t) => { if (t) emitTableUpdated(t); });
     const populatedBill = await Bill.findById(bill._id).populate({ path: 'sessionId', populate: { path: 'tableId', select: 'number' } });
     emitBillCreated(populatedBill || bill); return res.status(201).json(bill);
   } catch (error) { if (error.code === 11000) return res.json(await Bill.findOne({ sessionId: req.body.sessionId })); return res.status(500).json({ error: error.message }); }
@@ -221,3 +219,4 @@ export const getRevenueStats = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
