@@ -219,12 +219,12 @@ export default function SupportPaymentPage() {
               <>
                 <div className="space-y-1.5 mb-3">
                   {billItems.map((item, i) => (
-                    <div key={i} className="flex justify-between text-xs md:text-sm">
-                      <span className="text-on-surface-variant/70">
-                        {item.name}{" "}
-                        <span className="text-on-surface-variant/30 text-xs">x{item.qty}</span>
-                      </span>
-                      <span className="text-on-surface font-mono text-xs">{formatPrice(item.price * item.qty)}</span>
+                    <div key={i} className="flex items-center justify-between text-xs md:text-sm py-1 border-b border-white/5 last:border-0 gap-4">
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        <span className="text-white font-medium truncate">{item.name}</span>
+                        <span className="text-on-surface-variant/40 text-[10px] shrink-0 font-bold px-1.5 py-0.5 rounded bg-white/5">x{item.qty}</span>
+                      </div>
+                      <span className="text-[#ffc174] font-mono text-xs shrink-0">{formatPrice(item.price * item.qty)}</span>
                     </div>
                   ))}
                 </div>

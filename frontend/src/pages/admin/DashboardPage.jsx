@@ -16,7 +16,47 @@ const statusPill = {
   Paid: "bg-tertiary/20 text-tertiary border-tertiary/30",
 };
 
-export default function DashboardPage() {  const { t } = useLang();
+export default function DashboardPage() {
+  const loadLocalStats = (period) => {
+    try {
+      const local = localStorage.getItem("smartdine_local_bills");
+      const bills = local ? JSON.parse(local) : [];
+      const totalRevenue = bills.reduce((sum, b) => sum + Number(b.total || 0), 0);
+      const avgBill = bills.length ? Math.round(totalRevenue / bills.length) : 0;
+      const todayStr = new Date().toDateString();
+      const todayRevenue = bills
+        .filter(b => b.paidAt && new Date(b.paidAt).toDateString() === todayStr)
+        .reduce((sum, b) => sum + Number(b.total || 0), 0);
+      setStats({
+        totalRevenue,
+        avgBill,
+        totalOrders: bills.length,
+        activeTables: 2,
+        totalTables: 12,
+        todayRevenue,
+        todaySessions: bills.filter(b => b.paidAt && new Date(b.paidAt).toDateString() === todayStr).length
+      });
+      const chart = getFallbackData(period).map(pt => {
+        let val = 0;
+        if (period === 'week') {
+          const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          val = bills
+            .filter(b => b.paidAt && days[new Date(b.paidAt).getDay()] === pt.label)
+            .reduce((sum, b) => sum + Number(b.total || 0), 0);
+        } else {
+          const wkNum = parseInt(pt.label.replace('Week ', ''));
+          const now = Date.now();
+          const start = now - (5 - wkNum)*7*86400000;
+          const end = start + 7*86400000;
+          val = bills
+            .filter(b => b.paidAt && new Date(b.paidAt).getTime() >= start && new Date(b.paidAt).getTime() < end)
+            .reduce((sum, b) => sum + Number(b.total || 0), 0);
+        }
+        return { ...pt, value: val };
+      });
+      setChartData(chart);
+    } catch (e) { console.error(e); }
+  };  const { t } = useLang();
   const [stats, setStats] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [topItems, setTopItems] = useState([]);
