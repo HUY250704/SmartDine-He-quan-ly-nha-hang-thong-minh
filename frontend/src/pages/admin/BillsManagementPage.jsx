@@ -6,7 +6,7 @@ import { useLang } from "@/context/LanguageContext.jsx";
 import { getSocket } from "@/lib/socket.js";
 
 const formatPriceForPDF = (price) => {
-  return normalizeVND(price).toLocaleString("vi-VN") + "đ";
+  return normalizeVND(price).toLocaleString("vi-VN") + "\u0111";
 };
 
 const paymentMethods = {
@@ -44,6 +44,7 @@ export default function BillsManagementPage() {
     socket.emit("join-admin");
 
     const handleNewBill = (newBill) => {
+      if (!newBill?.sessionId?.tableId) { fetchData(); return; }
       setBills((prev) => {
         if (prev.some((b) => b._id === newBill._id)) return prev;
         return [newBill, ...prev];

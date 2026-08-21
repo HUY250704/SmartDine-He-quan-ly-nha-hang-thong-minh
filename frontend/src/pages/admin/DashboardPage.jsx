@@ -99,11 +99,13 @@ export default function DashboardPage() {  const { t } = useLang();
     socket.on("new-order", refresh);
     socket.on("order-updated", refresh);
     socket.on("table-updated", refresh);
+    socket.on("bill-created", refresh);
 
     return () => {
       socket.off("new-order", refresh);
       socket.off("order-updated", refresh);
       socket.off("table-updated", refresh);
+      socket.off("bill-created", refresh);
     };
   }, []);
 
@@ -123,6 +125,18 @@ export default function DashboardPage() {  const { t } = useLang();
         setChartData(getFallbackData(chartPeriod));
       })
       .finally(() => setChartLoading(false));
+  }, [chartPeriod]);
+
+  // Refresh revenue chart when a payment creates a new bill.
+  useEffect(() => {
+    const socket = getSocket();
+    const refreshChart = () => {
+      api.get(`/dashboard/revenue-chart?period=${chartPeriod}`).then((res) => {
+        if (res.data?.length) setChartData(res.data.map((point) => ({ ...point, value: Number(point.value) })));
+      }).catch(() => {});
+    };
+    socket.on("bill-created", refreshChart);
+    return () => socket.off("bill-created", refreshChart);
   }, [chartPeriod]);
 
   function getFallbackData(period) {
@@ -324,4 +338,3 @@ export default function DashboardPage() {  const { t } = useLang();
     </div>
   );
 }
-

@@ -154,6 +154,30 @@ export const generateBill = async (req, res) => {
 
 
 
+
+export const confirmQrPayment = async (req, res) => {
+  try {
+    const { sessionId, paymentMethod } = req.body;
+    if (!sessionId || !['E_WALLET', 'BANK_TRANSFER'].includes(paymentMethod)) return res.status(400).json({ error: 'Invalid QR payment request' });
+    const existing = await Bill.findOne({ sessionId });
+    if (existing) return res.json(existing);
+    const session = await Session.findById(sessionId);
+    if (!session || session.status !== 'ACTIVE') return res.status(400).json({ error: 'Session not found or already closed' });
+    const orders = await Order.find({ sessionId, status: { $ne: 'CANCELLED' } });
+    const map = await batchOrderItems(orders.map(o => o._id), 'name price image');
+    const items = []; let subtotal = 0;
+    for (const order of orders) for (const item of map.get(order._id.toString()) || []) {
+      const quantity = item.quantity || 1; const price = normalizeVND(item.menuItemId?.price); const name = item.menuItemId?.name || 'Item'; subtotal += price * quantity;
+      const found = items.find(i => i.name === name); if (found) found.quantity += quantity; else items.push({ name, quantity, price, image: item.menuItemId?.image || '' });
+    }
+    const { tax, serviceCharge, total } = calcTotals(subtotal); const table = await Table.findById(session.tableId);
+    const bill = await Bill.create({ sessionId, tableNumber: table?.number, items, subtotal, tax, serviceCharge, total, paymentMethod, paymentStatus: 'PAID', paidAt: new Date() });
+    session.status = 'CLOSED'; session.endTime = new Date(); await session.save();
+    await Table.findByIdAndUpdate(session.tableId, { status: 'CLEANING', currentSessionId: null }).then((updated) => { if (updated) emitTableUpdated(updated); });
+    const populatedBill = await Bill.findById(bill._id).populate({ path: 'sessionId', populate: { path: 'tableId', select: 'number' } });
+    emitBillCreated(populatedBill || bill); return res.status(201).json(bill);
+  } catch (error) { if (error.code === 11000) return res.json(await Bill.findOne({ sessionId: req.body.sessionId })); return res.status(500).json({ error: error.message }); }
+};
 export const getRevenueStats = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;

@@ -92,7 +92,7 @@ export default function SupportPaymentPage() {
       .finally(() => setBillLoading(false));
   }, []);
 
-  // Init Stripe Elements khi chọn CARD
+  // Initialize Stripe Elements when CARD is selected
   useEffect(() => {
     if (selectedMethod === "CARD" && !stripeReady) {
       let cancelled = false;
@@ -154,10 +154,10 @@ export default function SupportPaymentPage() {
       const sessionId = localStorage.getItem("smartdine_sessionId");
       if (!sessionId) { showToast("Session not found", true); setSending(false); return; }
 
-      // 1. Tạo PaymentIntent
+      // 1. Create PaymentIntent
       const { data: pi } = await api.post("/bills/create-payment-intent", { sessionId });
 
-      // 2. Confirm với Stripe
+      // 2. Confirm with Stripe
       const stripe = await getStripe();
       const { error: stripeError } = await stripe.confirmCardPayment(pi.clientSecret, {
         payment_method: { card: cardInstance.current },
@@ -169,7 +169,7 @@ export default function SupportPaymentPage() {
         return;
       }
 
-      // 3. Xác nhận với backend + tạo bill
+      // 3. Confirm with backend and create bill
       const { data: bill } = await api.post("/bills/confirm-stripe-payment", {
         sessionId,
         paymentIntentId: pi.clientSecret.split("_secret_")[0],
@@ -188,7 +188,7 @@ export default function SupportPaymentPage() {
     setSending(true);
     try {
       if (method === "CASH") {
-        // Cash: chỉ gửi yêu cầu, admin xử lý sau
+        // Cash: notify staff for manual processing
         const sessionId = localStorage.getItem("smartdine_sessionId");
         await api.post("/support/payment", { sessionId, tableId, message: "Customer wants to pay by cash" });
         showToast("Staff has been notified. Please wait at your table.");
@@ -212,10 +212,10 @@ export default function SupportPaymentPage() {
     setSending(true);
     try {
       const sessionId = localStorage.getItem("smartdine_sessionId");
-      // Send support request — staff will verify and generate bill later
-      await api.post("/support/payment", { sessionId, tableId, message: "Customer has paid via QR (" + selectedMethod + ")" });
-      showToast("Staff will verify your payment. Please wait at your table.");
-      setSelectedMethod(null);
+      // Confirm QR payment and create the bill
+      const { data: bill } = await api.post("/bills/confirm-qr-payment", { sessionId, paymentMethod: selectedMethod });
+      localStorage.setItem("smartdine_lastBill", JSON.stringify(bill));
+      navigate("/customer/" + tableId + "/bill-success");
     } catch (err) {
       showToast(err.response?.data?.error || "Payment failed", true);
     } finally {
