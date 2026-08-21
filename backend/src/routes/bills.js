@@ -9,7 +9,7 @@ router.get('/', auth, getBills);
 router.get('/stats/revenue', auth, getRevenueStats);
 router.get('/:id', auth, getBillById);
 
-// Customer-facing routes (no auth â€” validated via sessionId)
-router.post('/generate', generateBill);
+// Admin-only payment confirmation
+router.post('/generate', auth, generateBill);
 
 export default router;
