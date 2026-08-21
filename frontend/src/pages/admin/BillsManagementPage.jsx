@@ -36,10 +36,16 @@ export default function BillsManagementPage() {
     } catch (e) {}
     const now = Date.now();
     const defaults = [
-      { _id: "b1", tableNumber: 3, total: 7525000, paymentMethod: "CARD", paymentStatus: "PAID", paidAt: new Date(now - 3*86400000).toISOString(), items: [{ name: "Pinot Noir Glass", quantity: 10, price: 300000 }] },
+      { _id: "b1", tableNumber: 3, total: 7525000, paymentMethod: "BANK_TRANSFER", paymentStatus: "PAID", paidAt: new Date(now - 3*86400000).toISOString(), items: [{ name: "Pinot Noir Glass", quantity: 10, price: 300000 }] },
       { _id: "b2", tableNumber: 5, total: 1650000, paymentMethod: "CASH", paymentStatus: "PAID", paidAt: new Date(now - 2*86400000).toISOString(), items: [{ name: "Ribeye Steak 300g", quantity: 3, price: 550000 }] },
       { _id: "b3", tableNumber: 2, total: 2250000, paymentMethod: "E_WALLET", paymentStatus: "PAID", paidAt: new Date(now - 86400000).toISOString(), items: [{ name: "Crispy Calamari", quantity: 5, price: 450000 }] },
-      { _id: "b4", tableNumber: 8, total: 8900000, paymentMethod: "CARD", paymentStatus: "PAID", paidAt: new Date(now - 86400000).toISOString(), items: [{ name: "Pinot Noir Glass", quantity: 20, price: 300000 }] }
+      { _id: "b4", tableNumber: 8, total: 8900000, paymentMethod: "BANK_TRANSFER", paymentStatus: "PAID", paidAt: new Date(now - 86400000).toISOString(), items: [{ name: "Pinot Noir Glass", quantity: 20, price: 300000 }] },
+      { _id: "b5", tableNumber: 1, total: 1200000, paymentMethod: "CASH", paymentStatus: "PAID", paidAt: new Date(now - 12*3600000).toISOString(), items: [{ name: "Crème Brûlée", quantity: 4, price: 300000 }] },
+      { _id: "b6", tableNumber: 4, total: 3500000, paymentMethod: "E_WALLET", paymentStatus: "PAID", paidAt: new Date(now - 6*3600000).toISOString(), items: [{ name: "Ribeye Steak 300g", quantity: 5, price: 700000 }] },
+      { _id: "b7", tableNumber: 9, total: 950000, paymentMethod: "BANK_TRANSFER", paymentStatus: "PAID", paidAt: new Date(now - 4*3600000).toISOString(), items: [{ name: "Bruschetta Trio", quantity: 2, price: 475000 }] },
+      { _id: "b8", tableNumber: 6, total: 2400000, paymentMethod: "CASH", paymentStatus: "PAID", paidAt: new Date(now - 2*3600000).toISOString(), items: [{ name: "Crispy Calamari", quantity: 6, price: 400000 }] },
+      { _id: "b9", tableNumber: 7, total: 1800000, paymentMethod: "E_WALLET", paymentStatus: "PAID", paidAt: new Date(now - 3600000).toISOString(), items: [{ name: "Crème Brûlée", quantity: 6, price: 300000 }] },
+      { _id: "b10", tableNumber: 10, total: 4200000, paymentMethod: "BANK_TRANSFER", paymentStatus: "PAID", paidAt: new Date(now).toISOString(), items: [{ name: "Ribeye Steak 300g", quantity: 6, price: 700000 }] }
     ];
     localStorage.setItem("smartdine_local_bills", JSON.stringify(defaults));
     return defaults;
