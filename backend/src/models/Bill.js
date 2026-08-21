@@ -38,17 +38,13 @@ const billSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['CASH', 'CARD', 'BANK_TRANSFER', 'E_WALLET'],
+    enum: ['CASH', 'BANK_TRANSFER', 'E_WALLET'],
     required: true
   },
   paymentStatus: {
     type: String,
     enum: ['PENDING', 'PAID', 'REFUNDED'],
     default: 'PAID'
-  },
-  stripePaymentIntentId: {
-    type: String,
-    default: null
   },
   paidAt: {
     type: Date,

@@ -29,7 +29,7 @@ SmartDine gồm **hai giao diện** phục vụ hai nhóm người dùng hoàn t
 | **Backend** | Node.js + Express |
 | **Database** | MongoDB + Mongoose ODM |
 | **Realtime** | Socket.IO |
-| **Thanh toán** | Stripe (PaymentIntent + Webhook) + offline cash/e-wallet/bank |
+| **Thanh toán** | Offline cash / e-wallet / bank (QR) |
 | **Auth (Admin)** | JWT (`jsonwebtoken`) |
 | **AI** | Google Gemini API |
 | **Upload ảnh** | Cloudinary |
@@ -108,10 +108,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 OPENROUTER_API_KEY=sk-or-v1-your_openrouter_api_key_here
 OPENROUTER_MODEL=nvidia/nemotron-3.5-lightning:free
 
-# Stripe
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
+
 
 # Optional
 SWAGGER_ENABLED=true
@@ -122,7 +119,7 @@ Tạo `frontend/.env` hoặc dùng `frontend/.env.development`:
 ```env
 VITE_API_URL=http://localhost:4000
 VITE_SOCKET_URL=http://localhost:4000
-VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
+
 ```
 
 ### Khởi chạy
@@ -207,7 +204,7 @@ npm run dev
 | `total` | Number | Tổng cộng |
 | `paymentMethod` | Enum | `CASH`, `CARD`, `E_WALLET`, `BANK_TRANSFER` |
 | `paymentStatus` | Enum | `PENDING`, `PAID` |
-| `stripePaymentIntentId` | String | Nếu thanh toán qua Stripe |
+
 
 ### SupportRequest (Yêu cầu hỗ trợ)
 | Field | Type |
@@ -336,8 +333,8 @@ npm run dev
 | `GET /orders/session/:id` | Khách theo dõi đơn |
 | `POST /support/call`, `POST /support/payment` | Gọi nhân viên / yêu cầu thanh toán |
 | `POST /bills/generate` | Tạo hóa đơn offline (chờ nhân viên xác nhận) |
-| `POST /bills/create-payment-intent` | Stripe PaymentIntent |
-| `POST /bills/confirm-stripe-payment` | Xác nhận thanh toán Stripe |
+
+
 
 > **Cơ chế xác thực customer**: Không dùng JWT. Controller validate bằng `sessionId`/`tableId` (session phải tồn tại và đang `ACTIVE`). Token JWT chỉ dành cho admin.
 ## 8. Hệ thống Thiết kế (Design System)
@@ -375,19 +372,6 @@ npm run dev
 > Dashboard cũng lắng nghe `new-order`, `order-updated`, `table-updated` để tự refresh mà không cần bấm làm mới.
 ## 10. Thanh toán & Xuất hóa đơn
 
-### Thẻ tín dụng (Stripe)
-
-```
-Khách chọn Credit Card
-  → POST /bills/create-payment-intent
-  → Backend tính total = subtotal + 8% tax + 5% service
-  → Stripe PaymentIntent → trả clientSecret
-  → Stripe Elements hiển thị form thẻ
-  → Khách submit → frontend gọi confirmStripePayment
-  → Backend verify PaymentIntent → tạo Bill PAID → đóng Session → bàn CLEANING
-  → Fallback: Stripe Webhook /webhooks/stripe
-```
-
 ### Tiền mặt / Ví điện tử / Chuyển khoản
 
 ```
@@ -417,7 +401,7 @@ Khách chọn E_WALLET / BANK_TRANSFER
   - JWT cho toàn bộ admin API (middleware `auth.js`).
   - Customer flow dùng session-based validation trong controller.
   - `.env` chứa tất cả secret/key.
-  - Stripe webhook signature verification.
+
 - **Real-time:** Socket.IO — admin nhận đơn mới, yêu cầu hỗ trợ ngay lập tức; customer thấy tiến độ món ăn.
 - **Cảnh báo:** Admin có âm thanh cho đơn mới và yêu cầu hỗ trợ; banner cho đơn mới.
 - **Error handling:** Response interceptor tự động logout admin khi token hết hạn (401).

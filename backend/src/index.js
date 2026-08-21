@@ -21,7 +21,6 @@ import orderRoutes from './routes/orders.js';
 import supportRoutes from './routes/support.js';
 import adminRoutes from './routes/admin.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
-import { handleStripeWebhook } from './controllers/stripeController.js';
 import dashboardRoutes from './routes/dashboard.js';
 
 // Socket
@@ -67,8 +66,6 @@ const io = new Server(server, {
 // Initialize socket handlers
 initSocket(io);
 
-// Stripe webhook needs raw body (before JSON parser)
-app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 app.use(express.json());
 
